@@ -39,12 +39,14 @@ use Gnome::GObject::Signal;
 use Gnome::GObject::Value;
 use Gnome::Glib::Main;
 
+#`{{
 # Export the native object defined in Gnome::N::N-GObject to other locations
 #TODO get rid of this export
 sub EXPORT { {
     'N-GObject' => N-GObject,
   }
 };
+}}
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
