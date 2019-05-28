@@ -18,7 +18,7 @@
     "Gnome::GObject::Value": "lib/Gnome/GObject/Value.pm6"
   },
 
-  "source-url": "git://github.com/MARTIMM/gnome-gobject.git",
+  "source-url": "git://github.com/MARTIMM/perl6-gnome-gobject.git",
 
   "depends": [ "Gnome::N", "Gnome::Glib" ],
   "test-depends": [ ],
