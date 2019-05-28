@@ -1,0 +1,27 @@
+{
+  "description": "Perl6 Gnome gobject api",
+  "name": "Gnome::GObject",
+  "version": "0.13.2",
+  "authors": [ "Marcel Timmerman"],
+  "tags": [ "gnome", "glib"],
+
+  "perl": "6",
+  "license": "Artistic-2.0",
+
+  "provides": {
+    "Gnome::GObject::Boxed": "lib/Gnome/GObject/Boxed.pm6",
+    "Gnome::GObject::InitiallyUnowned": "lib/Gnome/GObject/InitiallyUnowned.pm6",
+    "Gnome::GObject::Interface": "lib/Gnome/GObject/Interface.pm6",
+    "Gnome::GObject::Object": "lib/Gnome/GObject/Object.pm6",
+    "Gnome::GObject::Signal": "lib/Gnome/GObject/Signal.pm6",
+    "Gnome::GObject::Type": "lib/Gnome/GObject/Type.pm6",
+    "Gnome::GObject::Value": "lib/Gnome/GObject/Value.pm6"
+  },
+
+  "source-url": "git://github.com/MARTIMM/gnome-gobject.git",
+
+  "depends": [ "Gnome::N", "Gnome::Glib" ],
+  "test-depends": [ ],
+  "build-depends": [ ],
+  "resources": [ ]
+}
