@@ -1,15 +1,15 @@
 use v6;
 use Test;
 
-use Gnome::Gtk::GtkMain;
-use Gnome::Gtk::GtkLabel;
+use Gnome::Gtk3::GtkMain;
+use Gnome::Gtk3::GtkLabel;
 
 #-------------------------------------------------------------------------------
 class ThreadCode {
   method th-runner ( :$widget, :$option1, :$main-thread-id ) {
 
     sleep(1.1);
-    my Gnome::Gtk::GtkMain $main .= new;
+    my Gnome::Gtk3::GtkMain $main .= new;
     is $main.gtk-main-level, 1, "loop level now 1";
 
     if $main-thread-id == $*THREAD.id {
@@ -20,7 +20,7 @@ class ThreadCode {
       diag "TID: $*THREAD.id(), In handler on different thread -> new context";
     }
 
-    isa-ok $widget, Gnome::Gtk::GtkLabel;
+    isa-ok $widget, Gnome::Gtk3::GtkLabel;
     is $option1, 't1', 'first option matches';
 
     diag "TID: $*THREAD.id(), Use g-main-loop-quit() to stop loop";
@@ -32,7 +32,7 @@ class ThreadCode {
 
 #-------------------------------------------------------------------------------
 my ThreadCode $th .= new;
-my Gnome::Gtk::GtkLabel $lbl .= new(:label<test-label>);
+my Gnome::Gtk3::GtkLabel $lbl .= new(:label<test-label>);
 
 #-------------------------------------------------------------------------------
 subtest "start thread with a default context", {
@@ -40,7 +40,7 @@ subtest "start thread with a default context", {
     $th, 'th-runner', :option1<t1>, :main-thread-id($*THREAD.id)
   );
 
-  my Gnome::Gtk::GtkMain $main .= new;
+  my Gnome::Gtk3::GtkMain $main .= new;
   is $main.gtk-main-level, 0, "loop level 0";
   diag "TID: $*THREAD.id(), start loop with gtk-main()";
   $main.gtk-main;
@@ -57,7 +57,7 @@ subtest "start thread with a new context", {
     $th, 'th-runner', :new-context, :option1<t1>, :main-thread-id($*THREAD.id)
   );
 
-  my Gnome::Gtk::GtkMain $main .= new;
+  my Gnome::Gtk3::GtkMain $main .= new;
   is $main.gtk-main-level, 0, "loop level 0";
   diag "TID: $*THREAD.id(), start loop with gtk-main()";
   $main.gtk-main;

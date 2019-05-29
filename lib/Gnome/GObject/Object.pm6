@@ -15,12 +15,12 @@ This object is almost never used directly. Most of the classes inherit from this
   use Gnome::GObject::Object;
   use Gnome::GObject::Value;
   use Gnome::GObject::Type;
-  use Gnome::Gtk::Label;
+  use Gnome::Gtk3::Label;
 
   my Gnome::GObject::Type $gt .= new;
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
 
-  my Gnome::Gtk::Label $label1 .= new(:label(''));
+  my Gnome::Gtk3::Label $label1 .= new(:label(''));
   $gv.g-value-set-string('label string');
   $label1.g-object-set-property( 'label', $gv);
 
@@ -33,7 +33,7 @@ use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 
 #use Gnome::Gdk::EventTypes;
-#use Gnome::Gtk::Main;
+#use Gnome::Gtk3::Main;
 
 use Gnome::GObject::Signal;
 use Gnome::GObject::Value;
@@ -59,7 +59,7 @@ my Bool $signals-added = False;
 has N-GObject $!g-object;
 has Gnome::GObject::Signal $!g-signal;
 
-# type is Gnome::Gtk::Builder. Cannot load module because of circular dep.
+# type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
 
@@ -76,8 +76,8 @@ This method is designed to set and retrieve the gtk object from a perl6 widget o
 
   # Example only to show how things can be tranported between objects. Not
   # something you need to remember!
-  my N-GObject $button = Gnome::Gtk::Button.new(:label('Exit'))();
-  my Gnome::Gtk::Button $b .= new(:empty);
+  my N-GObject $button = Gnome::Gtk3::Button.new(:label('Exit'))();
+  my Gnome::Gtk3::Button $b .= new(:empty);
   $b($button);
 
 See also L<native-gobject>.
@@ -137,7 +137,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    if $p.^name ~~ m/^ 'Gnome::' [ Gtk || Gdk || Glib ] '::' / {
+    if $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk || Glib ] '::' / {
       $params.push($p());
     }
 
@@ -179,11 +179,11 @@ method fallback ( $native-sub --> Callable ) {
 
 Please note that this class is mostly not instantiated directly but is used indirectly when a child class is instantiated.
 
-Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like C< Gnome::Gtk::Button>.
+Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like C< Gnome::Gtk3::Button>.
 
   # some set of radio buttons grouped together
-  my Gnome::Gtk::RadioButton $rb1 .= new(:label('Download everything'));
-  my Gnome::Gtk::RadioButton $rb2 .= new(
+  my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
+  my Gnome::Gtk3::RadioButton $rb2 .= new(
     :group-from($rb1), :label('Download core only')
   );
 
@@ -191,7 +191,7 @@ Create a Perl6 widget object using a native widget from elsewhere. $widget can b
   my Gnome::GObject::SList $rb-list .= new(:gslist($rb2.get-group));
   loop ( Int $i = 0; $i < $rb-list.g_slist_length; $i++ ) {
     # get button from the list
-    my Gnome::Gtk::RadioButton $rb .= new(
+    my Gnome::Gtk3::RadioButton $rb .= new(
       :widget($rb-list.nth-data-gobject($i))
     );
 
@@ -204,8 +204,8 @@ Create a Perl6 widget object using a native widget from elsewhere. $widget can b
 
 Another example is a difficult way to get a button.
 
-  my Gnome::Gtk::Button $start-button .= new(
-    :widget(Gnome::Gtk::Button.gtk_button_new_with_label('Start'))
+  my Gnome::Gtk3::Button $start-button .= new(
+    :widget(Gnome::Gtk3::Button.gtk_button_new_with_label('Start'))
   );
 
 =head3  multi method new ( Str :$build-id! )
@@ -248,16 +248,28 @@ Create a Perl6 widg
 }}
 et object using a C<GtkBuilder>. The C<GtkBuilder> class will handover its object address to the C<GObject> and can then be used to search for id's defined in the GUI glade design.
 
-  my Gnome::Gtk::Builder $builder .= new(:filename<my-gui.glade>);
-  my Gnome::Gtk::Button $button .= new(:build-id<my-gui-button>);
+  my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
+  my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
 
 =end pod
 
 submethod BUILD ( *%options ) {
 
-#TODO move it to some middle man in Gnome::Gtk
-  # Test if GTK is initialized
-  #my Gnome::Gtk::Main $main .= new;
+  # Test if GTK is initialized. Because of this, there is a dependency on
+  # Gnome::Gtk3. This poses a dependency cycle on packages. The only way to
+  # solve this is to require it.
+  my $main;
+  try {
+    require ::('Gnome::Gtk3::Main');
+    $main = ::('Gnome::Gtk3::Main').new;
+
+    CATCH {
+#      note "Err:\n$_";
+      default {
+        die "Please install Gnome::Gtk3";
+      }
+    }
+  }
 
   note "\ngobject: {self}, ", %options if $gobject-debug;
 
@@ -403,7 +415,7 @@ Other forms are explained in the widget documentations when signals are provided
   }
 
   # create a button and some data to send with the signal
-  my Gnome::Gtk::Button $button .= new(:label('xyz'));
+  my Gnome::Gtk3::Button $button .= new(:label('xyz'));
   my Array $data = [<Hello World>];
 
   # register button signal

@@ -16,7 +16,7 @@ use v6;
   method mouse-event ( :widget($w), :event($e)) { ... }
 
   # get the window object
-  my Gnome::Gtk::Window $w .= new( ... );
+  my Gnome::Gtk3::Window $w .= new( ... );
 
   # define proper handler. you must study the GTK develper guides. you will
   # then notice that C<connect-object> is a bit different than the real mcCoy.
@@ -34,7 +34,7 @@ It will be easier to use the C<register-signal()> method defined in C<Gnome::GOb
   method mouse-event ( :widget($w), :event($e), :$time) { ... }
 
   # get the window object
-  my Gnome::Gtk::Window $w .= new( ... );
+  my Gnome::Gtk3::Window $w .= new( ... );
 
   # then register
   $w.register-signal( self, 'mouse-event', 'button-press-event', :time(now));

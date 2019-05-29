@@ -2,10 +2,10 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::X;
+use Gnome::N::X;
 use Gnome::Glib::GValue;
 use Gnome::Glib::GType;
-use Gnome::Gtk::GtkLabel;
+use Gnome::Gtk3::GtkLabel;
 
 #-------------------------------------------------------------------------------
 subtest 'properties of label', {
@@ -14,7 +14,7 @@ subtest 'properties of label', {
   my Gnome::Glib::GValue $gv .= new(:init(G_TYPE_STRING));
   is $gt.g-type-check-value($gv()), 1, 'gvalue initialized';
 
-  my Gnome::Gtk::GtkLabel $label1 .= new(:label('abc def'));
+  my Gnome::Gtk3::GtkLabel $label1 .= new(:label('abc def'));
   is $label1.gtk-label-get-text, 'abc def', 'label text set';
 
   $label1.g-object-get-property( 'label', $gv);
