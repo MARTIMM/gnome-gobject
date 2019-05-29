@@ -8,8 +8,8 @@ use Gnome::GObject::Object;
 subtest 'create gobject', {
   throws-like(
     { my Gnome::GObject::Object $o .= new; },
-    X::Gnome, 'no way to create empty object',
-    :message("No options used to create or set the native widget")
+    X::AdHoc, 'Missing package Gnome::Gtk3',
+    :message(/:s Please install 'Gnome::Gtk3'/)
   );
 }
 

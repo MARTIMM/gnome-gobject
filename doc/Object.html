@@ -41,21 +41,21 @@
 <pre class="pod-block-code">use Gnome::GObject::Object;
 use Gnome::GObject::Value;
 use Gnome::GObject::Type;
-use Gnome::Gtk::Label;
+use Gnome::Gtk3::Label;
 
 my Gnome::GObject::Type $gt .= new;
 my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
 
-my Gnome::Gtk::Label $label1 .= new(:label(&#39;&#39;));
+my Gnome::Gtk3::Label $label1 .= new(:label(&#39;&#39;));
 $gv.g-value-set-string(&#39;label string&#39;);
 $label1.g-object-set-property( &#39;label&#39;, $gv);</pre>
 <h2 id="new"><a class="u" href="#___top" title="go to top of document">new</a></h2>
 <h3 id="multi_method_new_(_:$widget!_)"><a class="u" href="#___top" title="go to top of document">multi method new ( :$widget! )</a></h3>
 <p>Please note that this class is mostly not instantiated directly but is used indirectly when a child class is instantiated.</p>
-<p>Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like <code>Gnome::Gtk::Button</code>.</p>
+<p>Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like <code>Gnome::Gtk3::Button</code>.</p>
 <pre class="pod-block-code"># some set of radio buttons grouped together
-my Gnome::Gtk::RadioButton $rb1 .= new(:label(&#39;Download everything&#39;));
-my Gnome::Gtk::RadioButton $rb2 .= new(
+my Gnome::Gtk3::RadioButton $rb1 .= new(:label(&#39;Download everything&#39;));
+my Gnome::Gtk3::RadioButton $rb2 .= new(
   :group-from($rb1), :label(&#39;Download core only&#39;)
 );
 
@@ -63,7 +63,7 @@ my Gnome::Gtk::RadioButton $rb2 .= new(
 my Gnome::GObject::SList $rb-list .= new(:gslist($rb2.get-group));
 loop ( Int $i = 0; $i &lt; $rb-list.g_slist_length; $i++ ) {
   # get button from the list
-  my Gnome::Gtk::RadioButton $rb .= new(
+  my Gnome::Gtk3::RadioButton $rb .= new(
     :widget($rb-list.nth-data-gobject($i))
   );
 
@@ -74,8 +74,8 @@ loop ( Int $i = 0; $i &lt; $rb-list.g_slist_length; $i++ ) {
   }
 }</pre>
 <p>Another example is a difficult way to get a button.</p>
-<pre class="pod-block-code">my Gnome::Gtk::Button $start-button .= new(
-  :widget(Gnome::Gtk::Button.gtk_button_new_with_label(&#39;Start&#39;))
+<pre class="pod-block-code">my Gnome::Gtk3::Button $start-button .= new(
+  :widget(Gnome::Gtk3::Button.gtk_button_new_with_label(&#39;Start&#39;))
 );</pre>
 <h3 id="multi_method_new_(_Str_:$build-id!_)"><a class="u" href="#___top" title="go to top of document">multi method new ( Str :$build-id! )</a></h3>
 <p>Create a Perl6 widg #`{{ if $setup-event-handler { $handler = -&gt; N-GObject $w, GdkEvent $event, OpaquePointer $d { $handler-object.&quot;$handler-name&quot;( :widget(self), :$event, |%user-options ); }</p>
@@ -106,8 +106,8 @@ else {
   );
 }</pre>
 <p>}} et object using a <code>GtkBuilder</code>. The <code>GtkBuilder</code> class will handover its object address to the <code>GObject</code> and can then be used to search for id&#39;s defined in the GUI glade design.</p>
-<pre class="pod-block-code">my Gnome::Gtk::Builder $builder .= new(:filename&lt;my-gui.glade&gt;);
-my Gnome::Gtk::Button $button .= new(:build-id&lt;my-gui-button&gt;);</pre>
+<pre class="pod-block-code">my Gnome::Gtk3::Builder $builder .= new(:filename&lt;my-gui.glade&gt;);
+my Gnome::Gtk3::Button $button .= new(:build-id&lt;my-gui-button&gt;);</pre>
 <h2 id="debug"><a class="u" href="#___top" title="go to top of document">debug</a></h2>
 <pre class="pod-block-code">method debug ( Bool :$on )</pre>
 <p>There are many situations when exceptions are retrown within code of a callback method, Perl6 is not able to display the error properly (yet). In those cases you need another way to display errors and show extra messages leading up to it.</p>
@@ -140,7 +140,7 @@ class X {
 }
 
 # create a button and some data to send with the signal
-my Gnome::Gtk::Button $button .= new(:label(&#39;xyz&#39;));
+my Gnome::Gtk3::Button $button .= new(:label(&#39;xyz&#39;));
 my Array $data = [&lt;Hello World&gt;];
 
 # register button signal

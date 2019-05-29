@@ -20,7 +20,8 @@
 
   "source-url": "git://github.com/MARTIMM/perl6-gnome-gobject.git",
 
-  "depends": [ "Gnome::N", "Gnome::Glib" ],
+  "X-Notes": "There is a dependency on Gnome::Gtk3. The module will be required() and works when Gtk3 is installed too",
+  "depends": [ "Gnome::N", "Gnome::Glib"],
   "test-depends": [ ],
   "build-depends": [ ],
   "resources": [ ]
