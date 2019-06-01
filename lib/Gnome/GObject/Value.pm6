@@ -18,7 +18,7 @@ also is Gnome::GObject::Boxed;
 class N-GValue is repr('CStruct') is export {
   has int32 $!g-type;
 
-  # Data should be a union. We do not use it but GTK does so here it is
+  # Data is a union. We do not use it but GTK does so here it is
   # only set to a type with 64 bits for the longest field in the union.
   has int64 $!g-data;
 
@@ -43,7 +43,6 @@ sub g_value_unset ( N-GValue $value )
   is native(&gobject-lib)
   { * }
 
-#-------------------------------------------------------------------------------
 sub g_value_set_boolean ( N-GValue $value, int32 $boolean )
   is native(&gobject-lib)
   { * }
