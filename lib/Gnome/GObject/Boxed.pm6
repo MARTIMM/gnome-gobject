@@ -11,7 +11,7 @@ unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 # No subs implemented yet.
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+#-------------------------------------------------------------------------------
 # No type specified. GBoxed is a wrapper for any structure
 has $!g-boxed;
 
@@ -60,7 +60,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    if $p.^name ~~ m/:s ^ 'Gnome::' [ Gtk || Gdk || Glib ] '::'/ {
+    if $p.^name ~~ m/:s ^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] '::'/ {
       $params.push($p());
     }
 
