@@ -46,7 +46,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
-#use Gnome::Gdk::EventTypes;
+#use Gnome::Gdk3::EventTypes;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gobject/gsignal.h

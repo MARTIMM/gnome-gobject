@@ -32,7 +32,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 
-#use Gnome::Gdk::EventTypes;
+#use Gnome::Gdk3::EventTypes;
 #use Gnome::Gtk3::Main;
 
 use Gnome::GObject::Signal;
