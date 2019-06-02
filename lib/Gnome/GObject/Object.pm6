@@ -116,12 +116,14 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   # convert all dashes to underscores if there are any. then check if
   # name is not too short.
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+#`{{
   die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short." ~
       " Keep at least one '-' or '_'."
     )
-  ) unless $native-sub.index('_') >= 0;
+  ) unless $native-sub.index('_') // -1 >= 0;
+}}
 
   # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
@@ -137,7 +139,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    if $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk || Glib ] '::' / {
+    if $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk3 || Glib || GObject ] '::' / {
       $params.push($p());
     }
 

@@ -325,11 +325,13 @@ method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+#`{{
   die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
     )
   ) unless $native-sub.index('_') >= 0;
+}}
 
   my Callable $s;
 #note "s s0: $native-sub, ", $s;
