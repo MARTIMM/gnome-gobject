@@ -21,9 +21,10 @@
 ## Release notes
 * [Release notes][changes]
 
-# Installation of Gnome::GObject
+# Installation
+Do not install this package on its own. Instead install `Gnome::Gtk3`.
 
-`zef install Gnome::GObject`
+`zef install Gnome::Gtk3`
 
 
 # Author
@@ -33,7 +34,7 @@ Github account name: **MARTIMM**
 
 # Issues
 
-There are always some problems! If you find one please help by filing an issue at [my github project](https://github.com/MARTIMM/perl6-gnome-gobject/issues).
+There are always some problems! If you find one please help by filing an issue at [my Gnome::Gtk3 github project][issues].
 
 # Attribution
 * The inventors of Perl6 of course and the writers of the documentation which help me out every time again and again.
@@ -43,6 +44,7 @@ There are always some problems! If you find one please help by filing an issue a
 [//]: # (---- [refs] ----------------------------------------------------------)
 [changes]: https://github.com/MARTIMM/perl6-gnome-gobject/blob/master/CHANGES.md
 [logo]: https://github.com/MARTIMM/perl6-gnome-gobject/blob/master/doc/images/gtk-logo-100.png
+[issues]: https://github.com/MARTIMM/perl6-gnome-gtk3/issues
 
 [InitiallyUnowned]: https://developer.gnome.org/gtk3/stable/ch02.html
 [Interface]: https://developer.gnome.org/gobject/stable/GTypeModule.html
