@@ -46,7 +46,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
-#use Gnome::Gdk3::EventTypes;
+use Gnome::Gdk3::EventTypes;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gobject/gsignal.h
@@ -58,9 +58,9 @@ unit class Gnome::GObject::Signal:auth<github:MARTIMM>;
 # signal-type: widget, data
 my Signature $signal-type = :( N-GObject, OpaquePointer );
 # other-signal-type: widget, OpaquePointer, data
-my Signature $nativewidget-type = :( N-GObject, OpaquePointer, OpaquePointer );
+my Signature $nativewidget-type = :( N-GObject, N-GObject, OpaquePointer );
 # event-type: widget, event, data
-my Signature $event-type = :( N-GObject, OpaquePointer, OpaquePointer );
+my Signature $event-type = :( N-GObject, GdkEvent, OpaquePointer );
 
 #-------------------------------------------------------------------------------
 #`{{
@@ -148,7 +148,7 @@ sub _g_signal_connect_object_signal(
 
 sub _g_signal_connect_object_event(
   N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer, OpaquePointer ),
+  Callable $handler ( N-GObject, GdkEvent, OpaquePointer ),
   OpaquePointer $data, int32 $connect_flags
 ) returns uint64
   is native(&gobject-lib)
@@ -157,7 +157,7 @@ sub _g_signal_connect_object_event(
 
 sub _g_signal_connect_object_nativewidget(
   N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer, OpaquePointer ),
+  Callable $handler ( N-GObject, N-GObject, OpaquePointer ),
   OpaquePointer $data, int32 $connect_flags
 ) returns uint64
   is native(&gobject-lib)

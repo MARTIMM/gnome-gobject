@@ -32,8 +32,11 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 
-#use Gnome::Gdk3::EventTypes;
-#use Gnome::Gtk3::Main;
+# This creates a dependency on Gnome::Gdk and Gnome::Gtk. This is not noted in
+# the META6.json. There is however no use in using this module on its own and
+# therefore it suffices to install Gnome::Gtk3 to get all other modules.
+use Gnome::Gdk3::EventTypes;
+use Gnome::Gtk3::Main;
 
 use Gnome::GObject::Signal;
 use Gnome::GObject::Value;
@@ -262,8 +265,9 @@ submethod BUILD ( *%options ) {
   # solve this is to require it.
   my $main;
   try {
-    require ::('Gnome::Gtk3::Main');
-    $main = ::('Gnome::Gtk3::Main').new;
+    #require ::('Gnome::Gtk3::Main');
+    #$main = ::('Gnome::Gtk3::Main').new;
+    Gnome::Gtk3::Main.new;
 
     CATCH {
 #      note "Err:\n$_";
@@ -464,7 +468,10 @@ method register-signal (
       }
 
       when 'event' {
-        $handler = -> N-GObject $w, OpaquePointer $event, OpaquePointer $d {
+        $handler = -> N-GObject $w, GdkEvent $event, OpaquePointer $d {
+
+          #require ::('Gnome::Gdk3::EventTypes');
+          #my GdkEvent $event = nativecast( GdkEvent, $e);
           $handler-object."$handler-name"(
              :widget(self), :$event, |%user-options
           );
@@ -472,7 +479,7 @@ method register-signal (
       }
 
       when 'nativewidget' {
-        $handler = -> N-GObject $w, OpaquePointer $d1, OpaquePointer $d2 {
+        $handler = -> N-GObject $w, N-GObject $d1, OpaquePointer $d2 {
           $handler-object."$handler-name"(
              :widget(self), :nativewidget($d1), |%user-options
           );
