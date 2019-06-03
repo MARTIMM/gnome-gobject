@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-05-28 0.13.4
+  * Updating docs
+
 * 2019-06-02 0.13.3
   * Bugfixes in Object and Signal
 
