@@ -142,7 +142,13 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    if $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk3 || Glib || GObject ] '::' / {
+    # must handle RGBA differently because it's a structure, not an widget
+    # with a native object
+    if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
+      $params.push($p);
+    }
+
+    elsif $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk3 || Glib || GObject ] '::' / {
       $params.push($p());
     }
 
@@ -434,8 +440,6 @@ method register-signal (
   $handler-object, Str:D $handler-name, Str:D $signal-name, *%user-options
   --> Bool
 ) {
-
-  my %options = :widget(self), |%user-options;
 
   my Callable $handler;
 

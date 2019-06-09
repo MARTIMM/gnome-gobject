@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-06-09 0.13.5
+  * additional check on object type to handle GdkRGBA separately
+
 * 2019-05-28 0.13.4
   * Updating docs
 
