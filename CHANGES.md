@@ -1,5 +1,11 @@
 ## Release notes
 
+* 2019-07-19 0.13.7
+  * moved debug() in Object to Gnome::N.
+
+* 2019-07-19 0.13.6
+  * bugfixes
+
 * 2019-06-09 0.13.5
   * additional check on object type to handle GdkRGBA separately
 
