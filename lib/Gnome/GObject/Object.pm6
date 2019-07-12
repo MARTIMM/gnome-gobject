@@ -42,20 +42,10 @@ use Gnome::GObject::Signal;
 use Gnome::GObject::Value;
 use Gnome::Glib::Main;
 
-#`{{
-# Export the native object defined in Gnome::N::N-GObject to other locations
-#TODO get rid of this export
-sub EXPORT { {
-    'N-GObject' => N-GObject,
-  }
-};
-}}
-
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
-our $gobject-debug = False; # Type Bool;
 my Hash $signal-types = {};
 my Bool $signals-added = False;
 
@@ -172,7 +162,7 @@ method fallback ( $native-sub --> Callable ) {
   # Try to solve sub names from the GSignal class
   unless ?$s {
     $!g-signal .= new(:$!g-object);
-    note "GSignal look for $native-sub: ", $!g-signal if $gobject-debug;
+    note "GSignal look for $native-sub: ", $!g-signal if $Gnome::N::x-debug;
 
     $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
   }
@@ -283,40 +273,40 @@ submethod BUILD ( *%options ) {
     }
   }
 
-  note "\ngobject: {self}, ", %options if $gobject-debug;
+  note "\ngobject: {self}, ", %options if $Gnome::N::x-debug;
 
   unless $signals-added {
     $signals-added = self.add-signal-types( $?CLASS.^name, :GParamSpec<notify>);
   }
 
   if ? %options<widget> {
-    note "gobject widget: ", %options<widget> if $gobject-debug;
+    note "gobject widget: ", %options<widget> if $Gnome::N::x-debug;
 
     my $w = %options<widget>;
     if $w ~~ Gnome::GObject::Object {
       $w = $w();
-      note "gobject widget converted: ", $w if $gobject-debug;
+      note "gobject widget converted: ", $w if $Gnome::N::x-debug;
     }
 
     if ?$w and $w ~~ N-GObject {
       $!g-object = $w;
-      note "gobject widget stored" if $gobject-debug;
+      note "gobject widget stored" if $Gnome::N::x-debug;
     }
 
     elsif ?$w and $w ~~ NativeCall::Types::Pointer {
       $!g-object = nativecast( N-GObject, $w);
-      note "gobject widget cast to GObject" if $gobject-debug;
+      note "gobject widget cast to GObject" if $Gnome::N::x-debug;
     }
 
     else {
-      note "wrong type or undefined widget" if $gobject-debug;
+      note "wrong type or undefined widget" if $Gnome::N::x-debug;
       die X::Gnome.new(:message('Wrong type or undefined widget'));
     }
   }
 
   elsif ? %options<build-id> {
     my N-GObject $widget;
-    note "gobject build-id: %options<build-id>" if $gobject-debug;
+    note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
     for @$builders -> $builder {
       # this action does not increase object refcount, do it here.
       $widget = $builder.get-object(%options<build-id>);
@@ -326,13 +316,13 @@ submethod BUILD ( *%options ) {
 
     if ? $widget {
       note "store gobject widget: ", self.^name, ', ', $widget
-        if $gobject-debug;
+        if $Gnome::N::x-debug;
       $!g-object = $widget;
     }
 
     else {
       note "builder id '%options<build-id>' not found in any of the builders"
-        if $gobject-debug;
+        if $Gnome::N::x-debug;
       die X::Gnome.new(
         :message(
           "Builder id '%options<build-id>' not found in any of the builders"
@@ -344,7 +334,7 @@ submethod BUILD ( *%options ) {
   else {
     if %options.keys.elems == 0 {
       note 'No options used to create or set the native widget'
-        if $gobject-debug;
+        if $Gnome::N::x-debug;
       die X::Gnome.new(
         :message('No options used to create or set the native widget')
       );
@@ -353,21 +343,6 @@ submethod BUILD ( *%options ) {
 
   #TODO if %options<id> add id, %options<name> add name
   #cannot add id,seems to be a builder thing.
-}
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 debug
-
-  method debug ( Bool :$on )
-
-There are many situations when exceptions are retrown within code of a callback method, Perl6 is not able to display the error properly (yet). In those cases you need another way to display errors and show extra messages leading up to it.
-=end pod
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#TODO move to Gnome::N::X
-method debug ( Bool :$on ) {
-  $gobject-debug = $on;
-  $X::Gnome::x-debug = $on;
 }
 
 #-------------------------------------------------------------------------------
@@ -447,18 +422,18 @@ method register-signal (
   my Method $sh = $handler-object.^lookup($handler-name) // Method;
   if ? $sh {
     note "\nregister $handler-object, $handler-name, options: ", %user-options
-       if $gobject-debug;
+       if $Gnome::N::x-debug;
 
     # search for signal name defined by this class as well as its parent classes
     my Str $signal-type;
     my Str $module-name;
     my @module-names = self.^name, |(map( {.^name}, self.^parents));
     for @module-names -> $mn {
-      note "  search in class: $mn, $signal-name" if $gobject-debug;
+      note "  search in class: $mn, $signal-name" if $Gnome::N::x-debug;
       if $signal-types{$mn}:exists and ?$signal-types{$mn}{$signal-name} {
         $signal-type = $signal-types{$mn}{$signal-name};
         $module-name = $mn;
-        note "  found type $signal-type for $mn" if $gobject-debug;
+        note "  found type $signal-type for $mn" if $Gnome::N::x-debug;
         last;
       }
     }
@@ -477,7 +452,7 @@ method register-signal (
           #require ::('Gnome::Gdk3::EventTypes');
           #my GdkEvent $event = nativecast( GdkEvent, $e);
           $handler-object."$handler-name"(
-             :widget(self), :$event, |%user-options
+             :widget(self), :$event, :handle-arg0($event), |%user-options
           );
         }
       }
@@ -485,7 +460,8 @@ method register-signal (
       when 'nativewidget' {
         $handler = -> N-GObject $w, N-GObject $d1, OpaquePointer $d2 {
           $handler-object."$handler-name"(
-             :widget(self), :nativewidget($d1), |%user-options
+             :widget(self), :nativewidget($d1), :handle-arg0($d1),
+             |%user-options
           );
         }
       }
@@ -610,18 +586,18 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
   $signal-types{$module-name} //= {};
 
   for %signal-descriptions.kv -> $signal-type, $signal-names {
-    note "add $signal-type, $signal-names.perl()" if $gobject-debug;
+    note "add $signal-type, $signal-names.perl()" if $Gnome::N::x-debug;
     my @names = $signal-names ~~ List ?? @$signal-names !! ($signal-names,);
     for @names -> $signal-name {
       if $signal-type ~~ any(
         <notsupported deprecated signal event nativewidget>
       ) {
-        note "  $module-name, $signal-name --> $signal-type" if $gobject-debug;
+        note "  $module-name, $signal-name --> $signal-type" if $Gnome::N::x-debug;
         $signal-types{$module-name}{$signal-name} = $signal-type;
       }
 
       else {
-        note "  Signal $signal-name is not yet supported" if $gobject-debug;
+        note "  Signal $signal-name is not yet supported" if $Gnome::N::x-debug;
       }
     }
   }
