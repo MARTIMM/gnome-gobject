@@ -35,7 +35,7 @@ use Gnome::N::N-GObject;
 # This creates a dependency on Gnome::Gdk and Gnome::Gtk. This is not noted in
 # the META6.json. There is however no use in using this module on its own and
 # therefore it suffices to install Gnome::Gtk3 to get all other modules.
-use Gnome::Gdk3::EventTypes;
+use Gnome::Gdk3::Events;
 use Gnome::Gtk3::Main;
 
 use Gnome::GObject::Signal;
@@ -145,6 +145,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
     else {
       $params.push($p);
     }
+#note "Prms: ", $params[*-1].perl;
   }
 
   test-call( $s, $!g-object, |$params)
@@ -449,7 +450,7 @@ method register-signal (
       when 'event' {
         $handler = -> N-GObject $w, GdkEvent $event, OpaquePointer $d {
 
-          #require ::('Gnome::Gdk3::EventTypes');
+          #require ::('Gnome::Gdk3::Events');
           #my GdkEvent $event = nativecast( GdkEvent, $e);
           $handler-object."$handler-name"(
              :widget(self), :$event, :handle-arg0($event), |%user-options
