@@ -1,16 +1,19 @@
 use v6;
-# ==============================================================================
+#-------------------------------------------------------------------------------
 =begin pod
 
 =TITLE Gnome::GObject::Signal
 
-=SUBTITLE
+=SUBTITLE A means for customization of object behaviour and a general purpose notification mechanism
+
+=head1 Description
+
+=head1 Synopsis
+=head2 Declaration
 
   unit class Gnome::GObject::Signal;
 
-=head2 GSignal — A means for customization of object behaviour and a general purpose notification mechanism
-
-=head1 Synopsis
+=head2 Example
 
   # define method
   method mouse-event ( :widget($w), :event($e)) { ... }
@@ -21,7 +24,8 @@ use v6;
   # define proper handler. you must study the GTK develper guides. you will
   # then notice that C<connect-object> is a bit different than the real mcCoy.
   my Callable $handler;
-  $handler = -> N-GObject $ignore-w, Pointer $e, OpaquePointer $ignore-d {
+  $handler = -> N-GObject $ignore-w, Pointer $e,
+                OpaquePointer $ignore-d {
     self.mouse-event( :widget($w), :event($e) );
   }
 
@@ -31,16 +35,21 @@ use v6;
 It will be easier to use the C<register-signal()> method defined in C<Gnome::GObject::Object>.
 
   # define method
-  method mouse-event ( :widget($w), :event($e), :$time) { ... }
+  method mouse-event ( :widget($w), :event($e), :$time) {
+    ...
+  }
 
   # get the window object
   my Gnome::Gtk3::Window $w .= new( ... );
 
   # then register
-  $w.register-signal( self, 'mouse-event', 'button-press-event', :time(now));
+  $w.register-signal(
+    self, 'mouse-event',
+    'button-press-event', :time(now)
+  );
 
 =end pod
-# ==============================================================================
+#-------------------------------------------------------------------------------
 use NativeCall;
 
 use Gnome::N::X;

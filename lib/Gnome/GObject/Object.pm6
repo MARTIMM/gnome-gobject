@@ -63,6 +63,15 @@ sub _initialize_gtk ( CArray[int32] $argc, CArray[CArray[Str]] $argv )
   { * }
 
 #-------------------------------------------------------------------------------
+=begin pod
+=head1 Methods
+=head2 new
+
+  multi method new ( )
+
+Create a C<Gnome::GObject:Object> object. Rarely used directly.
+=end pod
+
 submethod BUILD ( *%options ) {
 
   if not $gui-initialized {
@@ -229,24 +238,48 @@ method get-builders ( --> Array ) {
 Register a handler to process a signal or an event. There are several types of callbacks which can be handled by this regstration. They can be controlled by using a named argument with a special name.
 
   method register-signal (
-    $handler-object, Str:D $handler-name, Str:D $signal-name, *%user-options
+    $handler-object, Str:D $handler-name,
+    Str:D $signal-name, *%user-options
     --> Bool
   )
 
-=item $handler-object is the object wherein the handler is defined.
-=item $handler-name is name of the method. Commonly used signatures for those handlers are
+=begin item
+$handler-object; The object wherein the handler is defined.
+=end item
 
+=begin item
+$handler-name; The name of the method. Commonly used signatures for those
+handlers are;
+
+=begin code
   handler ( object: :$widget, :$user-option1, ..., :$user-optionN )
-  handler ( object: :$widget, :$event, :$user-option1, ..., :$user-optionN )
-  handler ( object: :$widget, :$nativewidget, :$user-option1, ..., :$user-optionN )
+  handler (
+    object: :$widget, :handle-arg0($event),
+    :$user-option1, ..., :$user-optionN
+  )
+  handler (
+    object: :$widget, :handle-arg0($nativewidget),
+    :$user-option1, ..., :$user-optionN
+  )
+=end code
 
 Other forms are explained in the widget documentations when signals are provided.
+=end item
 
 
-=item $signal-name is the name of the event to be handled. Each gtk widget has its own series of signals, please look for it in the documentation of gtk.
-=item %user-options. Any other user data in whatever type. These arguments are provided to the user handler when an event for the handler is fired. There will always be one named argument C<:$widget> which holds the class object on which the signal was registered. The name 'widget' is therefore reserved. An other reserved named argument is of course C<:$event>.
+=begin item
+$signal-name; The name of the event to be handled. Each gtk widget has its
+own series of signals, please look for it in the documentation of gtk.
+=end item
 
+=begin item
+%user-options; Any other user data in whatever type. These arguments are
+provided to the user handler when an event for the handler is fired. There
+will always be one named argument C<:$widget> which holds the class object
+on which the signal was registered. The name 'widget' is therefore reserved.
+An other reserved named argument is of course C<:$event>.
 
+=begin code
   # create a class holding a handler method to process a click event
   # of a button.
   class X {
@@ -262,6 +295,10 @@ Other forms are explained in the widget documentations when signals are provided
   # register button signal
   my X $x .= new(:empty);
   $button.register-signal( $x, 'click-handler', 'clicked', :user-data($data));
+=end code
+=end item
+
+
 
 =end pod
 
