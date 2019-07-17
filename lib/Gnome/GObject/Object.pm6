@@ -1,5 +1,5 @@
 use v6;
-# ==============================================================================
+#-------------------------------------------------------------------------------
 =begin pod
 
 =TITLE Gnome::GObject::Object
@@ -10,39 +10,33 @@ use v6;
 
 Top level class of almost all classes in the GTK, GDK and Glib libraries.
 
-This object is almost never used directly. Most of the classes inherit from this class. The below example can be made much simpler by setting the label directly in the init of C<GtKLabel>. The purpose of this example, however, is that there are other properties which can only be set this way. Also not all types are covered yet by C<GValue> and C<GType>.
+This object is almost never used directly. Most of the classes inherit from this class. The below example shows how label text is set on a button using properties. This can be made much simpler by setting this label directly in the init of C<Gnome::Gtk3::Button>. The purpose of this example, however, is that there might be other properties which can only be set this way.
 
   use Gnome::GObject::Object;
   use Gnome::GObject::Value;
   use Gnome::GObject::Type;
-  use Gnome::Gtk3::Label;
+  use Gnome::Gtk3::Button;
 
-  my Gnome::GObject::Type $gt .= new;
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
 
-  my Gnome::Gtk3::Label $label1 .= new(:label(''));
-  $gv.g-value-set-string('label string');
-  $label1.g-object-set-property( 'label', $gv);
+  my Gnome::Gtk3::Button $b .= new(:empty);
+  $gv.g-value-set-string('Open file');
+  $b.g-object-set-property( 'label', $gv);
 
 =end pod
-# ==============================================================================
+
+#-------------------------------------------------------------------------------
 use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 
-# This creates a dependency on Gnome::Gdk and Gnome::Gtk. This is not noted in
-# the META6.json. There is however no use in using this module on its own and
-# therefore it suffices to install Gnome::Gtk3 to get all other modules.
-use Gnome::Gdk3::Events;
-use Gnome::Gtk3::Main;
-
 use Gnome::GObject::Signal;
 use Gnome::GObject::Value;
 use Gnome::Glib::Main;
 
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+#-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
@@ -52,30 +46,56 @@ my Bool $signals-added = False;
 has N-GObject $!g-object;
 has Gnome::GObject::Signal $!g-signal;
 
+#TODO move to Gnome::Gtk3::Widget
 # type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
+my Bool $gui-initialized = False;
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
+# this sub belongs to Gnome::Gtk3::Main but is needed here. To avoid
+# dependencies, the sub is redeclared here for this purpose
+sub _initialize_gtk ( CArray[int32] $argc, CArray[CArray[Str]] $argv )
+  returns int32
+  is native(&gtk-lib)
+  is symbol('gtk_init_check')
+  { * }
 
-#`{{
-=begin pod
-=head2 CALL-ME
+#-------------------------------------------------------------------------------
+submethod BUILD ( *%options ) {
 
-  method CALL-ME ( N-GObject $widget? --> N-GObject )
+  if not $gui-initialized {
+    # must setup gtk otherwise perl6 will crash
+    my $argc = CArray[int32].new;
+    $argc[0] = 1 + @*ARGS.elems;
 
-This method is designed to set and retrieve the gtk object from a perl6 widget object. This is indirectly called by C<new> when the :widget option is used. On many occasions this is done automatically or indirect like explained above, that it is hardly used by the user directly.
+    my $arg_arr = CArray[Str].new;
+    my Int $arg-count = 0;
+    $arg_arr[$arg-count++] = $*PROGRAM.Str;
+    for @*ARGS -> $arg {
+      $arg_arr[$arg-count++] = $arg;
+    }
 
-  # Example only to show how things can be tranported between objects. Not
-  # something you need to remember!
-  my N-GObject $button = Gnome::Gtk3::Button.new(:label('Exit'))();
-  my Gnome::Gtk3::Button $b .= new(:empty);
-  $b($button);
+    my $argv = CArray[CArray[Str]].new;
+    $argv[0] = $arg_arr;
 
-See also L<native-gobject>.
-=end pod
-}}
+    # call gtk_init_check
+    _initialize_gtk( $argc, $argv);
+    $gui-initialized = True;
+  }
+
+  # add signal types
+  unless $signals-added {
+    $signals-added = self.add-signal-types( $?CLASS.^name, :GParamSpec<notify>);
+  }
+
+  #TODO if %options<id> add id, %options<name> add name
+  #cannot add id,seems to be a builder thing.
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
 #TODO destroy when overwritten? g_object_unref?
 method CALL-ME ( N-GObject $widget? --> N-GObject ) {
 
@@ -145,7 +165,6 @@ method FALLBACK ( $native-sub is copy, |c ) {
     else {
       $params.push($p);
     }
-#note "Prms: ", $params[*-1].perl;
   }
 
   test-call( $s, $!g-object, |$params)
@@ -174,179 +193,6 @@ method fallback ( $native-sub --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
-=begin pod
-=head2 new
-
-=head3  multi method new ( :$widget! )
-
-Please note that this class is mostly not instantiated directly but is used indirectly when a child class is instantiated.
-
-Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like C< Gnome::Gtk3::Button>.
-
-  # some set of radio buttons grouped together
-  my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
-  my Gnome::Gtk3::RadioButton $rb2 .= new(
-    :group-from($rb1), :label('Download core only')
-  );
-
-  # get all radio buttons of group of button $rb2
-  my Gnome::GObject::SList $rb-list .= new(:gslist($rb2.get-group));
-  loop ( Int $i = 0; $i < $rb-list.g_slist_length; $i++ ) {
-    # get button from the list
-    my Gnome::Gtk3::RadioButton $rb .= new(
-      :widget($rb-list.nth-data-gobject($i))
-    );
-
-    if $rb.get-active == 1 {
-      # execute task for this radio button
-
-      last;
-    }
-  }
-
-Another example is a difficult way to get a button.
-
-  my Gnome::Gtk3::Button $start-button .= new(
-    :widget(Gnome::Gtk3::Button.gtk_button_new_with_label('Start'))
-  );
-
-=head3  multi method new ( Str :$build-id! )
-
-Create a Perl6 widg
-#`{{
-    if $setup-event-handler {
-      $handler = -> N-GObject $w, GdkEvent $event, OpaquePointer $d {
-        $handler-object."$handler-name"(
-           :widget(self), :$event, |%user-options
-        );
-      }
-
-      $!g-signal._g_signal_connect_object_event(
-        $signal-name, $handler, OpaquePointer, $connect-flags
-      );
-    }
-
-    elsif $setup-nativewidget-handler {
-      $handler = -> N-GObject $w, OpaquePointer $d1, OpaquePointer $d2 {
-        $handler-object."$handler-name"(
-           :widget(self), :nativewidget($d1), |%user-options
-        );
-      }
-
-      $!g-signal._g_signal_connect_object_nativewidget(
-        $signal-name, $handler, OpaquePointer, $connect-flags
-      );
-    }
-
-    else {
-      $handler = -> N-GObject $w, OpaquePointer $d {
-        $handler-object."$handler-name"( :widget(self), |%user-options);
-      }
-
-      $!g-signal._g_signal_connect_object_signal(
-        $signal-name, $handler, OpaquePointer, $connect-flags
-      );
-    }
-}}
-et object using a C<GtkBuilder>. The C<GtkBuilder> class will handover its object address to the C<GObject> and can then be used to search for id's defined in the GUI glade design.
-
-  my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
-  my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
-
-=end pod
-
-submethod BUILD ( *%options ) {
-
-  # Test if GTK is initialized. Because of this, there is a dependency on
-  # Gnome::Gtk3. This poses a dependency cycle on packages. The only way to
-  # solve this is to require it.
-  my $main;
-  try {
-    #require ::('Gnome::Gtk3::Main');
-    #$main = ::('Gnome::Gtk3::Main').new;
-    Gnome::Gtk3::Main.new;
-
-    CATCH {
-#      note "Err:\n$_";
-      default {
-        die "Please install Gnome::Gtk3";
-      }
-    }
-  }
-
-  note "\ngobject: {self}, ", %options if $Gnome::N::x-debug;
-
-  unless $signals-added {
-    $signals-added = self.add-signal-types( $?CLASS.^name, :GParamSpec<notify>);
-  }
-
-  if ? %options<widget> {
-    note "gobject widget: ", %options<widget> if $Gnome::N::x-debug;
-
-    my $w = %options<widget>;
-    if $w ~~ Gnome::GObject::Object {
-      $w = $w();
-      note "gobject widget converted: ", $w if $Gnome::N::x-debug;
-    }
-
-    if ?$w and $w ~~ N-GObject {
-      $!g-object = $w;
-      note "gobject widget stored" if $Gnome::N::x-debug;
-    }
-
-    elsif ?$w and $w ~~ NativeCall::Types::Pointer {
-      $!g-object = nativecast( N-GObject, $w);
-      note "gobject widget cast to GObject" if $Gnome::N::x-debug;
-    }
-
-    else {
-      note "wrong type or undefined widget" if $Gnome::N::x-debug;
-      die X::Gnome.new(:message('Wrong type or undefined widget'));
-    }
-  }
-
-  elsif ? %options<build-id> {
-    my N-GObject $widget;
-    note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
-    for @$builders -> $builder {
-      # this action does not increase object refcount, do it here.
-      $widget = $builder.get-object(%options<build-id>);
-      #TODO self.g_object_ref();
-      last if ?$widget;
-    }
-
-    if ? $widget {
-      note "store gobject widget: ", self.^name, ', ', $widget
-        if $Gnome::N::x-debug;
-      $!g-object = $widget;
-    }
-
-    else {
-      note "builder id '%options<build-id>' not found in any of the builders"
-        if $Gnome::N::x-debug;
-      die X::Gnome.new(
-        :message(
-          "Builder id '%options<build-id>' not found in any of the builders"
-        )
-      );
-    }
-  }
-
-  else {
-    if %options.keys.elems == 0 {
-      note 'No options used to create or set the native widget'
-        if $Gnome::N::x-debug;
-      die X::Gnome.new(
-        :message('No options used to create or set the native widget')
-      );
-    }
-  }
-
-  #TODO if %options<id> add id, %options<name> add name
-  #cannot add id,seems to be a builder thing.
-}
-
-#-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
 method native-gobject (
@@ -364,9 +210,16 @@ method native-gobject (
 }
 
 #-------------------------------------------------------------------------------
+#TODO place in Gnome::Gtk3
 # no pod. user does not have to know about it.
 method set-builder ( $builder ) {
   $builders.push($builder);
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method get-builders ( --> Array ) {
+  $builders;
 }
 
 #-------------------------------------------------------------------------------
@@ -448,10 +301,8 @@ method register-signal (
       }
 
       when 'event' {
-        $handler = -> N-GObject $w, GdkEvent $event, OpaquePointer $d {
+        $handler = -> N-GObject $w, $event, OpaquePointer $d {
 
-          #require ::('Gnome::Gdk3::Events');
-          #my GdkEvent $event = nativecast( GdkEvent, $e);
           $handler-object."$handler-name"(
              :widget(self), :$event, :handle-arg0($event), |%user-options
           );
@@ -583,22 +434,26 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
 
   # must store signal names under the class name because I found the use of
   # the same signal name with different handler signatures.
-  #my Str $module-name = self.^name;
   $signal-types{$module-name} //= {};
 
+  note "\nTest event names for {$?CLASS.^name}" if $Gnome::N::x-debug;
   for %signal-descriptions.kv -> $signal-type, $signal-names {
-    note "add $signal-type, $signal-names.perl()" if $Gnome::N::x-debug;
+  #  note "add $signal-type, $signal-names.perl()" if $Gnome::N::x-debug;
     my @names = $signal-names ~~ List ?? @$signal-names !! ($signal-names,);
     for @names -> $signal-name {
-      if $signal-type ~~ any(
-        <notsupported deprecated signal event nativewidget>
-      ) {
-        note "  $module-name, $signal-name --> $signal-type" if $Gnome::N::x-debug;
+      if $signal-type ~~ any(<signal event nativewidget>) {
+        note "  $module-name, $signal-name --> $signal-type"
+          if $Gnome::N::x-debug;
         $signal-types{$module-name}{$signal-name} = $signal-type;
       }
 
+      elsif $signal-type ~~ any(<notsupported deprecated>) {
+        note "  $signal-name is not supported" if $Gnome::N::x-debug;
+      }
+
       else {
-        note "  Signal $signal-name is not yet supported" if $Gnome::N::x-debug;
+        note "  Signal $signal-name is not yet supported"
+          if $Gnome::N::x-debug;
       }
     }
   }
