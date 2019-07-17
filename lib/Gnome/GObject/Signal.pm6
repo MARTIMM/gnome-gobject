@@ -21,7 +21,7 @@ use v6;
   # define proper handler. you must study the GTK develper guides. you will
   # then notice that C<connect-object> is a bit different than the real mcCoy.
   my Callable $handler;
-  $handler = -> N-GObject $ignore-w, GdkEvent $e, OpaquePointer $ignore-d {
+  $handler = -> N-GObject $ignore-w, Pointer $e, OpaquePointer $ignore-d {
     self.mouse-event( :widget($w), :event($e) );
   }
 
@@ -46,7 +46,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
-use Gnome::Gdk3::Events;
+#use Gnome::Gdk3::Events;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gobject/gsignal.h
@@ -60,7 +60,7 @@ my Signature $signal-type = :( N-GObject, OpaquePointer );
 # other-signal-type: widget, OpaquePointer, data
 my Signature $nativewidget-type = :( N-GObject, N-GObject, OpaquePointer );
 # event-type: widget, event, data
-my Signature $event-type = :( N-GObject, GdkEvent, OpaquePointer );
+my Signature $event-type = :( N-GObject, Pointer, OpaquePointer );
 
 #-------------------------------------------------------------------------------
 #`{{
@@ -148,7 +148,7 @@ sub _g_signal_connect_object_signal(
 
 sub _g_signal_connect_object_event(
   N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, GdkEvent, OpaquePointer ),
+  Callable $handler ( N-GObject, Pointer, OpaquePointer ),
   OpaquePointer $data, int32 $connect_flags
 ) returns uint64
   is native(&gobject-lib)
@@ -212,7 +212,7 @@ sub _g_signal_connect_data_signal (
 
 sub _g_signal_connect_data_event (
   N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, GdkEvent, OpaquePointer ),
+  Callable $handler ( N-GObject, Pointer, OpaquePointer ),
   OpaquePointer $data,
   Callable $destroy_data ( OpaquePointer, OpaquePointer ),
   int32 $connect_flags = 0
