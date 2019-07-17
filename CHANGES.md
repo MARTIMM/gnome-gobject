@@ -1,9 +1,16 @@
 ## Release notes
 
-* 2019-07-19 0.13.7
+* 2019-07-17 0.13.9
+  * Removed dependency on Gnome::Gtk3::Main in Gnome::GObject::Object. Code needed to initialize is copied to Gnome::GObject::Object.
+  * Initializing widgets using :widget or :build is moved from Gnome::GObject::Object to Gnome::Gtk3::Widget.
+
+* 2019-07-12 0.13.8
+  * EventTypes in Gnome::Gdk3 renamed to Events
+
+* 2019-07-11 0.13.7
   * moved debug() in Object to Gnome::N.
 
-* 2019-07-19 0.13.6
+* 2019-07-10 0.13.6
   * bugfixes
 
 * 2019-06-09 0.13.5

@@ -1,7 +1,7 @@
 {
   "description": "Perl6 Gnome gobject api, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.13.7",
+  "version": "0.13.9",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
@@ -20,7 +20,6 @@
 
   "source-url": "git://github.com/MARTIMM/perl6-gnome-gobject.git",
 
-  "X-Notes": "There is a dependency on Gnome::Gtk3. The module will be required() and works when Gtk3 is installed too",
   "depends": [ "Gnome::N", "Gnome::Glib"],
   "test-depends": [ ],
   "build-depends": [ ],
