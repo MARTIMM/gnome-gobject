@@ -46,7 +46,6 @@ my Bool $signals-added = False;
 has N-GObject $!g-object;
 has Gnome::GObject::Signal $!g-signal;
 
-#TODO move to Gnome::Gtk3::Widget
 # type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
@@ -66,14 +65,58 @@ sub _initialize_gtk ( CArray[int32] $argc, CArray[CArray[Str]] $argv )
 =begin pod
 =head1 Methods
 =head2 new
+Please note that this class is mostly not instantiated directly but is used indirectly when child classes are instantiated.
 
-  multi method new ( )
+=begin comment
+=head3 multi method new ( :empty! )
+Create an empty object
+=end comment
+
+=head3 multi method new ( :$widget! )
+
+Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like C< Gnome::Gtk3::Button>.
+
+  # Some set of radio buttons grouped together
+  my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
+  my Gnome::Gtk3::RadioButton $rb2 .= new(
+    :group-from($rb1), :label('Download core only')
+  );
+
+  # Get all radio buttons in the group of button $rb2
+  my Gnome::GObject::SList $rb-list .= new(:gslist($rb2.get-group));
+  loop ( Int $i = 0; $i < $rb-list.g_slist_length; $i++ ) {
+    # Get button from the list
+    my Gnome::Gtk3::RadioButton $rb .= new(
+      :widget($rb-list.nth-data-gobject($i))
+    );
+
+    # If radio button is selected (=active) ...
+    if $rb.get-active == 1 {
+      ...
+
+      last;
+    }
+  }
+
+Another example is a difficult way to get a button.
+
+  my Gnome::Gtk3::Button $start-button .= new(
+    :widget(Gnome::Gtk3::Button.gtk_button_new_with_label('Start'))
+  );
+
+=head3 multi method new ( Str :$build-id! )
+
+Create a Perl6 widget object using a C<Gnome::Gtk3::Builder>. The builder class will return its corresponding object address and it will be stored in the C<Gnome::GObject::Object>. It can then be used to search for id's defined in the GUI glade design.
+
+  my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
+  my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
 
 Create a C<Gnome::GObject:Object> object. Rarely used directly.
 =end pod
 
 submethod BUILD ( *%options ) {
 
+  # check GTK+ init
   if not $gui-initialized {
     # must setup gtk otherwise perl6 will crash
     my $argc = CArray[int32].new;
@@ -97,6 +140,77 @@ submethod BUILD ( *%options ) {
   # add signal types
   unless $signals-added {
     $signals-added = self.add-signal-types( $?CLASS.^name, :GParamSpec<notify>);
+  }
+
+  # process options
+#`{{
+  if ? %options<empty> {
+    self.native-gobject();
+  }
+
+  elsif ? %options<widget> {
+}}
+  if ? %options<widget> {
+    note "gobject widget: ", %options<widget> if $Gnome::N::x-debug;
+
+    my $w = %options<widget>;
+    if $w ~~ Gnome::GObject::Object {
+      $w = $w();
+      note "gobject widget converted: ", $w if $Gnome::N::x-debug;
+    }
+
+    if ?$w and $w ~~ N-GObject {
+      self.native-gobject($w);
+      note "gobject widget stored" if $Gnome::N::x-debug;
+    }
+
+    elsif ?$w and $w ~~ NativeCall::Types::Pointer {
+      self.native-gobject(nativecast( N-GObject, $w));
+      note "gobject widget cast to GObject" if $Gnome::N::x-debug;
+    }
+
+    else {
+      note "wrong type or undefined widget" if $Gnome::N::x-debug;
+      die X::Gnome.new(:message('Wrong type or undefined widget'));
+    }
+  }
+
+  elsif ? %options<build-id> {
+    my N-GObject $widget;
+    note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
+    my Array $builders = self.get-builders;
+    for @$builders -> $builder {
+      # this action does not increase object refcount, do it here.
+      $widget = $builder.get-object(%options<build-id>);
+      #TODO self.g_object_ref();
+      last if ?$widget;
+    }
+
+    if ? $widget {
+      note "store gobject widget: ", self.^name, ', ', $widget
+        if $Gnome::N::x-debug;
+      self.native-gobject($widget);
+    }
+
+    else {
+      note "builder id '%options<build-id>' not found in any of the builders"
+        if $Gnome::N::x-debug;
+      die X::Gnome.new(
+        :message(
+          "Builder id '%options<build-id>' not found in any of the builders"
+        )
+      );
+    }
+  }
+
+  else {
+    if %options.keys.elems == 0 {
+      note 'No options used to create or set the native widget'
+        if $Gnome::N::x-debug;
+      die X::Gnome.new(
+        :message('No options used to create or set the native widget')
+      );
+    }
   }
 
   #TODO if %options<id> add id, %options<name> add name
@@ -278,6 +392,8 @@ provided to the user handler when an event for the handler is fired. There
 will always be one named argument C<:$widget> which holds the class object
 on which the signal was registered. The name 'widget' is therefore reserved.
 An other reserved named argument is of course C<:$event>.
+=end item
+
 
 =begin code
   # create a class holding a handler method to process a click event
@@ -296,8 +412,6 @@ An other reserved named argument is of course C<:$event>.
   my X $x .= new(:empty);
   $button.register-signal( $x, 'click-handler', 'clicked', :user-data($data));
 =end code
-=end item
-
 
 
 =end pod
