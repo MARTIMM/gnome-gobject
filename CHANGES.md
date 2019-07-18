@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2019-07-17 0.13.10
+  * Bugfixes in pod documentation.
+  * Didn't work out the way I intended: Initializing widgets using :widget or :build is moved from Gnome::GObject::Object to Gnome::Gtk3::Widget. So it is back to its old place.
+
 * 2019-07-17 0.13.9
   * Removed dependency on Gnome::Gtk3::Main in Gnome::GObject::Object. Code needed to initialize is copied to Gnome::GObject::Object.
   * Initializing widgets using :widget or :build is moved from Gnome::GObject::Object to Gnome::Gtk3::Widget.
