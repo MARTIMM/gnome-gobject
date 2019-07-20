@@ -1,5 +1,16 @@
 ## Release notes
 
+* 2019-07-20 0.13.11
+  * it has been shown in several C-source examples that gtk objects need casts to set proper types of arguments, e.g.
+    ```
+    GtkWidget *menu = gtk_menu_new ();
+    GtkWidget *menu_item = gtk_menu_item_new_with_label (buf);
+    gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_item);
+    ```
+    Here, the menu is a GtkWidget. to use gtk_menu_shell_append(), the first argument must be a GtkMenuShell type object, hence the cast GTK_MENU_SHELL (menu).
+    This casting is now implemented in Gnome::GObject::Object.
+  * Added g_type_check_instance_cast to Gnome::GObject::Type.
+
 * 2019-07-17 0.13.10
   * Bugfixes in pod documentation.
   * Didn't work out the way I intended: Initializing widgets using :widget or :build is moved from Gnome::GObject::Object to Gnome::Gtk3::Widget. So it is back to its old place.
