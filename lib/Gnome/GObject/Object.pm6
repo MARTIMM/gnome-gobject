@@ -33,6 +33,7 @@ use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 
 use Gnome::GObject::Signal;
+use Gnome::GObject::Type;
 use Gnome::GObject::Value;
 use Gnome::Glib::Main;
 
@@ -45,11 +46,15 @@ my Bool $signals-added = False;
 
 has N-GObject $!g-object;
 has Gnome::GObject::Signal $!g-signal;
+has Int $!gtk-class-gtype;
+has Str $!gtk-class-name;
+has Str $!gtk-class-name-of-sub;
 
 # type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
 my Bool $gui-initialized = False;
+
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
@@ -275,7 +280,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    # must handle RGBA differently because it's a structure, not an widget
+
+    # must handle RGBA differently because it's a structure, not a widget
     # with a native object
     if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
       $params.push($p);
@@ -290,7 +296,24 @@ method FALLBACK ( $native-sub is copy, |c ) {
     }
   }
 
-  test-call( $s, $!g-object, |$params)
+  # cast to other gtk object type if the found subroutine is from another
+  # gtk object type than the native object stored at $!g-object. This happens
+  # e.g. when a Gnome::Gtk::Button object uses gtk-widget-show() which
+  # belongs to Gnome::Gtk::Widget.
+  my $g-object-cast;
+
+  #TODO Not all classes have $!gtk-class-* defined so we need to test it
+  if ?$!gtk-class-gtype and $!gtk-class-name ne $!gtk-class-name-of-sub {
+    note "\nObject gtype: $!gtk-class-gtype" if $Gnome::N::x-debug;
+    note "Cast $!gtk-class-name to $!gtk-class-name-of-sub"
+      if $Gnome::N::x-debug;
+
+    $g-object-cast = Gnome::GObject::Type.new().check-instance-cast(
+      $!g-object, $!gtk-class-gtype
+    );
+  }
+
+  test-call( $s, $g-object-cast // $!g-object, |$params)
 }
 
 #-------------------------------------------------------------------------------
@@ -310,9 +333,47 @@ method fallback ( $native-sub --> Callable ) {
     $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
   }
 
+  self.set-class-name-of-sub('GObject');
   $s = callsame unless ?$s;
 
   $s
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method set-class-info ( Str:D $!gtk-class-name ) {
+  $!gtk-class-gtype =
+    Gnome::GObject::Type.new().g_type_from_name($!gtk-class-name);
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method set-class-name-of-sub ( Str:D $!gtk-class-name-of-sub ) { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 get-class-gtype
+
+Return class's type code after registration. this is like calling Gnome::GObject::Type.new().g_type_from_name(GTK+ class type name).
+
+  method get-class-gtype ( --> Int )
+=end pod
+
+method get-class-gtype ( --> Int ) {
+  $!gtk-class-gtype
+}
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 get-class-name
+
+Return class name.
+
+  method get-class-name ( --> Str )
+=end pod
+
+method get-class-name ( --> Str ) {
+  $!gtk-class-name
 }
 
 #-------------------------------------------------------------------------------
