@@ -3,6 +3,7 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
+use Gnome::N::N-GObject;
 use Gnome::GObject::Value;
 
 #-------------------------------------------------------------------------------
@@ -10,6 +11,12 @@ use Gnome::GObject::Value;
 # https://developer.gnome.org/gobject/stable/gobject-Type-Information.html
 # https://developer.gnome.org/glib/stable/glib-Basic-Types.html
 unit class Gnome::GObject::Type:auth<github:MARTIMM>;
+
+#-------------------------------------------------------------------------------
+class GTypeInstance
+  is repr('CPointer')
+  is export
+  { }
 
 #-------------------------------------------------------------------------------
 #define	G_TYPE_FUNDAMENTAL_SHIFT (2)
@@ -87,27 +94,38 @@ constant G_TYPE_OBJECT is export = 20 +< G_TYPE_FUNDAMENTAL_SHIFT;
 constant G_TYPE_VARIANT is export = 21 +< G_TYPE_FUNDAMENTAL_SHIFT;
 
 #-------------------------------------------------------------------------------
-sub g_type_name ( int32 $type --> Str )
+sub g_type_name ( int32 $type )
+  returns Str
   is native(&gobject-lib)
   { * }
 
-sub g_type_from_name ( Str --> int32 )
+sub g_type_from_name ( Str )
+  returns int32 # GType
   is native(&gobject-lib)
   { * }
 
-sub g_type_parent ( int32 $type --> int32 )
+sub g_type_parent ( int32 $type )
+  returns int32 # GType
   is native(&gobject-lib)
   { * }
 
-sub g_type_depth ( int32 $type --> uint32 )
+sub g_type_depth ( int32 $type )
+  returns int32 # GType
   is native(&gobject-lib)
   { * }
 
-sub g_type_check_value ( N-GValue $gvalue --> int32 )
+sub g_type_check_value ( N-GValue $gvalue )
+  returns int32 # 0/1
   is native(&gobject-lib)
   { * }
 
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+sub g_type_check_instance_cast (
+  N-GObject $type_instance, int32 $iface_type
+) returns N-GObject
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #submethod BUILD ( ) { }
 
 #-------------------------------------------------------------------------------
@@ -127,3 +145,32 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   $s(|c)
 }
+
+
+=finish
+
+Code from c-source to study casting
+
+#define GTK_TYPE_MENU_SHELL             (gtk_menu_shell_get_type ())
+
+GType    gtk_menu_shell_get_type       (void) G_GNUC_CONST;
+
+===> my Gnome::GObject::Type $type .= new;
+===> my int32 $gtype = $type.g_type_from_name('GtkMenuShell');
+
+
+#define GTK_MENU_SHELL(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_MENU_SHELL, GtkMenuShell))
+
+#define G_TYPE_CHECK_INSTANCE_CAST(instance, g_type, c_type) \
+        (_G_TYPE_CIC ((instance), (g_type), c_type))
+
+#define _G_TYPE_CIC(ip, gt, ct) \
+        ((ct*) g_type_check_instance_cast ((GTypeInstance*) ip, gt))
+
+===> my Gnome::Gtk3::Menu $menu .= new;
+===> my $type.check-instance-cast( $menu(), $gtype)
+===> my Gnome::Gtk3::MenuShell $menu-shell .= new(
+       :widget($type.check-instance-cast( $menu(), $gtype))
+     );
+
+===> $menu-shell.gtk_menu_shell_append($menu_item);
