@@ -88,7 +88,7 @@ sub g_value_get_ulong ( N-GValue $value )
   is native(&gobject-lib)
   { * }
 
-sub g_value_set_int64g ( N-GValue $value, int64 $v_int )
+sub g_value_set_int64 ( N-GValue $value, int64 $v_int )
   is native(&gobject-lib)
   { * }
 
@@ -97,7 +97,7 @@ sub g_value_get_int64 ( N-GValue $value )
   is native(&gobject-lib)
   { * }
 
-sub g_value_set_uint64g ( N-GValue $value, uint64 $v_int )
+sub g_value_set_uint64 ( N-GValue $value, uint64 $v_int )
   is native(&gobject-lib)
   { * }
 

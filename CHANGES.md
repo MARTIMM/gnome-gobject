@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-07-20 0.13.12
+  * bug fixed, Value had some wrong specified subs.
+
 * 2019-07-20 0.13.11
   * it has been shown in several C-source examples that gtk objects need casts to set proper types of arguments, e.g.
     ```
