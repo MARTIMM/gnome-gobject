@@ -19,7 +19,7 @@ my Gnome::Gtk3::Main $main .= new;
 
 class X {
   method do-x ( :widget($w) ) {
-    say "do-x called";
+    isa-ok $w, Gnome::Gtk3::Button;
   }
 }
 
@@ -40,7 +40,7 @@ subtest 'ISA test', {
     };
 
   my Int $hid = $sig.connect-object( 'clicked', $handler);
-  note "hid: $hid";
+#  note "hid: $hid";
   my Promise $p = fire-event( $b, 'clicked');
 
   is $main.gtk-main-level, 0, "loop level 0";
@@ -61,7 +61,7 @@ sub fire-event (
   my Promise $p = start {
 
     # wait for loop to start
-    sleep(2.1);
+    sleep(1.1);
 
     is $main.gtk-main-level, 1, "loop level now 1";
 
@@ -74,7 +74,7 @@ sub fire-event (
         #$button.emit-by-name( 'clicked', $button);
         $sig.emit-by-name( $event-name, $object());
 
-        sleep(1.0);
+        sleep(0.8);
         $main.gtk-main-quit;
 
         0

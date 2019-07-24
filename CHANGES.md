@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-07-24 0.13.13
+  * Declaration of several signal subs moved from Gnome::GObject::Signal to Gnome::GObject::Object to simplify things.
+
 * 2019-07-20 0.13.12
   * bug fixed, Value had some wrong specified subs.
 

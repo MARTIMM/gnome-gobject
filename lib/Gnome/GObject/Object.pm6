@@ -327,6 +327,7 @@ method fallback ( $native-sub --> Callable ) {
   try { $s = &::($native-sub); }
   try { $s = &::("g_object_$native-sub"); } unless ?$s;
 
+
   # Try to solve sub names from the GSignal class
   unless ?$s {
     $!g-signal .= new(:$!g-object);
@@ -445,6 +446,30 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
 }
 
 #-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+# pinched from Gnome::GObject::Signal
+sub g_object_connect_object_signal(
+  N-GObject $widget, Str $signal,
+  Callable $handler ( N-GObject, OpaquePointer ),
+  OpaquePointer $data, int32 $connect_flags
+) returns uint64
+  is native(&gobject-lib)
+  is symbol('g_signal_connect_object')
+  { * }
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+# pinched from Gnome::GObject::Signal
+sub g_object_connect_object_nativewidget(
+  N-GObject $widget, Str $signal,
+  Callable $handler ( N-GObject, N-GObject, OpaquePointer ),
+  OpaquePointer $data, int32 $connect_flags
+) returns uint64
+  is native(&gobject-lib)
+  is symbol('g_signal_connect_object')
+  { * }
+
+#-------------------------------------------------------------------------------
 =begin pod
 =head2 register-signal
 
@@ -467,11 +492,11 @@ handlers are;
 =begin code
   handler ( object: :$widget, :$user-option1, ..., :$user-optionN )
   handler (
-    object: :$widget, :handle-arg0($event),
+    object: :$widget, :handler-arg0($event),
     :$user-option1, ..., :$user-optionN
   )
   handler (
-    object: :$widget, :handle-arg0($nativewidget),
+    object: :$widget, :handler-arg0($nativewidget),
     :$user-option1, ..., :$user-optionN
   )
 =end code
@@ -511,10 +536,9 @@ An other reserved named argument is of course C<:$event>.
   $button.register-signal( $x, 'click-handler', 'clicked', :user-data($data));
 =end code
 
-
 =end pod
 
-method register-signal (
+multi method register-signal (
   $handler-object, Str:D $handler-name, Str:D $signal-name, *%user-options
   --> Bool
 ) {
@@ -547,24 +571,35 @@ method register-signal (
         $handler = -> N-GObject $w, OpaquePointer $d {
           $handler-object."$handler-name"( :widget(self), |%user-options);
         }
+
+        self.connect-object-signal(
+          $signal-name, $handler, OpaquePointer, 0
+        );
       }
 
       when 'event' {
         $handler = -> N-GObject $w, $event, OpaquePointer $d {
-
           $handler-object."$handler-name"(
-             :widget(self), :$event, :handle-arg0($event), |%user-options
+             :widget(self), :$event, :handler-arg0($event), |%user-options
           );
         }
+
+        self.connect-object-event(
+          $signal-name, $handler, OpaquePointer, 0
+        );
       }
 
       when 'nativewidget' {
         $handler = -> N-GObject $w, N-GObject $d1, OpaquePointer $d2 {
           $handler-object."$handler-name"(
-             :widget(self), :nativewidget($d1), :handle-arg0($d1),
+             :widget(self), :nativewidget($d1), :handler-arg0($d1),
              |%user-options
           );
         }
+
+        self.connect-object-nativewidget(
+          $signal-name, $handler, OpaquePointer, 0
+        );
       }
 
       when 'notsupported' {
@@ -591,10 +626,11 @@ method register-signal (
       }
     }
 
+#`{{
     $!g-signal."_g_signal_connect_object_$signal-type"(
       $signal-name, $handler, OpaquePointer, 0
     );
-
+}}
     True
   }
 
