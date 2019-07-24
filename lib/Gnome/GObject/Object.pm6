@@ -37,6 +37,8 @@ use Gnome::GObject::Type;
 use Gnome::GObject::Value;
 use Gnome::Glib::Main;
 
+use Gnome::Gdk3::Events;
+
 #-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 
@@ -382,13 +384,18 @@ method get-class-name ( --> Str ) {
 method native-gobject (
   N-GObject $widget?, Bool :$force = False --> N-GObject
 ) {
-  if ?$widget and ( $force or !?$!g-object ) {
+  if ?$widget and ( $force or !$!g-object ) {
+
+    # if defined, setting is forced
     if ?$!g-object {
       #TODO self.g_object_unref();
     }
     $!g-object = $widget;
     #TODO self.g_object_ref();
   }
+
+  # when object is set, create signal object too
+  $!g-signal .= new(:$!g-object) if ?$!g-object;
 
   $!g-object
 }
@@ -404,6 +411,37 @@ method set-builder ( $builder ) {
 # no pod. user does not have to know about it.
 method get-builders ( --> Array ) {
   $builders;
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
+
+  # must store signal names under the class name because I found the use of
+  # the same signal name with different handler signatures in different classes.
+  $signal-types{$module-name} //= {};
+
+  note "\nTest signal names for {$?CLASS.^name}" if $Gnome::N::x-debug;
+  for %signal-descriptions.kv -> $signal-type, $signal-names {
+    my @names = $signal-names ~~ List ?? @$signal-names !! ($signal-names,);
+    for @names -> $signal-name {
+      if $signal-type ~~ any(<signal event nativewidget>) {
+        note "  $module-name, $signal-name --> $signal-type"
+          if $Gnome::N::x-debug;
+        $signal-types{$module-name}{$signal-name} = $signal-type;
+      }
+
+      elsif $signal-type ~~ any(<notsupported deprecated>) {
+        note "  $signal-name is not supported" if $Gnome::N::x-debug;
+      }
+
+      else {
+        note "  $signal-name is not yet supported" if $Gnome::N::x-debug;
+      }
+    }
+  }
+
+  True
 }
 
 #-------------------------------------------------------------------------------
@@ -443,8 +481,7 @@ Other forms are explained in the widget documentations when signals are provided
 
 
 =begin item
-$signal-name; The name of the event to be handled. Each gtk widget has its
-own series of signals, please look for it in the documentation of gtk.
+$signal-name; The name of the event to be handled. Each gtk object has its own series of signals.
 =end item
 
 =begin item
@@ -554,7 +591,6 @@ method register-signal (
       }
     }
 
-    $!g-signal .= new(:$!g-object);
     $!g-signal."_g_signal_connect_object_$signal-type"(
       $signal-name, $handler, OpaquePointer, 0
     );
@@ -638,39 +674,6 @@ method start-thread (
   }
 
   $p
-}
-
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
-
-  # must store signal names under the class name because I found the use of
-  # the same signal name with different handler signatures.
-  $signal-types{$module-name} //= {};
-
-  note "\nTest event names for {$?CLASS.^name}" if $Gnome::N::x-debug;
-  for %signal-descriptions.kv -> $signal-type, $signal-names {
-  #  note "add $signal-type, $signal-names.perl()" if $Gnome::N::x-debug;
-    my @names = $signal-names ~~ List ?? @$signal-names !! ($signal-names,);
-    for @names -> $signal-name {
-      if $signal-type ~~ any(<signal event nativewidget>) {
-        note "  $module-name, $signal-name --> $signal-type"
-          if $Gnome::N::x-debug;
-        $signal-types{$module-name}{$signal-name} = $signal-type;
-      }
-
-      elsif $signal-type ~~ any(<notsupported deprecated>) {
-        note "  $signal-name is not supported" if $Gnome::N::x-debug;
-      }
-
-      else {
-        note "  Signal $signal-name is not yet supported"
-          if $Gnome::N::x-debug;
-      }
-    }
-  }
-
-  True
 }
 
 #-------------------------------------------------------------------------------
