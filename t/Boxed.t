@@ -5,7 +5,7 @@ use Test;
 use Gnome::N::X;
 use Gnome::GObject::Boxed;
 
-#X::Gnome.debug(:on);
+#Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
 subtest 'create boxed', {
