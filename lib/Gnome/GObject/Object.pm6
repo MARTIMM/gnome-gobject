@@ -37,8 +37,6 @@ use Gnome::GObject::Type;
 use Gnome::GObject::Value;
 use Gnome::Glib::Main;
 
-use Gnome::Gdk3::Events;
-
 #-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 
