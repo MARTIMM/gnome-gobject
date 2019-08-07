@@ -1,8 +1,11 @@
 ## Release notes
 
+* 2019-07-24 0.13.15
+  * Boxed modified to have a check if named arguments are passed.
+
 * 2019-07-24 0.13.14
   * Bug fix. remove use of Gdk3 module from Object.
-  
+
 * 2019-07-24 0.13.13
   * Declaration of several signal subs moved from Gnome::GObject::Signal to Gnome::GObject::Object to simplify things.
 

@@ -16,7 +16,16 @@ unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
 has $!g-boxed;
 
 #-------------------------------------------------------------------------------
-# submethod BUILD (*%options ) { }
+submethod BUILD (*%options ) {
+
+  if %options.keys.elems == 0 {
+    note 'No options used to create or set the native widget'
+      if $Gnome::N::x-debug;
+    die X::Gnome.new(
+      :message('No options used to create or set the native widget')
+    );
+  }
+}
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
