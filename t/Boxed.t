@@ -9,7 +9,7 @@ use Gnome::GObject::Boxed;
 
 #-------------------------------------------------------------------------------
 subtest 'create boxed', {
-  my Gnome::GObject::Boxed $b .= new;
+  my Gnome::GObject::Boxed $b .= new(:empty);
   isa-ok $b, Gnome::GObject::Boxed;
 }
 
