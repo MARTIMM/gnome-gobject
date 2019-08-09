@@ -302,8 +302,10 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # belongs to Gnome::Gtk::Widget.
   my $g-object-cast;
 
+#note "type class: $!gtk-class-gtype, $!gtk-class-name";
   #TODO Not all classes have $!gtk-class-* defined so we need to test it
-  if ?$!gtk-class-gtype and $!gtk-class-name ne $!gtk-class-name-of-sub {
+  if ?$!gtk-class-gtype and ?$!gtk-class-name and ?$!gtk-class-name-of-sub and
+     $!gtk-class-name ne $!gtk-class-name-of-sub {
     note "\nObject gtype: $!gtk-class-gtype" if $Gnome::N::x-debug;
     note "Cast $!gtk-class-name to $!gtk-class-name-of-sub"
       if $Gnome::N::x-debug;

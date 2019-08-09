@@ -1,9 +1,12 @@
 ## Release notes
 
-* 2019-07-24 0.13.15
+* 2019-08-09 0.13.16
+  * Object modified to better check for undefined values before casting.
+
+* 2019-08-03 0.13.15
   * Boxed modified to have a check if named arguments are passed.
 
-* 2019-07-24 0.13.14
+* 2019-07-25 0.13.14
   * Bug fix. remove use of Gdk3 module from Object.
 
 * 2019-07-24 0.13.13
