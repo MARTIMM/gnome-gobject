@@ -277,7 +277,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
       unless $s.defined;
 
   # User convenience substitutions to get a native object instead of
-  # a GtkSomeThing or GlibSomeThing object
+  # a GtkSomeThing or other *SomeThing object.
   my Array $params = [];
   for c.list -> $p {
 
