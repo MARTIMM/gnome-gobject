@@ -9,9 +9,11 @@ use Gnome::GObject::Object;
 
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-#  my Gnome::GObject::Object $o .= new(:empty);
-#  isa-ok $o, Gnome::GObject::Object;
-  is 1, 1, 'Tests done later';
+  my Gnome::GObject::Object $o .= new(
+    :type(1), :names([<color>], :values([<blue>])
+  );
+  isa-ok $o, Gnome::GObject::Object;
+#  is 1, 1, 'Tests done later';
 }
 
 #-------------------------------------------------------------------------------
