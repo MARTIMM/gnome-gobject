@@ -180,7 +180,7 @@ submethod BUILD ( *%options ) {
 }
 
 #-------------------------------------------------------------------------------
-method fallback ( $native-sub, |c ) {
+method _fallback ( $native-sub, |c ) {
 
   my Callable $s;
   try { $s = &::($native-sub); }
