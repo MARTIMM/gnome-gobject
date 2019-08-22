@@ -8,10 +8,11 @@ use Gnome::GObject::Param;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
-my Gnome::GObject::Param $p .= new(:gparam());
+my Gnome::GObject::Param $p .= new(:empty);
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   isa-ok $p, Gnome::GObject::Param;
+  note $p().flags;
 }
 
 #-------------------------------------------------------------------------------
