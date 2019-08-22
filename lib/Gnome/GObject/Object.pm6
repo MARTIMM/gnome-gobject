@@ -56,11 +56,11 @@ Some object implementations may need to save an objects floating state across ce
   else
     g_object_unref (object); // release previously acquired reference
 
-=end comment
 
 =head2 See Also
 
 I<GParamSpecObject>, C<g_param_spec_object()>
+=end comment
 
 =head1 Synopsis
 =head2 Declaration
@@ -97,6 +97,7 @@ use Gnome::Glib::Main;
 use Gnome::GObject::Signal;
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
+use Gnome::GObject::Param;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
@@ -206,7 +207,7 @@ submethod BUILD ( *%options ) {
 
   # add signal types
   unless $signals-added {
-    $signals-added = self.add-signal-types( $?CLASS.^name, :GParamSpec<notify>);
+    $signals-added = self.add-signal-types( $?CLASS.^name, :N-GParamSpec<notify>);
   }
 
   # process options
@@ -219,7 +220,8 @@ submethod BUILD ( *%options ) {
 
       loop ( my Int $i = 0; $i < ^ %options<names>.elems; $i++ ) {
         $n[$i] = %options<names>[$i];
-        $v[$i] = %options<values>[$i];
+        my $vi = %options<values>[$i];
+        $v[$i] = $vi ~~ Gnome::GObject::Value ?? $vi() !! $vi;
       }
 
       self.native-gobject(
@@ -360,10 +362,10 @@ method CALL-ME ( N-GObject $widget? --> N-GObject ) {
 # no pod. user does not have to know about it.
 #
 # Fallback method to find the native subs which then can be called as if it
-# were a method. Each class must provide their own 'fallback' method which,
-# when nothing found, must call the parents fallback with 'callsame'.
+# were a method. Each class must provide their own '_fallback' method which,
+# when nothing found, must call the parents _fallback with 'callsame'.
 # The subs in some class all start with some prefix which can be left out too
-# provided that the fallback functions must also test with an added prefix.
+# provided that the _fallback functions must also test with an added prefix.
 # So e.g. a sub 'gtk_label_get_text' defined in class GtlLabel can be called
 # like '$label.gtk_label_get_text()' or '$label.get_text()'. As an extra
 # feature dashes can be used instead of underscores, so '$label.get-text()'
@@ -386,9 +388,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
 
-  # call the fallback functions of this classes children starting
+  # call the _fallback functions of this classes children starting
   # at the bottom
-  $s = self.fallback($native-sub);
+  $s = self._fallback($native-sub);
 
   die X::Gnome.new(:message("Native sub '$native-sub' not found"))
       unless $s.defined;
@@ -437,7 +439,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method fallback ( $native-sub --> Callable ) {
+method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
 
@@ -1021,15 +1023,15 @@ Note that it is possible to redefine a property in a derived class,
 by installing a property with the same name. This can be useful at times,
 e.g. to change the range of allowed values or the default value.
 
-  method g_object_class_install_property ( GObjectClass $oclass, UInt $property_id, GParamSpec $pspec )
+  method g_object_class_install_property ( GObjectClass $oclass, UInt $property_id, N-GParamSpec $pspec )
 
 =item GObjectClass $oclass; a I<GObjectClass>
 =item UInt $property_id; the id for the new property
-=item GParamSpec $pspec; the I<GParamSpec> for the new property
+=item N-GParamSpec $pspec; the I<N-GParamSpec> for the new property
 
 =end pod
 
-sub g_object_class_install_property ( GObjectClass $oclass, uint32 $property_id, GParamSpec $pspec )
+sub g_object_class_install_property ( GObjectClass $oclass, uint32 $property_id, N-GParamSpec $pspec )
   is native(&gobject-lib)
   { * }
 
@@ -1038,12 +1040,12 @@ sub g_object_class_install_property ( GObjectClass $oclass, uint32 $property_id,
 =begin pod
 =head2 [g_object_] class_find_property
 
-Looks up the I<GParamSpec> for a property of a class.
+Looks up the I<N-GParamSpec> for a property of a class.
 
-Returns: (transfer none): the I<GParamSpec> for the property, or
+Returns: (transfer none): the I<N-GParamSpec> for the property, or
 C<Any> if the class doesn't have a property of that name
 
-  method g_object_class_find_property ( GObjectClass $oclass, Str $property_name --> GParamSpec  )
+  method g_object_class_find_property ( GObjectClass $oclass, Str $property_name --> N-GParamSpec  )
 
 =item GObjectClass $oclass; a I<GObjectClass>
 =item Str $property_name; the name of the property to look up
@@ -1051,7 +1053,7 @@ C<Any> if the class doesn't have a property of that name
 =end pod
 
 sub g_object_class_find_property ( GObjectClass $oclass, Str $property_name )
-  returns GParamSpec
+  returns N-GParamSpec
   is native(&gobject-lib)
   { * }
 
@@ -1060,12 +1062,12 @@ sub g_object_class_find_property ( GObjectClass $oclass, Str $property_name )
 =begin pod
 =head2 [g_object_] class_list_properties
 
-Get an array of I<GParamSpec>* for all properties of a class.
+Get an array of I<N-GParamSpec>* for all properties of a class.
 
 Returns: (array length=n_properties) (transfer container): an array of
-I<GParamSpec>* which should be freed after use
+I<N-GParamSpec>* which should be freed after use
 
-  method g_object_class_list_properties ( GObjectClass $oclass, UInt $n_properties --> GParamSpec  )
+  method g_object_class_list_properties ( GObjectClass $oclass, UInt $n_properties --> N-GParamSpec  )
 
 =item GObjectClass $oclass; a I<GObjectClass>
 =item UInt $n_properties; (out): return location for the length of the returned array
@@ -1073,7 +1075,7 @@ I<GParamSpec>* which should be freed after use
 =end pod
 
 sub g_object_class_list_properties ( GObjectClass $oclass, uint32 $n_properties )
-  returns GParamSpec
+  returns N-GParamSpec
   is native(&gobject-lib)
   { * }
 
@@ -1089,12 +1091,12 @@ a parent class or to provide the implementation of a property from
 an interface.
 
 Internally, overriding is implemented by creating a property of type
-I<GParamSpecOverride>; generally operations that query the properties of
+I<N-GParamSpecOverride>; generally operations that query the properties of
 the object class, such as C<g_object_class_find_property()> or
 C<g_object_class_list_properties()> will return the overridden
 property. However, in one case, the I<construct_properties> argument of
-the I<constructor> virtual function, the I<GParamSpecOverride> is passed
-instead, so that the I<param_id> field of the I<GParamSpec> will be
+the I<constructor> virtual function, the I<N-GParamSpecOverride> is passed
+instead, so that the I<param_id> field of the I<N-GParamSpec> will be
 correct.  For virtually all uses, this makes no difference. If you
 need to get the overridden property, you can call
 C<g_param_spec_get_redirect_target()>.
@@ -1118,21 +1120,21 @@ sub g_object_class_override_property ( GObjectClass $oclass, uint32 $property_id
 =begin pod
 =head2 [g_object_] class_install_properties
 
-Installs new properties from an array of I<GParamSpecs>.
+Installs new properties from an array of I<N-GParamSpecs>.
 
 All properties should be installed during the class initializer.  It
 is possible to install properties after that, but doing so is not
 recommend, and specifically, is not guaranteed to be thread-safe vs.
 use of properties on the same type on other threads.
 
-The property id of each property is the index of each I<GParamSpec> in
+The property id of each property is the index of each I<N-GParamSpec> in
 the I<pspecs> array.
 
 The property id of 0 is treated specially by I<GObject> and it should not
-be used to store a I<GParamSpec>.
+be used to store a I<N-GParamSpec>.
 
 This function should be used if you plan to use a static array of
-I<GParamSpecs> and C<g_object_notify_by_pspec()>. For instance, this
+I<N-GParamSpecs> and C<g_object_notify_by_pspec()>. For instance, this
 class initialization:
 
 |[<!-- language="C" -->
@@ -1140,7 +1142,7 @@ enum {
 PROP_0, PROP_FOO, PROP_BAR, N_PROPERTIES
 };
 
-static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
+static N-GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
 
 static void
 my_object_class_init (MyObjectClass *klass)
@@ -1182,15 +1184,15 @@ g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_FOO]);
 
 Since: 2.26
 
-  method g_object_class_install_properties ( GObjectClass $oclass, UInt $n_pspecs, GParamSpec $pspecs )
+  method g_object_class_install_properties ( GObjectClass $oclass, UInt $n_pspecs, N-GParamSpec $pspecs )
 
 =item GObjectClass $oclass; a I<GObjectClass>
-=item UInt $n_pspecs; the length of the I<GParamSpecs> array
-=item GParamSpec $pspecs; (array length=n_pspecs): the I<GParamSpecs> array defining the new properties
+=item UInt $n_pspecs; the length of the I<N-GParamSpecs> array
+=item N-GParamSpec $pspecs; (array length=n_pspecs): the I<N-GParamSpecs> array defining the new properties
 
 =end pod
 
-sub g_object_class_install_properties ( GObjectClass $oclass, uint32 $n_pspecs, GParamSpec $pspecs )
+sub g_object_class_install_properties ( GObjectClass $oclass, uint32 $n_pspecs, N-GParamSpec $pspecs )
   is native(&gobject-lib)
   { * }
 }}
@@ -1204,7 +1206,7 @@ Add a property to an interface; this is only useful for interfaces
 that are added to GObject-derived types. Adding a property to an
 interface forces all objects classes with that interface to have a
 compatible property. The compatible property could be a newly
-created I<GParamSpec>, but normally
+created I<N-GParamSpec>, but normally
 C<g_object_class_override_property()> will be used so that the object
 class only needs to provide an implementation and inherits the
 property description, default value, bounds, and so forth from the
@@ -1219,14 +1221,14 @@ If I<pspec> is a floating reference, it will be consumed.
 
 Since: 2.4
 
-  method g_object_interface_install_property ( Pointer $g_iface, GParamSpec $pspec )
+  method g_object_interface_install_property ( Pointer $g_iface, N-GParamSpec $pspec )
 
 =item Pointer $g_iface; (type GObject.TypeInterface): any interface vtable for the interface, or the default vtable for the interface.
-=item GParamSpec $pspec; the I<GParamSpec> for the new property
+=item N-GParamSpec $pspec; the I<N-GParamSpec> for the new property
 
 =end pod
 
-sub g_object_interface_install_property ( Pointer $g_iface, GParamSpec $pspec )
+sub g_object_interface_install_property ( Pointer $g_iface, N-GParamSpec $pspec )
   is native(&gobject-lib)
   { * }
 
@@ -1235,7 +1237,7 @@ sub g_object_interface_install_property ( Pointer $g_iface, GParamSpec $pspec )
 =begin pod
 =head2 [g_object_] interface_find_property
 
-Find the I<GParamSpec> with the given name for an
+Find the I<N-GParamSpec> with the given name for an
 interface. Generally, the interface vtable passed in as I<g_iface>
 will be the default vtable from C<g_type_default_interface_ref()>, or,
 if you know the interface has already been loaded,
@@ -1243,11 +1245,11 @@ C<g_type_default_interface_peek()>.
 
 Since: 2.4
 
-Returns: (transfer none): the I<GParamSpec> for the property of the
+Returns: (transfer none): the I<N-GParamSpec> for the property of the
 interface with the name I<property_name>, or C<Any> if no
 such property exists.
 
-  method g_object_interface_find_property ( Pointer $g_iface, Str $property_name --> GParamSpec  )
+  method g_object_interface_find_property ( Pointer $g_iface, Str $property_name --> N-GParamSpec  )
 
 =item Pointer $g_iface; (type GObject.TypeInterface): any interface vtable for the interface, or the default vtable for the interface
 =item Str $property_name; name of a property to lookup.
@@ -1255,7 +1257,7 @@ such property exists.
 =end pod
 
 sub g_object_interface_find_property ( Pointer $g_iface, Str $property_name )
-  returns GParamSpec
+  returns N-GParamSpec
   is native(&gobject-lib)
   { * }
 
@@ -1272,12 +1274,12 @@ already been loaded, C<g_type_default_interface_peek()>.
 Since: 2.4
 
 Returns: (array length=n_properties_p) (transfer container): a
-pointer to an array of pointers to I<GParamSpec>
+pointer to an array of pointers to I<N-GParamSpec>
 structures. The paramspecs are owned by GLib, but the
 array should be freed with C<g_free()> when you are done with
 it.
 
-  method g_object_interface_list_properties ( Pointer $g_iface, UInt $n_properties_p --> GParamSpec  )
+  method g_object_interface_list_properties ( Pointer $g_iface, UInt $n_properties_p --> N-GParamSpec  )
 
 =item Pointer $g_iface; (type GObject.TypeInterface): any interface vtable for the interface, or the default vtable for the interface
 =item UInt $n_properties_p; (out): location to store number of properties returned.
@@ -1285,7 +1287,7 @@ it.
 =end pod
 
 sub g_object_interface_list_properties ( Pointer $g_iface, uint32 $n_properties_p )
-  returns GParamSpec
+  returns N-GParamSpec
   is native(&gobject-lib)
   { * }
 
@@ -1353,6 +1355,7 @@ sub g_object_new_with_properties (
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_valist:
 =begin pod
@@ -1373,10 +1376,12 @@ Returns: a new instance of I<object_type>
 
 =end pod
 
-sub g_object_new_valist ( int32 $object_type, Str $first_property_name, va_list $var_args )
-  returns N-GObject
+sub g_object_new_valist (
+  int32 $object_type, Str $first_property_name, va_list $var_args
+) returns N-GObject
   is native(&gobject-lib)
   { * }
+}}
 
 #`[[
 #-------------------------------------------------------------------------------
@@ -1520,22 +1525,20 @@ sub g_object_disconnect ( Pointer $object, Str $signal_spec, Any $any = Any )
 =begin pod
 =head2 g_object_setv
 
-Sets I<n_properties> properties for an I<object>.
-Properties to be set will be taken from I<values>. All properties must be
-valid. Warnings will be emitted and undefined behaviour may result if invalid
-properties are passed in.
+Sets I<$n_properties> properties for this object. Properties to be set will be taken from I<$values>. All properties must be valid. Warnings will be emitted and undefined behaviour may result if invalid properties are passed in.
 
 Since: 2.54
 
-  method g_object_setv ( UInt $n_properties,  $const gchar *names[],  $const GValue values[] )
+  method g_object_setv (
+    UInt $n_properties, CArray[Str] $names, CArray[N-GValue] $values )
 
 =item UInt $n_properties; the number of properties
-=item  $const gchar *names[]; (array length=n_properties): the names of each property to be set
-=item  $const GValue values[]; (array length=n_properties): the values of each property to be set
+=item CArray[Str] $names; (array length=n_properties): the names of each property to be set
+=item CArray[N-GValue] $values; (array length=n_properties): the values of each property to be set
 
 =end pod
 
-sub g_object_setv ( N-GObject $object, uint32 $n_properties,  $const gchar *names[],  $const GValue values[] )
+sub g_object_setv ( N-GObject $object, uint32 $n_properties, CArray[Str] $names, CArray[N-GValue] $values)
   is native(&gobject-lib)
   { * }
 
@@ -1546,14 +1549,16 @@ sub g_object_setv ( N-GObject $object, uint32 $n_properties,  $const gchar *name
 
 Sets properties on an object.
 
-  method g_object_set_valist ( Str $first_property_name, va_list $var_args )
+  method g_object_set_valist (
+    Str $first_property_name, CArray[N-GValue] $var_args
+  )
 
 =item Str $first_property_name; name of the first property to set
-=item va_list $var_args; value for the first property, followed optionally by more name/value pairs, followed by C<Any>
+=item CArray[N-GValue] $var_args; value for the first property, followed optionally by more name/value pairs, followed by C<Any>
 
 =end pod
 
-sub g_object_set_valist ( N-GObject $object, Str $first_property_name, va_list $var_args )
+sub g_object_set_valist ( N-GObject $object, Str $first_property_name, CArray[N-GValue] $var_args )
   is native(&gobject-lib)
   { * }
 
@@ -1569,15 +1574,16 @@ properties are passed in.
 
 Since: 2.54
 
-  method g_object_getv ( UInt $n_properties,  $const gchar *names[],  $GValue values[] )
+  method g_object_getv (
+    UInt $n_properties, CArray[Str] $names, CArray[N-GValue] $values )
 
 =item UInt $n_properties; the number of properties
-=item  $const gchar *names[]; (array length=n_properties): the names of each property to get
-=item  $GValue values[]; (array length=n_properties): the values of each property to get
+=item CArray[Str] $names; (array length=n_properties): the names of each property to get
+=item CArray[N-GValue] $values; (array length=n_properties): the values of each property to get
 
 =end pod
 
-sub g_object_getv ( N-GObject $object, uint32 $n_properties,  $const gchar *names[],  $GValue values[] )
+sub g_object_getv ( N-GObject $object, uint32 $n_properties, CArray[Str] $names, CArray[N-GValue] $values)
   is native(&gobject-lib)
   { * }
 
@@ -1594,14 +1600,16 @@ the type, for instance by calling C<g_free()> or C<g_object_unref()>.
 
 See C<g_object_get()>.
 
-  method g_object_get_valist ( Str $first_property_name, va_list $var_args )
+  method g_object_get_valist (
+    Str $first_property_name, CArray[N-GValue] $var_args
+  )
 
 =item Str $first_property_name; name of the first property to get
-=item va_list $var_args; return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
+=item CArray[N-GValue] $var_args; return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
 
 =end pod
 
-sub g_object_get_valist ( N-GObject $object, Str $first_property_name, va_list $var_args )
+sub g_object_get_valist ( N-GObject $object, Str $first_property_name, CArray[N-GValue] $var_args )
   is native(&gobject-lib)
   { * }
 
@@ -1711,7 +1719,7 @@ C<g_object_notify()>.
 
 One way to avoid using C<g_object_notify()> from within the
 class that registered the properties, and using C<g_object_notify_by_pspec()>
-instead, is to store the GParamSpec used with
+instead, is to store the N-GParamSpec used with
 C<g_object_class_install_property()> inside a static array, e.g.:
 
 enum
@@ -1721,7 +1729,7 @@ PROP_FOO,
 PROP_LAST
 };
 
-static GParamSpec *properties[PROP_LAST];
+static N-GParamSpec *properties[PROP_LAST];
 
 static void
 my_object_class_init (MyObjectClass *klass)
@@ -1744,13 +1752,13 @@ g_object_notify_by_pspec (self, properties[PROP_FOO]);
 
 Since: 2.26
 
-  method g_object_notify_by_pspec ( GParamSpec $pspec )
+  method g_object_notify_by_pspec ( N-GParamSpec $pspec )
 
-=item GParamSpec $pspec; the I<GParamSpec> of a property installed on the class of I<object>.
+=item N-GParamSpec $pspec; the I<N-GParamSpec> of a property installed on the class of I<object>.
 
 =end pod
 
-sub g_object_notify_by_pspec ( N-GObject $object, GParamSpec $pspec )
+sub g_object_notify_by_pspec ( N-GObject $object, N-GParamSpec $pspec )
   is native(&gobject-lib)
   { * }
 
@@ -1880,6 +1888,7 @@ sub g_object_unref ( Pointer $object )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_weak_ref:
 =begin pod
@@ -1924,6 +1933,7 @@ Removes a weak reference callback to an object.
 sub g_object_weak_unref ( N-GObject $object, GWeakNotify $notify, Pointer $data )
   is native(&gobject-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_add_weak_pointer:
@@ -1969,6 +1979,7 @@ sub g_object_remove_weak_pointer ( N-GObject $object, Pointer $weak_pointer_loca
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_add_toggle_ref:
 =begin pod
@@ -2036,6 +2047,7 @@ Since: 2.8
 sub g_object_remove_toggle_ref ( N-GObject $object, GToggleNotify $notify, Pointer $data )
   is native(&gobject-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_qdata:
@@ -2083,6 +2095,7 @@ sub g_object_set_qdata ( N-GObject $object, int32 $quark, Pointer $data )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_qdata_full:
 =begin pod
@@ -2105,6 +2118,7 @@ with the same I<quark>.
 sub g_object_set_qdata_full ( N-GObject $object, int32 $quark, Pointer $data, GDestroyNotify $destroy )
   is native(&gobject-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_steal_qdata:
@@ -2160,6 +2174,7 @@ sub g_object_steal_qdata ( N-GObject $object, int32 $quark )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_dup_qdata:
 =begin pod
@@ -2238,6 +2253,7 @@ sub g_object_replace_qdata ( N-GObject $object, int32 $quark, Pointer $oldval, P
   returns int32
   is native(&gobject-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_data:
@@ -2282,6 +2298,7 @@ sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_data_full:
 =begin pod
@@ -2304,6 +2321,7 @@ Note that the I<destroy> callback is not called if I<data> is C<Any>.
 sub g_object_set_data_full ( N-GObject $object, Str $key, Pointer $data, GDestroyNotify $destroy )
   is native(&gobject-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_steal_data:
@@ -2327,6 +2345,7 @@ sub g_object_steal_data ( N-GObject $object, Str $key )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_dup_data:
 =begin pod
@@ -2366,7 +2385,9 @@ sub g_object_dup_data ( N-GObject $object, Str $key, GDuplicateFunc $dup_func, P
   returns Pointer
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_replace_data:
 =begin pod
@@ -2405,7 +2426,7 @@ sub g_object_replace_data ( N-GObject $object, Str $key, Pointer $oldval, Pointe
   returns int32
   is native(&gobject-lib)
   { * }
-
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_watch_closure:
@@ -2704,6 +2725,7 @@ sub g_clear_object ( N-GObject $object_ptr )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_weak_ref_init:
 =begin pod
@@ -2809,7 +2831,7 @@ Since: 2.32
 sub g_weak_ref_set ( GWeakRef $weak_ref, Pointer $object )
   is native(&gobject-lib)
   { * }
-
+}}
 #-------------------------------------------------------------------------------
 =begin pod
 =begin comment
@@ -2827,9 +2849,14 @@ g_cclosure_new_object_swap
 g_closure_new_object
 g_signal_connect_object
 g_object_connect
-
-=head3 method  ( ... )
-
+g_object_new_valist
+g_object_weak_ref
+g_object_weak_unref
+g_object_add_toggle_ref
+g_object_remove_toggle_ref
+g_object_set_qdata_full
+g_object_dup_qdata
+...
 =end comment
 =end pod
 
@@ -2885,6 +2912,6 @@ It is important to note that you must use [canonical parameter names][canonical-
   );
 
 =item $gobject; the object which received the signal.
-=item $pspec; the I<GParamSpec> of the property which changed.
+=item $pspec; the I<N-GParamSpec> of the property which changed.
 
 =end pod
