@@ -54,9 +54,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
 
-  # call the fallback functions of this classes children starting
+  # call the _fallback functions of this classes children starting
   # at the bottom
-  $s = self.fallback($native-sub);
+  $s = self._fallback($native-sub);
 
   die X::Gnome.new(:message("Native sub '$native-sub' not found"))
       unless $s.defined;
@@ -82,7 +82,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 }
 
 #-------------------------------------------------------------------------------
-method fallback ( $native-sub is copy --> Callable ) {
+method _fallback ( $native-sub is copy --> Callable ) {
 
 #  my Callable $s;
 #  try { $s = &::($native-sub); }
