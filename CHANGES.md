@@ -1,7 +1,9 @@
 ## Release notes
 
-* 2019-08-09 0.13.16
+* 2019-08-09 0.14.0
   * Object modified to better check for undefined values before casting.
+  * Added module `Param` to handle N-GParamSpec native objects.
+  * All fallback() methods renamed to \_fallback()
 
 * 2019-08-03 0.13.15
   * Boxed modified to have a check if named arguments are passed.
