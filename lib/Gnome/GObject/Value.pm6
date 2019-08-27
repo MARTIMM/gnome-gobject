@@ -28,6 +28,31 @@ class N-GValue is repr('CStruct') is export {
   }
 }
 
+#`{{
+enum typeToSub is export (
+  'G_TYPE_INTERFACE'  => Any,
+  'G_TYPE_CHAR'       => Any,
+  'G_TYPE_UCHAR'      => Any,
+  'G_TYPE_BOOLEAN'    => 'boolean',
+  'G_TYPE_INT'        => 'int',
+  'G_TYPE_UINT'       => 'uint',
+  'G_TYPE_LONG'       => 'long',
+  'G_TYPE_ULONG'      => 'ulong',
+  'G_TYPE_INT64'      => 'int64',
+  'G_TYPE_UINT64'     => 'uint64',
+  'G_TYPE_ENUM'       => 'enum',
+  'G_TYPE_FLAGS'      => 'flags',
+  'G_TYPE_FLOAT'      => 'float',
+  'G_TYPE_DOUBLE'     => 'double',
+  'G_TYPE_STRING'     => 'string',
+  'G_TYPE_POINTER'    => Any,
+  'G_TYPE_BOXED'      => Any,
+  'G_TYPE_PARAM'      => Any,
+  'G_TYPE_OBJECT'     => Any,
+  'G_TYPE_VARIANT'    => Any,
+);
+}}
+
 #-------------------------------------------------------------------------------
 sub g_value_init ( N-GValue $value, int32 $g_type )
   returns N-GValue # GValue *

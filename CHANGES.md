@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2019-08-25 0.14.1
+  * Object extended and documented a bit
+  * Type extended and documented a bit and added test file.
+
 * 2019-08-09 0.14.0
   * Object modified to better check for undefined values before casting.
   * Added module `Param` to handle N-GParamSpec native objects.

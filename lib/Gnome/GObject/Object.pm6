@@ -1,4 +1,4 @@
-#TL:0:Gnome::GObject::Object:
+#TL:1:Gnome::GObject::Object:
 
 use v6;
 #-------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ Objects][gtype-instantiable-classed].
 
 =head2 Floating references
 
-I<Gnome::GObject::InitiallyUnowned> is derived from I<Gnome::GObject::Object>. The only difference between the two is that the initial reference of a GInitiallyUnowned is flagged as a "floating" reference. This means that it is not specifically claimed to be "owned" by any code portion. The main motivation for providing floating references is C convenience. In particular, it allows code to be written as (in C):
+B<Gnome::GObject::InitiallyUnowned> is derived from B<Gnome::GObject::Object>. The only difference between the two is that the initial reference of a GInitiallyUnowned is flagged as a "floating" reference. This means that it is not specifically claimed to be "owned" by any code portion. The main motivation for providing floating references is C convenience. In particular, it allows code to be written as (in C):
 
   container = $create_container();
   container_add_child (container, create_child());
@@ -41,7 +41,7 @@ The floating reference can be converted into an ordinary reference by calling C<
 
 Since floating references are useful almost exclusively for C convenience, language bindings that provide automated reference and memory ownership maintenance (such as smart pointers or garbage collection) should not expose floating references in their API.
 
-Some object implementations may need to save an objects floating state across certain code portions (an example is I<Gnome::Gtk3::Menu>), to achieve this, the following sequence can be used:
+Some object implementations may need to save an objects floating state across certain code portions (an example is B<Gnome::Gtk3::Menu>), to achieve this, the following sequence can be used:
 
   // save floating state
   gboolean was_floating = g_object_is_floating (object);
@@ -60,6 +60,7 @@ Some object implementations may need to save an objects floating state across ce
 =head2 See Also
 
 I<GParamSpecObject>, C<g_param_spec_object()>
+
 =end comment
 
 =head1 Synopsis
@@ -224,11 +225,11 @@ submethod BUILD ( *%options ) {
         $v[$i] = $vi ~~ Gnome::GObject::Value ?? $vi() !! $vi;
       }
 
-      self.native-gobject(
+      $!gobject-is-valid = self.native-gobject(
         g_object_new_with_properties(
           %options<type>, %options<names>.elems, $n, $v
         )
-      );
+      ).defined;
     }
 
     else {
@@ -830,163 +831,6 @@ method start-thread (
 
   $p
 }
-
-#`{{ === other subs included from generated source
-#-------------------------------------------------------------------------------
-# Increases the reference count of $object. The new() methods will increase the
-# reference count of the native object automatically and when destroyed or
-# overwritten decreased.
-
-# no pod. user does not have to know about it.
-sub g_object_ref ( N-GObject $object )
-  returns N-GObject
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Decreases the reference count of object. When its reference count drops to 0,
-# the object is finalized (i.e. its memory is freed). The widget classes will
-# automatically decrease the reference count to the native object when
-# destroyed or when overwritten.
-
-# no pod. user does not have to know about it.
-sub g_object_unref ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Increase the reference count of object , and possibly remove the floating
-# reference. See also https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-ref-sink.
-
-# no pod. user does not have to know about it.
-sub g_object_ref_sink ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Clears a reference to a GObject. The reference count of the object is
-# decreased and the pointer is set to NULL.
-
-# no pod. user does not have to know about it.
-sub g_clear_object ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Checks whether object has a floating reference.
-
-# no pod. user does not have to know about it.
-sub g_object_is_floating ( N-GObject $object )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# This function is intended for GObject implementations to re-enforce a
-# floating object reference. Doing this is seldom required: all
-# GInitiallyUnowneds are created with a floating reference which usually just
-# needs to be sunken by calling g_object_ref_sink().
-
-# no pod. user does not have to know about it.
-sub g_object_force_floating ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] set_property
-
-  method g_object_set_property (
-    Str $property_name, Gnome::GObject::GValue $value
-  )
-
-Sets a property on an object.
-
-=item $property_name; the name of the property to set.
-=item $value; the value.
-
-=end pod
-
-sub g_object_set_property (
-  N-GObject $object, Str $property_name, N-GValue $value
-) is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] get_property
-
-  method g_object_get_property (
-    Str $property_name, Gnome::GObject::GValue $value is rw
-  )
-
-Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
-
-In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
-
-=item $property_name; the name of the property to get.
-=item $value; return location for the property value.
-
-=end pod
-
-sub g_object_get_property (
-  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
-) is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 g_object_notify
-
-  method g_object_notify ( Str $property_name )
-
-Emits a C<notify> signal for the property C<property_name> on object .
-
-When possible, e.g. when signaling a property change from within the class that registered the property, you should use C<g_object_notify_by_pspec()>(not supported yet) instead.
-
-Note that emission of the notify signal may be blocked with C<g_object_freeze_notify()>. In this case, the signal emissions are queued and will be emitted (in reverse order) when C<g_object_thaw_notify()> is called.
-
-=item $property_name; the name of a property installed on the class of object.
-
-=end pod
-
-sub g_object_notify ( N-GObject $object, Str $property_name)
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] freeze_notify
-
-  method g_object_freeze_notify ( )
-
-Increases the freeze count on object . If the freeze count is non-zero, the emission of C<notify> signals on object is stopped. The signals are queued until the freeze count is decreased to zero. Duplicate notifications are squashed so that at most one C<notify> signal is emitted for each property modified while the object is frozen.
-
-This is necessary for accessors that modify multiple properties to prevent premature notification while the object is still being modified.
-
-=end pod
-
-sub g_object_freeze_notify ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] thaw_notify
-
-  method g_object_thaw_notify ( )
-
-Reverts the effect of a previous call to C<g_object_freeze_notify()>. The freeze count is decreased on object and when it reaches zero, queued C<notify> signals are emitted.
-
-Duplicate notifications for each property are squashed so that at most one C<notify> signal is emitted for each property, in the reverse order in which they have been queued.
-
-It is an error to call this function when the freeze count is zero.
-=end pod
-
-sub g_object_thaw_notify ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-}}
 
 
 #-------------------------------------------------------------------------------
@@ -1631,6 +1475,7 @@ sub g_object_set_property ( N-GObject $object, Str $property_name, N-GObject $va
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_property:
 =begin pod
@@ -1655,6 +1500,41 @@ bindings, C<g_object_get()> is much more convenient for C programming.
 
 sub g_object_get_property ( N-GObject $object, Str $property_name, N-GObject $value )
   is native(&gobject-lib)
+  { * }
+}}
+#-------------------------------------------------------------------------------
+#TM:0:g_object_get_property:
+=begin pod
+=head2 [g_object_] get_property
+
+  method g_object_get_property (
+    Str $property_name, Gnome::GObject::Type $type
+    --> Gnome::GObject::Value
+  )
+
+Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
+
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
+
+=item $property_name; the name of the property to get.
+=item $value; return location for the property value.
+
+=end pod
+
+sub g_object_get_property (
+  N-GObject $object, Str $property_name, Int $type
+  --> Gnome::GObject::Value
+) {
+note "o: ", $object;
+  my Gnome::GObject::Value $v .= new(:init($type));
+  _g_object_get_property( $object, $property_name, $v());
+  $v
+}
+
+sub _g_object_get_property (
+  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
+) is native(&gobject-lib)
+  is symbol('g_object_get_property')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -2915,3 +2795,186 @@ It is important to note that you must use [canonical parameter names][canonical-
 =item $pspec; the I<N-GParamSpec> of the property which changed.
 
 =end pod
+
+
+
+
+
+
+
+
+
+
+
+
+
+=finish
+
+#`{{
+#-------------------------------------------------------------------------------
+# Increases the reference count of $object. The new() methods will increase the
+# reference count of the native object automatically and when destroyed or
+# overwritten decreased.
+
+# no pod. user does not have to know about it.
+sub g_object_ref ( N-GObject $object )
+  returns N-GObject
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# Decreases the reference count of object. When its reference count drops to 0,
+# the object is finalized (i.e. its memory is freed). The widget classes will
+# automatically decrease the reference count to the native object when
+# destroyed or when overwritten.
+
+# no pod. user does not have to know about it.
+sub g_object_unref ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# Increase the reference count of object , and possibly remove the floating
+# reference. See also https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-ref-sink.
+
+# no pod. user does not have to know about it.
+sub g_object_ref_sink ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# Clears a reference to a GObject. The reference count of the object is
+# decreased and the pointer is set to NULL.
+
+# no pod. user does not have to know about it.
+sub g_clear_object ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# Checks whether object has a floating reference.
+
+# no pod. user does not have to know about it.
+sub g_object_is_floating ( N-GObject $object )
+  returns int32
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# This function is intended for GObject implementations to re-enforce a
+# floating object reference. Doing this is seldom required: all
+# GInitiallyUnowneds are created with a floating reference which usually just
+# needs to be sunken by calling g_object_ref_sink().
+
+# no pod. user does not have to know about it.
+sub g_object_force_floating ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 [g_object_] set_property
+
+  method g_object_set_property (
+    Str $property_name, Gnome::GObject::GValue $value
+  )
+
+Sets a property on an object.
+
+=item $property_name; the name of the property to set.
+=item $value; the value.
+
+=end pod
+
+sub g_object_set_property (
+  N-GObject $object, Str $property_name, N-GValue $value
+) is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 [g_object_] get_property
+
+  method g_object_get_property (
+    Str $property_name, Gnome::GObject::Type $type
+    --> Gnome::GObject::Value
+  )
+
+Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
+
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
+
+=item $property_name; the name of the property to get.
+=item $value; return location for the property value.
+
+=end pod
+
+sub g_object_get_property (
+  N-GObject $object, Str $property_name, Gnome::GObject::Type $type
+  --> Gnome::GObject::Value
+) {
+  my Gnome::GObject::Value $v .= new(:init($type));
+  _g_object_get_property( $object, $property_name, $v());
+  $v
+}
+
+sub _g_object_get_property (
+  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
+) is native(&gobject-lib)
+  is symbol('g_object_get_property')
+  { * }
+
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 g_object_notify
+
+  method g_object_notify ( Str $property_name )
+
+Emits a C<notify> signal for the property C<property_name> on object .
+
+When possible, e.g. when signaling a property change from within the class that registered the property, you should use C<g_object_notify_by_pspec()>(not supported yet) instead.
+
+Note that emission of the notify signal may be blocked with C<g_object_freeze_notify()>. In this case, the signal emissions are queued and will be emitted (in reverse order) when C<g_object_thaw_notify()> is called.
+
+=item $property_name; the name of a property installed on the class of object.
+
+=end pod
+
+sub g_object_notify ( N-GObject $object, Str $property_name)
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 [g_object_] freeze_notify
+
+  method g_object_freeze_notify ( )
+
+Increases the freeze count on object . If the freeze count is non-zero, the emission of C<notify> signals on object is stopped. The signals are queued until the freeze count is decreased to zero. Duplicate notifications are squashed so that at most one C<notify> signal is emitted for each property modified while the object is frozen.
+
+This is necessary for accessors that modify multiple properties to prevent premature notification while the object is still being modified.
+
+=end pod
+
+sub g_object_freeze_notify ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 [g_object_] thaw_notify
+
+  method g_object_thaw_notify ( )
+
+Reverts the effect of a previous call to C<g_object_freeze_notify()>. The freeze count is decreased on object and when it reaches zero, queued C<notify> signals are emitted.
+
+Duplicate notifications for each property are squashed so that at most one C<notify> signal is emitted for each property, in the reverse order in which they have been queued.
+
+It is an error to call this function when the freeze count is zero.
+=end pod
+
+sub g_object_thaw_notify ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+}}
