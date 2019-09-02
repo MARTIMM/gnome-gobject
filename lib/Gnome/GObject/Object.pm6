@@ -143,7 +143,7 @@ Create an empty object
 
 =head3 multi method new ( :$widget! )
 
-Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GOBject or a Perl6 widget like C< Gnome::Gtk3::Button>.
+Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GObject or a Perl6 widget like C< Gnome::Gtk3::Button>.
 
   # Some set of radio buttons grouped together
   my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
@@ -175,12 +175,11 @@ Another example is a difficult way to get a button.
 
 =head3 multi method new ( Str :$build-id! )
 
-Create a Perl6 widget object using a C<Gnome::Gtk3::Builder>. The builder class will return its corresponding object address and it will be stored in the C<Gnome::GObject::Object>. It can then be used to search for id's defined in the GUI glade design.
+Create a Perl6 widget object using a C<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to C<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
 
   my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
   my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
 
-Create a C<Gnome::GObject:Object> object. Rarely used directly.
 =end pod
 
 submethod BUILD ( *%options ) {
@@ -312,10 +311,12 @@ submethod BUILD ( *%options ) {
     else {
       note "builder id '%options<build-id>' not found in any of the builders"
         if $Gnome::N::x-debug;
+
       if $!gobject-is-valid {
         g_object_unref(self.native-gobject());
         $!gobject-is-valid = False;
       }
+
       die X::Gnome.new(
         :message(
           "Builder id '%options<build-id>' not found in any of the builders"
@@ -522,7 +523,6 @@ method native-gobject (
 }
 
 #-------------------------------------------------------------------------------
-#TODO place in Gnome::Gtk3
 # no pod. user does not have to know about it.
 method set-builder ( $builder ) {
   $builders.push($builder);
@@ -546,7 +546,7 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
   for %signal-descriptions.kv -> $signal-type, $signal-names {
     my @names = $signal-names ~~ List ?? @$signal-names !! ($signal-names,);
     for @names -> $signal-name {
-      if $signal-type ~~ any(<signal event nativewidget>) {
+      if $signal-type ~~ any(<w w1 signal event nativewidget>) {
         note "  $module-name, $signal-name --> $signal-type"
           if $Gnome::N::x-debug;
         $signal-types{$module-name}{$signal-name} = $signal-type;
@@ -566,30 +566,6 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
 }
 
 #-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-# pinched from Gnome::GObject::Signal
-sub g_object_connect_object_signal(
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer ),
-  OpaquePointer $data, int32 $connect_flags
-) returns uint64
-  is native(&gobject-lib)
-  is symbol('g_signal_connect_object')
-  { * }
-
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-# pinched from Gnome::GObject::Signal
-sub g_object_connect_object_nativewidget(
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, N-GObject, OpaquePointer ),
-  OpaquePointer $data, int32 $connect_flags
-) returns uint64
-  is native(&gobject-lib)
-  is symbol('g_signal_connect_object')
-  { * }
-
-#-------------------------------------------------------------------------------
 =begin pod
 =head2 register-signal
 
@@ -606,24 +582,18 @@ $handler-object; The object wherein the handler is defined.
 =end item
 
 =begin item
-$handler-name; The name of the method. Commonly used signatures for those
-handlers are;
-
-=begin code
-  handler ( object: :$widget, :$user-option1, ..., :$user-optionN )
-  handler (
-    object: :$widget, :handler-arg0($event),
-    :$user-option1, ..., :$user-optionN
-  )
-  handler (
-    object: :$widget, :handler-arg0($nativewidget),
-    :$user-option1, ..., :$user-optionN
-  )
-=end code
-
-Other forms are explained in the widget documentations when signals are provided.
+$handler-name; The name of the method. Commonly used signatures for those handlers are;
 =end item
 
+Simple handlers e.g. click event handler have only named arguments and are optional. The more elaborate handlers also have positional arguments and MUST be typed. Most of the time the handlers must return a value. This can be an Int to let other layers also handle the signal(0) or not(1). Any user options are provided from the call to register-signal().
+
+Some examples
+
+  method click-button1 ( :$widget, *%user-options --> Int ) ...
+
+  method focus-handle ( Int $direction, :$widget, *%user-options --> Int )
+
+  method keyboard-event ( GdkEvent $event, :$widget, *%user-options --> Int )
 
 =begin item
 $signal-name; The name of the event to be handled. Each gtk object has its own series of signals.
@@ -634,7 +604,6 @@ $signal-name; The name of the event to be handled. Each gtk object has its own s
 provided to the user handler when an event for the handler is fired. There
 will always be one named argument C<:$widget> which holds the class object
 on which the signal was registered. The name 'widget' is therefore reserved.
-An other reserved named argument is of course C<:$event>.
 =end item
 
 
@@ -642,8 +611,8 @@ An other reserved named argument is of course C<:$event>.
   # create a class holding a handler method to process a click event
   # of a button.
   class X {
-    method click-handler ( :widget($button), Array :$user-data ) {
-      say $user-data.join(' ');
+    method click-handler ( :widget($button), Array :$my-data ) {
+      say $my-data.join(' ');
     }
   }
 
@@ -652,8 +621,8 @@ An other reserved named argument is of course C<:$event>.
   my Array $data = [<Hello World>];
 
   # register button signal
-  my X $x .= new(:empty);
-  $button.register-signal( $x, 'click-handler', 'clicked', :user-data($data));
+  my X $x .= new;
+  $button.register-signal( $x, 'click-handler', 'clicked', :my-data($data));
 =end code
 
 =end pod
@@ -662,8 +631,6 @@ multi method register-signal (
   $handler-object, Str:D $handler-name, Str:D $signal-name, *%user-options
   --> Bool
 ) {
-
-  my Callable $handler;
 
   # don't register if handler is not available
   my Method $sh = $handler-object.^lookup($handler-name) // Method;
@@ -680,35 +647,118 @@ multi method register-signal (
       if $signal-types{$mn}:exists and ?$signal-types{$mn}{$signal-name} {
         $signal-type = $signal-types{$mn}{$signal-name};
         $module-name = $mn;
-        note "  found type $signal-type for $mn" if $Gnome::N::x-debug;
+        note "  found key '$signal-type' for $mn" if $Gnome::N::x-debug;
         last;
       }
     }
 
     return False unless ?$signal-type;
+
+
+    # self can't be closed over
+    my $current-object = self;
+    sub w ( N-GObject $w, OpaquePointer $d ) is export {
+      $handler-object."$handler-name"(
+        :widget($current-object), |%user-options
+      );
+    }
+
+    sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
+      $handler-object."$handler-name"(
+        $h0, :widget($current-object), |%user-options
+      );
+    }
+
+    sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
+      $handler-object."$handler-name"(
+        $h0, $h1, :widget($current-object), |%user-options
+      );
+    }
+
+    sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
+      $handler-object."$handler-name"(
+        $h0, $h1, $h2, :widget($current-object), |%user-options
+      );
+    }
+
+    sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
+      $handler-object."$handler-name"(
+        $h0, $h1, $h2, $h3, :widget($current-object), |%user-options
+      );
+    }
+
     given $signal-type {
-      when 'signal' {
-        $handler = -> N-GObject $w, OpaquePointer $d {
-          $handler-object."$handler-name"( :widget(self), |%user-options);
-        }
+      # handle a widget, maybe other arguments and an ignorable data pointer
+      when / w $<nbr-args> = (\d*) / {
 
-        self.connect-object-signal(
-          $signal-name, $handler, OpaquePointer, 0
+note "SH: $signal-type";
+        state %shkeys = %(
+          :w(&w), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4)
         );
-      }
+        $!g-signal._convert_g_signal_connect_object(
+          self.native-gobject, $signal-name, $sh, %shkeys{$signal-type}
+        );
 
-      when 'event' {
-        $handler = -> N-GObject $w, $event, OpaquePointer $d {
+
+#        my Int $nbr-args = (~($<nbr-args> // '0')).Int;
+#note "NA: $handler-name, $nbr-args";
+
+#        my @handler-arguments = ( N-GObject $w, OpaquePointer $d);
+
+#`[[
+        my Callable $handler = sub ( N-GObject $w, OpaquePointer $d ) {
           $handler-object."$handler-name"(
-             :widget(self), :$event, :handler-arg0($event), |%user-options
+            :widget(self), |%user-options
           );
         }
 
-        self.connect-object-event(
-          $signal-name, $handler, OpaquePointer, 0
+        $!g-signal.connect-object( $signal-name, $handler);
+]]
+#`[[
+        my \HNDLR := Metamodel::ClassHOW.new_type(:name<HNDLR>);
+        my Signature \hs := :( N-GObject $w, OpaquePointer $d);
+
+        HNDLR.^add_method(
+          'hndlr',
+          my sub w-hndlr( N-GObject $w, OpaquePointer $d ) {
+            $handler-object."$handler-name"(
+              :widget(self), |%user-options
+            );
+          }
         );
+
+        HNDLR.^add_method(
+          'w1-hndlr',
+          my sub w1-hndlr( N-GObject $w, ::T $handler-arg0, OpaquePointer $d ) {
+note "w1-hndlr, $handler-name, ", $handler-arg0.WHAT;
+            $handler-object."$handler-name"(
+              :widget(self), :$handler-arg0, |%user-options
+            );
+          }
+        );
+
+        HNDLR.^compose;
+        my $handler = HNDLR.new;
+note "H: ", $handler;
+
+        $!g-signal.connect-object( $signal-name, $handler.^lookup('hndlr'));
+]]
+
+#        $handler = -> N-GObject $w, OpaquePointer $d {
+#          $handler-object."$handler-name"( :widget(self), |%user-options);
+#        }
       }
 
+
+#`[[
+      # handle a widget, 1 other argument and an ignorable data pointer
+      when 'w1' {
+        $handler = -> N-GObject $w, $handler-arg0, OpaquePointer $d {
+          $handler-object."$handler-name"(
+             :widget(self), :$handler-arg0, |%user-options
+          );
+        }
+      }
       when 'nativewidget' {
         $handler = -> N-GObject $w, N-GObject $d1, OpaquePointer $d2 {
           $handler-object."$handler-name"(
@@ -721,6 +771,8 @@ multi method register-signal (
           $signal-name, $handler, OpaquePointer, 0
         );
       }
+]]
+
 
       when 'notsupported' {
         my Str $message = "Signal $signal-name used on $module-name" ~
@@ -740,11 +792,12 @@ multi method register-signal (
 
       default {
         my Str $message = "Signal $signal-name used on $module-name" ~
-          " is not yet implemented";
+          " is not (yet) implemented";
         note $message;
         return False;
       }
     }
+
 
 #`{{
     $!g-signal."_g_signal_connect_object_$signal-type"(
@@ -1041,6 +1094,7 @@ sub g_object_class_install_properties ( GObjectClass $oclass, uint32 $n_pspecs, 
   { * }
 }}
 
+#`[[
 #-------------------------------------------------------------------------------
 #TM:0:g_object_interface_install_property:
 =begin pod
@@ -1162,6 +1216,8 @@ sub g_object_new ( int32 $object_type, Str $first_property_name, Any $any = Any 
   { * }
 }}
 
+
+]]
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_with_properties:
 =begin pod
@@ -1199,6 +1255,7 @@ sub g_object_new_with_properties (
   is native(&gobject-lib)
   { * }
 
+#`[[
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_valist:
@@ -1744,6 +1801,7 @@ sub g_object_ref ( Pointer $object )
   returns Pointer
   is native(&gobject-lib)
   { * }
+]]
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_unref:
@@ -1767,6 +1825,7 @@ invalid I<GObject> instance. Use C<g_clear_object()> for this.
 sub g_object_unref ( Pointer $object )
   is native(&gobject-lib)
   { * }
+#`[[
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -2978,3 +3037,5 @@ sub g_object_thaw_notify ( N-GObject $object )
   is native(&gobject-lib)
   { * }
 }}
+
+]]

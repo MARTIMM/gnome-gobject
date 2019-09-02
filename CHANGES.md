@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-09-02 0.14.2
+  * System changes to have a general way of handling all types of signals
+
 * 2019-08-25 0.14.1
   * Object extended and documented a bit
   * Type extended and documented a bit and added test file.
