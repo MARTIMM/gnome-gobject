@@ -652,6 +652,7 @@ multi method register-signal (
       }
     }
 
+#note "SType: $signal-type";
     return False unless ?$signal-type;
 
 
@@ -691,88 +692,15 @@ multi method register-signal (
       # handle a widget, maybe other arguments and an ignorable data pointer
       when / w $<nbr-args> = (\d*) / {
 
-note "SH: $signal-type";
+#note "SH: $signal-type";
         state %shkeys = %(
           :w(&w), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4)
         );
+
         $!g-signal._convert_g_signal_connect_object(
           self.native-gobject, $signal-name, $sh, %shkeys{$signal-type}
         );
-
-
-#        my Int $nbr-args = (~($<nbr-args> // '0')).Int;
-#note "NA: $handler-name, $nbr-args";
-
-#        my @handler-arguments = ( N-GObject $w, OpaquePointer $d);
-
-#`[[
-        my Callable $handler = sub ( N-GObject $w, OpaquePointer $d ) {
-          $handler-object."$handler-name"(
-            :widget(self), |%user-options
-          );
-        }
-
-        $!g-signal.connect-object( $signal-name, $handler);
-]]
-#`[[
-        my \HNDLR := Metamodel::ClassHOW.new_type(:name<HNDLR>);
-        my Signature \hs := :( N-GObject $w, OpaquePointer $d);
-
-        HNDLR.^add_method(
-          'hndlr',
-          my sub w-hndlr( N-GObject $w, OpaquePointer $d ) {
-            $handler-object."$handler-name"(
-              :widget(self), |%user-options
-            );
-          }
-        );
-
-        HNDLR.^add_method(
-          'w1-hndlr',
-          my sub w1-hndlr( N-GObject $w, ::T $handler-arg0, OpaquePointer $d ) {
-note "w1-hndlr, $handler-name, ", $handler-arg0.WHAT;
-            $handler-object."$handler-name"(
-              :widget(self), :$handler-arg0, |%user-options
-            );
-          }
-        );
-
-        HNDLR.^compose;
-        my $handler = HNDLR.new;
-note "H: ", $handler;
-
-        $!g-signal.connect-object( $signal-name, $handler.^lookup('hndlr'));
-]]
-
-#        $handler = -> N-GObject $w, OpaquePointer $d {
-#          $handler-object."$handler-name"( :widget(self), |%user-options);
-#        }
       }
-
-
-#`[[
-      # handle a widget, 1 other argument and an ignorable data pointer
-      when 'w1' {
-        $handler = -> N-GObject $w, $handler-arg0, OpaquePointer $d {
-          $handler-object."$handler-name"(
-             :widget(self), :$handler-arg0, |%user-options
-          );
-        }
-      }
-      when 'nativewidget' {
-        $handler = -> N-GObject $w, N-GObject $d1, OpaquePointer $d2 {
-          $handler-object."$handler-name"(
-             :widget(self), :nativewidget($d1), :handler-arg0($d1),
-             |%user-options
-          );
-        }
-
-        self.connect-object-nativewidget(
-          $signal-name, $handler, OpaquePointer, 0
-        );
-      }
-]]
-
 
       when 'notsupported' {
         my Str $message = "Signal $signal-name used on $module-name" ~
@@ -798,12 +726,6 @@ note "H: ", $handler;
       }
     }
 
-
-#`{{
-    $!g-signal."_g_signal_connect_object_$signal-type"(
-      $signal-name, $handler, OpaquePointer, 0
-    );
-}}
     True
   }
 

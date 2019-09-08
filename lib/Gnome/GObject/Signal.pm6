@@ -38,7 +38,7 @@ use v6.d;
   # the native counterpart, $ignore-w, when called.
   $w.connect-object( 'button-press-event', $handler);
 
-It will however be easier to use the C<register-signal()> method defined in C<Gnome::GObject::Object>.
+The other option to connect a signal is to use the C<register-signal()> method defined in C<Gnome::GObject::Object>. It all depends on how elaborate things are or taste.
 
   # Define method (within a class)
   method mouse-event ( GdkEvent $event, :$widget ) { ... }
