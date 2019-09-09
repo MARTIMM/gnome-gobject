@@ -4,9 +4,9 @@ use v6;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::GObject::Object
+=head1 Gnome::GObject::Object
 
-=SUBTITLE The base object type
+The base object type
 
 =head1 Description
 
@@ -72,7 +72,7 @@ I<GParamSpecObject>, C<g_param_spec_object()>
 
 Top level class of almost all classes in the GTK, GDK and Glib libraries.
 
-This object is almost never used directly. Most of the classes inherit from this class. The below example shows how label text is set on a button using properties. This can be made much simpler by setting this label directly in the init of C<Gnome::Gtk3::Button>. The purpose of this example, however, is that there might be other properties which can only be set this way.
+This object is almost never used directly. Most of the classes inherit from this class. The below example shows how label text is set on a button using properties. This can be made much simpler by setting this label directly in the init of B<Gnome::Gtk3::Button>. The purpose of this example, however, is that there might be other properties which can only be set this way.
 
   use Gnome::GObject::Object;
   use Gnome::GObject::Value;
@@ -175,12 +175,16 @@ Another example is a difficult way to get a button.
 
 =head3 multi method new ( Str :$build-id! )
 
-Create a Perl6 widget object using a C<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to C<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
+Create a Perl6 widget object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
 
   my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
   my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
 
 =end pod
+
+#TM:1:new():inheriting
+#TM:2:new(:widget):
+#TM:2:new(:build-id):
 
 submethod BUILD ( *%options ) {
 
@@ -542,14 +546,18 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
   # the same signal name with different handler signatures in different classes.
   $signal-types{$module-name} //= {};
 
-  note "\nTest signal names for {$?CLASS.^name}" if $Gnome::N::x-debug;
+  note "\nTest signal names for $module-name" if $Gnome::N::x-debug;
   for %signal-descriptions.kv -> $signal-type, $signal-names {
     my @names = $signal-names ~~ List ?? @$signal-names !! ($signal-names,);
     for @names -> $signal-name {
-      if $signal-type ~~ any(<w w1 signal event nativewidget>) {
+      if $signal-type ~~ any(<w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 signal event nativewidget>) {
         note "  $module-name, $signal-name --> $signal-type"
           if $Gnome::N::x-debug;
         $signal-types{$module-name}{$signal-name} = $signal-type;
+      }
+
+      elsif $signal-type ~~ any(<deprecated>) {
+        note "  $signal-name is deprecated" if $Gnome::N::x-debug;
       }
 
       elsif $signal-type ~~ any(<notsupported deprecated>) {
@@ -566,6 +574,7 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:2:register-signal:
 =begin pod
 =head2 register-signal
 
@@ -589,7 +598,7 @@ Simple handlers e.g. click event handler have only named arguments and are optio
 
 Some examples
 
-  method click-button1 ( :$widget, *%user-options --> Int ) ...
+  method click-button ( :$widget, *%user-options --> Int )
 
   method focus-handle ( Int $direction, :$widget, *%user-options --> Int )
 
@@ -655,10 +664,9 @@ multi method register-signal (
 #note "SType: $signal-type";
     return False unless ?$signal-type;
 
-
     # self can't be closed over
     my $current-object = self;
-    sub w ( N-GObject $w, OpaquePointer $d ) is export {
+    sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
       $handler-object."$handler-name"(
         :widget($current-object), |%user-options
       );
@@ -688,13 +696,21 @@ multi method register-signal (
       );
     }
 
+    sub w5(
+      N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
+    ) is export {
+      $handler-object."$handler-name"(
+        $h0, $h1, $h2, $h3, :widget($current-object), |%user-options
+      );
+    }
+
     given $signal-type {
       # handle a widget, maybe other arguments and an ignorable data pointer
       when / w $<nbr-args> = (\d*) / {
 
 #note "SH: $signal-type";
         state %shkeys = %(
-          :w(&w), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4)
+          :w0(&w0), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4)
         );
 
         $!g-signal._convert_g_signal_connect_object(
@@ -735,6 +751,7 @@ multi method register-signal (
 }
 
 #-------------------------------------------------------------------------------
+#TM:0:start-thread:
 =begin pod
 =head2 start-thread
 
@@ -748,7 +765,7 @@ Start a thread in such a way that the function can modify the user interface in 
 
 =item $handler-object is the object wherein the handler is defined.
 =item $handler-name is name of the method.
-=item $priority; The priority to which the handler is started. The default is G_PRIORITY_DEFAULT. These are constants defined in C<Gnome::GObject::GMain>.
+=item $priority; The priority to which the handler is started. The default is G_PRIORITY_DEFAULT. These are constants defined in B<Gnome::GObject::GMain>.
 =item $new-context; Whether to run the handler in a new context or to run it in the context of the main loop. Default is to run in the main loop.
 =item *%user-options; Any name not used above is provided to the handler
 

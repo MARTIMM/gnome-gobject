@@ -1,10 +1,12 @@
+#TL:1:Gnome::GObject::Signal:
+
 use v6.d;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::GObject::Signal
+=head1 Gnome::GObject::Signal
 
-=SUBTITLE A means for customization of object behaviour and a general purpose notification mechanism
+A means for customization of object behaviour and a general purpose notification mechanism
 
 =head1 Description
 
@@ -15,32 +17,32 @@ use v6.d;
 
 =head2 Example
 
-  # extra modules to load
   use NativeCall;
   use Gnome::N::N-GObject;
-
-  # Define callback handler method
-  method mouse-event ( GdkEvent $event, :$widget ) { ... }
+  use Gnome::Gdk3::Events;
+  use Gnome::Gtk3::Window;
 
   # Get a window object
   my Gnome::Gtk3::Window $w .= new( ... );
 
-  # Define proper handler. The mouse-event() method can also be implemented
-  # directly within the code block below if it is not too large.
+  # Define proper handler. The handler API must describe all arguments
+  # and their types.
   my Callable $handler = sub (
-    N-GObject $ignore-w, GdkEvent $event, OpaquePointer $ignore-d
+    N-GObject $native-widget, GdkEvent $event, OpaquePointer $ignore-d
   ) {
-    self.mouse-event( $e, :widget($w));
+    ...
   }
 
-  # Connect signal to the handler. Take care that the 'connect' is placed on
-  # the right object so the callback gets the same object as represented by
-  # the native counterpart, $ignore-w, when called.
+  # Connect signal to the handler.
   $w.connect-object( 'button-press-event', $handler);
 
-The other option to connect a signal is to use the C<register-signal()> method defined in C<Gnome::GObject::Object>. It all depends on how elaborate things are or taste.
+The other option to connect a signal is to use the C<register-signal()> method defined in B<Gnome::GObject::Object>. It all depends on how elaborate things are or taste.
 
-  # Define method (within a class)
+  use Gnome::Gdk3::Events;
+  use Gnome::Gtk3::Window;
+
+  # Define handler method. The handler API must describe all positional
+  # arguments and their types.
   method mouse-event ( GdkEvent $event, :$widget ) { ... }
 
   # Get a window object
@@ -64,12 +66,46 @@ use Gnome::N::N-GObject;
 unit class Gnome::GObject::Signal:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
+has N-GObject $!g-object;
+
+#-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
 =end pod
 
+#-------------------------------------------------------------------------------
+# Native object is handed over by a Gnome::GObject::Object object
+#TM:2:new():Object
+submethod BUILD ( N-GObject:D :$!g-object ) { }
 
 #-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
+
+  CATCH { test-catch-exception( $_, $native-sub); }
+
+  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+#`{{
+  die X::Gnome.new(:message(
+      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
+    )
+  ) unless $native-sub.index('_') >= 0;
+}}
+
+  my Callable $s;
+#note "s s0: $native-sub, ", $s;
+  try { $s = &::($native-sub); }
+#note "s s1: g_signal_$native-sub, ", $s unless ?$s;
+  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
+#note "s s2: ==> ", $s;
+
+  #test-call( $s, Any, |c)
+  $return-sub-only ?? $s !! $s( $!g-object, |c)
+}
+
+
+#-------------------------------------------------------------------------------
+#TM:2:g_signal_connect_object:
 # original strait forward sub
 sub g_signal_connect_object (
   N-GObject $instance, Str $detailed-signal, Callable $handler
@@ -315,6 +351,7 @@ sub g_signal_emit (
 # Handlers above provided to the signal connect calls are having 2 arguments
 # a widget and data. So the provided extra arguments are then those 2
 # plus a return value
+#TM:0:emit_by_name:
 =begin pod
 =head2 [g_signal_] emit_by_name
 
@@ -346,6 +383,7 @@ sub _g_signal_emit_by_name (
   { * }
 
 #-------------------------------------------------------------------------------
+#TM:0:g_signal_handler_disconnect:
 =begin pod
 =head2 [g_signal_] handler_disconnect
 
@@ -361,34 +399,3 @@ The handler_id has to be a valid signal handler id, connected to a signal of ins
 sub g_signal_handler_disconnect( N-GObject $widget, int32 $handler_id )
   is native(&gobject-lib)
   { * }
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-has N-GObject $!g-object;
-
-#-------------------------------------------------------------------------------
-# Native object is handed over by GObject object
-submethod BUILD ( N-GObject:D :$!g-object ) { }
-
-#-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
-#`{{
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') >= 0;
-}}
-
-  my Callable $s;
-note "s s0: $native-sub, ", $s;
-  try { $s = &::($native-sub); }
-note "s s1: g_signal_$native-sub, ", $s unless ?$s;
-  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
-note "s s2: ==> ", $s;
-
-  #test-call( $s, Any, |c)
-  $return-sub-only ?? $s !! $s( $!g-object, |c)
-}
