@@ -467,6 +467,40 @@ method _fallback ( $native-sub --> Callable ) {
   $s
 }
 
+# search in the interface modules
+#-------------------------------------------------------------------------------
+method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
+  my Callable $s;
+  for @interface-classes -> Str $class {
+    try {
+      require ::($class);
+      my $no = ::($class).new(:widget(self.native-gobject));
+      $s = $no._interface($native-sub);
+
+
+      CATCH {
+        default {
+          if $Gnome::N::x-debug {
+            if .message ~~ m:s/$class/ {
+              note "Interface $class not (yet) implemented";
+            }
+
+            elsif .message ~~ m:s/Could not find/ {
+              note ".new() or ._interface() not defined";
+            }
+
+            else {
+              note "Error: ", .message();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  $s
+}
+
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method set-class-info ( Str:D $!gtk-class-name ) {
