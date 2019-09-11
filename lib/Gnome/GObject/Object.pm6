@@ -470,7 +470,9 @@ method _fallback ( $native-sub --> Callable ) {
 # search in the interface modules
 #-------------------------------------------------------------------------------
 method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
+
   my Callable $s;
+
   for @interface-classes -> Str $class {
     try {
       require ::($class);
@@ -481,6 +483,8 @@ method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
       CATCH {
         default {
           if $Gnome::N::x-debug {
+#            once {note "\nQuerying interfaces for module $!gtk-class-name"};
+
             if .message ~~ m:s/$class/ {
               note "Interface $class not (yet) implemented";
             }
