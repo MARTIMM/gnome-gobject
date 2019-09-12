@@ -12,8 +12,6 @@ unit class Gnome::GObject::Interface:auth<github:MARTIMM>
   is Gnome::GObject::Object;
 
 #-------------------------------------------------------------------------------
-# No subs implemented. Just setup for hierargy.
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -42,5 +40,20 @@ method _fallback ( $native-sub is copy --> Callable ) {
 #  $s = callsame unless ?$s;
 
   my Callable $s = callsame;
+  $s;
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+# Hook for modules using this interface. Same principle as _fallback but
+# does not need callsame.
+method _interface (
+  Str $native-sub, Str $interface-class-name, Str $class-name
+  --> Callable
+) {
+
+  my Callable $s;
+  $s = self._fallback($native-sub) unless ?$s;
+
   $s;
 }

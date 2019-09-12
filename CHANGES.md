@@ -2,6 +2,8 @@
 
 * 2019-09-02 0.14.2
   * System changes to have a general way of handling all types of signals
+  * added _query_interfaces() to Object
+  * added _interface() to Interface.
 
 * 2019-08-25 0.14.1
   * Object extended and documented a bit

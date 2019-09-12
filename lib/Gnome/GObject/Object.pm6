@@ -456,7 +456,7 @@ method _fallback ( $native-sub --> Callable ) {
   # Try to solve sub names from the GSignal class
   unless ?$s {
     $!g-signal .= new(:$!g-object);
-    note "GSignal look for $native-sub: ", $!g-signal if $Gnome::N::x-debug;
+    note "Look for $native-sub in ", $!g-signal if $Gnome::N::x-debug;
 
     $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
   }
@@ -477,13 +477,12 @@ method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
     try {
       require ::($class);
       my $no = ::($class).new(:widget(self.native-gobject));
-      $s = $no._interface($native-sub);
-
+      $s = $no._interface( $native-sub, $class, $!gtk-class-name);
 
       CATCH {
         default {
           if $Gnome::N::x-debug {
-#            once {note "\nQuerying interfaces for module $!gtk-class-name"};
+            once {note "\nQuerying interfaces for module $!gtk-class-name"};
 
             if .message ~~ m:s/$class/ {
               note "Interface $class not (yet) implemented";
