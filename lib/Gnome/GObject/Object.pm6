@@ -747,7 +747,7 @@ multi method register-signal (
 
 #note "SH: $signal-type";
         state %shkeys = %(
-          :w0(&w0), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4)
+          :w0(&w0), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4), :w5(&w5)
         );
 
         $!g-signal._convert_g_signal_connect_object(

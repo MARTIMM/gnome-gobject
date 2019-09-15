@@ -166,11 +166,12 @@ method _convert_g_signal_connect_object (
     next if $p.name eq '%_';      # only at the end I think
     next if $p.named;             # named argument
 #note "Name: ", $p, ', ', $p.name;
-    # do not prefix with $ because of :handler-arg0($some-var) named argument
-#    next unless $p.name ~~ m/ 'handler-arg' \d+ /;
 
+    my $ha-type = $p.type;
+    $ha-type = int32 if $ha-type ~~ Int;
+    $ha-type = num32 if $ha-type ~~ Num;
     @sub-parameter-list.push(
-      Parameter.new(type => $p.type),     # next signal arguments
+      Parameter.new(type => $ha-type),     # next signal arguments
     );
   }
 
