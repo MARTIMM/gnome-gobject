@@ -544,6 +544,9 @@ method get-class-name ( --> Str ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
+#TODO split into set/get. with set, a check can be made on $widget and throw
+# an exception when undefined. Setting is mostly used, define
+# get-native-gobject() only to minimize work.
 method native-gobject (
   N-GObject $widget?, Bool :$force = False --> N-GObject
 ) {
@@ -703,42 +706,35 @@ multi method register-signal (
 
     # self can't be closed over
     my $current-object = self;
+
+    # overwrite any user specified widget argument
+    my %named-args = %user-options;
+    %named-args<widget> = $current-object;
+
     sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
-      $handler-object."$handler-name"(
-        :widget($current-object), |%user-options
-      );
+      $handler-object."$handler-name"(|%named-args);
     }
 
     sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
-      $handler-object."$handler-name"(
-        $h0, :widget($current-object), |%user-options
-      );
+      $handler-object."$handler-name"( $h0, |%named-args);
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
-      $handler-object."$handler-name"(
-        $h0, $h1, :widget($current-object), |%user-options
-      );
+      $handler-object."$handler-name"( $h0, $h1, |%named-args);
     }
 
     sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
-      $handler-object."$handler-name"(
-        $h0, $h1, $h2, :widget($current-object), |%user-options
-      );
+      $handler-object."$handler-name"( $h0, $h1, $h2, |%named-args);
     }
 
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
-      $handler-object."$handler-name"(
-        $h0, $h1, $h2, $h3, :widget($current-object), |%user-options
-      );
+      $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
     }
 
     sub w5(
       N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
     ) is export {
-      $handler-object."$handler-name"(
-        $h0, $h1, $h2, $h3, :widget($current-object), |%user-options
-      );
+      $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
     }
 
     given $signal-type {

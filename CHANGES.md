@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-09-30 0.14.3
+  * improve register signal to prevent a problem in user provided :widget() in named arguments list.
+
 * 2019-09-02 0.14.2
   * System changes to have a general way of handling all types of signals
   * added _query_interfaces() to Object
