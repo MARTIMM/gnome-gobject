@@ -716,24 +716,30 @@ multi method register-signal (
     }
 
     sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
+#      my List @converted-args = self!check-args($h0);
+#      $handler-object."$handler-name"( |@converted-args, |%named-args);
       $handler-object."$handler-name"( $h0, |%named-args);
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
+#      my List @converted-args = self!check-args( $h0, $h1);
       $handler-object."$handler-name"( $h0, $h1, |%named-args);
     }
 
     sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
+#      my List @converted-args = self!check-args( $h0, $h1, $h2);
       $handler-object."$handler-name"( $h0, $h1, $h2, |%named-args);
     }
 
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
+#      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
       $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
     }
 
     sub w5(
       N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
     ) is export {
+#      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
       $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
     }
 
@@ -782,6 +788,52 @@ multi method register-signal (
     False
   }
 }
+
+#`{{
+#-------------------------------------------------------------------------------
+#TODO create p6 objects from the native objects
+method !check-args( *@args --> List ) {
+
+  my @new-args = ();
+
+  for @args -> $h {
+# wrong; $h is a native object!
+    my Str $class = $h.^name;
+    if $class ~~ m/^ 'Gnome::' [ Gtk || Gdk || G ] '::' / {
+      try {
+        require ::($class);
+        my $no = ::($class).new(:widget($h));
+        @new-args.push: $no;
+        CATCH {
+          default {
+            if $Gnome::N::x-debug {
+              once {note "\nQuerying interfaces for module $!gtk-class-name"};
+
+              if .message ~~ m:s/$class/ {
+                note "Interface $class not (yet) implemented";
+              }
+
+              elsif .message ~~ m:s/Could not find/ {
+                note ".new() or ._interface() not defined";
+              }
+
+              else {
+                note "Error: ", .message();
+              }
+            }
+          }
+        }
+      }
+    }
+
+    else {
+      @new-args.push: $h;
+    }
+  }
+
+  @args
+}
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:start-thread:
