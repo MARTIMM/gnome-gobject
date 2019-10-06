@@ -412,7 +412,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
       $params.push($p);
     }
 
-    elsif $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk3 || Glib || GObject ] '::' / {
+    elsif $p.^name ~~ m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] '::' / {
       $params.push($p());
     }
 
