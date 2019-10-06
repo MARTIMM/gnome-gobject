@@ -228,17 +228,18 @@ submethod BUILD ( *%options ) {
         $v[$i] = $vi ~~ Gnome::GObject::Value ?? $vi() !! $vi;
       }
 
-      $!gobject-is-valid = self.native-gobject(
+      self.native-gobject(
         g_object_new_with_properties(
           %options<type>, %options<names>.elems, $n, $v
         )
-      ).defined;
+      );
+      $!gobject-is-valid = $!g-object.defined
     }
 
     else {
 
       if $!gobject-is-valid {
-        g_object_unref(self.native-gobject());
+        g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
 
@@ -267,7 +268,7 @@ submethod BUILD ( *%options ) {
 
     if ?$w and $w ~~ N-GObject {
       if $!gobject-is-valid {
-        g_object_unref(self.native-gobject());
+        g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       self.native-gobject($w);
@@ -277,7 +278,7 @@ submethod BUILD ( *%options ) {
 
     elsif ?$w and $w ~~ NativeCall::Types::Pointer {
       if $!gobject-is-valid {
-        g_object_unref(self.native-gobject());
+        g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       self.native-gobject(nativecast( N-GObject, $w));
@@ -288,7 +289,7 @@ submethod BUILD ( *%options ) {
     else {
       note "wrong type or undefined widget" if $Gnome::N::x-debug;
       if $!gobject-is-valid {
-        g_object_unref(self.native-gobject());
+        g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       die X::Gnome.new(:message('Wrong type or undefined widget'));
@@ -317,7 +318,7 @@ submethod BUILD ( *%options ) {
         if $Gnome::N::x-debug;
 
       if $!gobject-is-valid {
-        g_object_unref(self.native-gobject());
+        g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
 
@@ -334,7 +335,7 @@ submethod BUILD ( *%options ) {
       note 'No options used to create or set the native widget'
         if $Gnome::N::x-debug;
       if $!gobject-is-valid {
-        g_object_unref(self.native-gobject());
+        g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       die X::Gnome.new(
@@ -476,7 +477,7 @@ method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
   for @interface-classes -> Str $class {
     try {
       require ::($class);
-      my $no = ::($class).new(:widget(self.native-gobject));
+      my $no = ::($class).new(:widget($!g-object));
       $s = $no._interface( $native-sub, $class, $!gtk-class-name);
 
       CATCH {
@@ -544,25 +545,21 @@ method get-class-name ( --> Str ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
-#TODO split into set/get. with set, a check can be made on $widget and throw
-# an exception when undefined. Setting is mostly used, define
-# get-native-gobject() only to minimize work.
-method native-gobject (
-  N-GObject $widget?, Bool :$force = False --> N-GObject
-) {
-  if ?$widget and ( $force or !$!g-object ) {
+method native-gobject ( N-GObject:D $widget --> N-GObject ) {
 
-    # if defined, setting is forced
-    if ?$!g-object {
-      #TODO self.g_object_unref();
-    }
-    $!g-object = $widget;
-    #TODO self.g_object_ref();
-  }
+  #TODO self.g_object_unref() if ?$!g-object;
+  $!g-object = $widget;
+  #TODO self.g_object_ref();
 
   # when object is set, create signal object too
-  $!g-signal .= new(:$!g-object) if ?$!g-object;
+  $!g-signal .= new(:$!g-object);
 
+  $!g-object
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method get-native-gobject ( --> N-GObject ) {
   $!g-object
 }
 
@@ -753,7 +750,7 @@ multi method register-signal (
         );
 
         $!g-signal._convert_g_signal_connect_object(
-          self.native-gobject, $signal-name, $sh, %shkeys{$signal-type}
+          $!g-object, $signal-name, $sh, %shkeys{$signal-type}
         );
       }
 
