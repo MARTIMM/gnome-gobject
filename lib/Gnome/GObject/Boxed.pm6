@@ -13,7 +13,11 @@ unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
 # No subs implemented yet.
 #-------------------------------------------------------------------------------
 # No type specified. GBoxed is a wrapper for any structure
-has $!g-boxed;
+has Any $!g-boxed;
+
+has Int $!gboxed-class-gtype;
+has Str $!gboxed-class-name;
+has Str $!gboxed-class-name-of-sub;
 
 #-------------------------------------------------------------------------------
 submethod BUILD (*%options ) {
@@ -78,6 +82,27 @@ method FALLBACK ( $native-sub is copy, |c ) {
     }
   }
 
+  # cast to other gtk object type if the found subroutine is from another
+  # gtk object type than the native object stored at $!g-boxed. This happens
+  # e.g. when a Gnome::Gtk::Button object uses gtk-widget-show() which
+  # belongs to Gnome::Gtk::Widget.
+  my $g-object-cast;
+
+#note "type class: $!gboxed-class-gtype, $!gboxed-class-name";
+  #TODO Not all classes have $!gboxed-class-* defined so we need to test it
+  if ?$!gboxed-class-gtype and ?$!gboxed-class-name and
+     ?$!gboxed-class-name-of-sub and
+     $!gboxed-class-name ne $!gboxed-class-name-of-sub {
+
+    note "\nObject gtype: $!gboxed-class-gtype" if $Gnome::N::x-debug;
+    note "Cast $!gboxed-class-name to $!gboxed-class-name-of-sub"
+      if $Gnome::N::x-debug;
+
+    $g-object-cast = Gnome::GObject::Type.new().check-instance-cast(
+      $!g-boxed, $!gboxed-class-gtype
+    );
+  }
+
   test-call( $s, $!g-boxed, |$params)
 }
 
@@ -96,10 +121,58 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
-method native-gboxed ( $g-boxed? --> Any ) {
-  if ?$g-boxed {
-    $!g-boxed = $g-boxed;
-  }
+method native-gboxed ( Any:D $g-boxed --> Any ) {
+
+  $!g-boxed = $g-boxed;
+}
+
+#-------------------------------------------------------------------------------
+method get-native-gboxed ( --> Any ) {
 
   $!g-boxed
 }
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method set-class-info ( Str:D $!gboxed-class-name ) {
+  $!gboxed-class-gtype = _g_type_from_name($!gboxed-class-name);
+}
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method set-class-name-of-sub ( Str:D $!gboxed-class-name-of-sub ) { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 get-class-gtype
+
+Return class's type code after registration. this is like calling Gnome::GObject::Type.new().g_type_from_name(GTK+ class type name).
+
+  method get-class-gtype ( --> Int )
+=end pod
+
+method get-class-gtype ( --> Int ) {
+  $!gboxed-class-gtype
+}
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 get-class-name
+
+Return class name.
+
+  method get-class-name ( --> Str )
+=end pod
+
+method get-class-name ( --> Str ) {
+  $!gboxed-class-name
+}
+
+#-------------------------------------------------------------------------------
+# Must specify this from Gnome::GObject::Type because of circ dependency
+# via Gnome::GObject::Value
+sub _g_type_from_name ( Str $name )
+  returns int32
+  is native(&gobject-lib)
+  is symbol('g_type_from_name')
+  { * }
