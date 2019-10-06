@@ -1797,6 +1797,7 @@ sub g_object_ref_sink ( Pointer $object )
   returns Pointer
   is native(&gobject-lib)
   { * }
+]]
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_ref:
@@ -1810,19 +1811,19 @@ of I<object> will be propagated to the return type (using the GCC C<typeof()>
 extension), so any casting the caller needs to do on the return type must be
 explicit.
 
-Returns: (type GObject.Object) (transfer none): the same I<object>
+Returns: the same I<object>
 
-  method g_object_ref ( Pointer $object --> Pointer  )
+  method g_object_ref ( N-GObject $object --> N-GObject  )
 
-=item Pointer $object; (type GObject.Object): a I<GObject>
+=item N-GObject $object; a I<GObject>
 
 =end pod
 
-sub g_object_ref ( Pointer $object )
-  returns Pointer
+sub g_object_ref ( N-GObject $object )
+  returns N-GObject
   is native(&gobject-lib)
   { * }
-]]
+
 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_unref:
@@ -1837,13 +1838,13 @@ an instance variable of another object), it is recommended to clear the
 pointer to C<Any> rather than retain a dangling pointer to a potentially
 invalid I<GObject> instance. Use C<g_clear_object()> for this.
 
-  method g_object_unref ( Pointer $object )
+  method g_object_unref ( N-GObject $object )
 
-=item Pointer $object; (type GObject.Object): a I<GObject>
+=item N-GObject $object; a I<GObject>
 
 =end pod
 
-sub g_object_unref ( Pointer $object )
+sub g_object_unref ( N-GObject $object )
   is native(&gobject-lib)
   { * }
 #`[[
