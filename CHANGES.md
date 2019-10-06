@@ -1,5 +1,10 @@
 ## Release notes
 
+* 2019-10-06 0.14.4
+  * Changes in Boxed to save the class name and type.
+  * Add get-native-gboxed() in Boxed and changed native-gboxed().
+  * Add get-native-gobject() in Object and changed native-gobject().
+
 * 2019-09-30 0.14.3
   * improve register signal to prevent a problem in user provided :widget() in named arguments list.
 
