@@ -99,7 +99,7 @@ method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
   try { $s = &::("g_signal_$native-sub"); } unless ?$s;
 #note "s s2: ==> ", $s;
 
-  #test-call( $s, Any, |c)
+  #test-call-without-natobj( $s, |c)
   $return-sub-only ?? $s !! $s( $!g-object, |c)
 }
 
