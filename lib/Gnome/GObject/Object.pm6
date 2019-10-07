@@ -407,13 +407,17 @@ method FALLBACK ( $native-sub is copy, |c ) {
   my Array $params = [];
   for c.list -> $p {
 
+    note "Substitution of $p.^name()" if $Gnome::N::x-debug;
+
     # must handle RGBA differently because it's a structure, not a widget
     # with a native object
     if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
       $params.push($p);
     }
 
-    elsif $p.^name ~~ m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] '::' / {
+    elsif $p.^name ~~
+          m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::' / {
+
       $params.push($p());
     }
 
@@ -428,7 +432,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # belongs to Gnome::Gtk::Widget.
   my $g-object-cast;
 
-#note "type class: $!gtk-class-gtype, $!gtk-class-name";
+#note "type class: $!gtk-class-gtype, $!gtk-class-name, $!gtk-class-name-of-sub";
   #TODO Not all classes have $!gtk-class-* defined so we need to test it
   if ?$!gtk-class-gtype and ?$!gtk-class-name and ?$!gtk-class-name-of-sub and
      $!gtk-class-name ne $!gtk-class-name-of-sub {

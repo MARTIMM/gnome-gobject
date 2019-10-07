@@ -49,11 +49,13 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   # convert all dashes to underscores if there are any. then check if
   # name is not too short.
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+#`{{
   die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
     )
   ) unless $native-sub.index('_') >= 0;
+}}
 
   # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
@@ -73,7 +75,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    if $p.^name ~~ m/:s ^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] '::'/ {
+    if $p.^name ~~
+       m/:s ^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::'/ {
+
       $params.push($p());
     }
 
@@ -82,7 +86,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
     }
   }
 
-  # cast to other gtk object type if the found subroutine is from another
+  # cast to other g object type if the found subroutine is from another
   # gtk object type than the native object stored at $!g-boxed. This happens
   # e.g. when a Gnome::Gtk::Button object uses gtk-widget-show() which
   # belongs to Gnome::Gtk::Widget.
@@ -124,6 +128,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 method native-gboxed ( Any:D $g-boxed --> Any ) {
 
   $!g-boxed = $g-boxed;
+  $!g-boxed
 }
 
 #-------------------------------------------------------------------------------
