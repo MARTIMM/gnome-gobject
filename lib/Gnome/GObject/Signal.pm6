@@ -170,8 +170,8 @@ method _convert_g_signal_connect_object (
     my $ha-type = $p.type;
     $ha-type = int32 if $ha-type ~~ Int;
     $ha-type = num32 if $ha-type ~~ Num;
-    @sub-parameter-list.push(
-      Parameter.new(type => $ha-type),     # next signal arguments
+    @sub-parameter-list.push(     # next signal arguments
+      Parameter.new(type => $ha-type),
     );
   }
 
