@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-10-06 0.14.5
+  * Added g_object_get_property() again. Added method counterparts get-property(). get-property() will use methods, get_property(), g-object-get-property() and g_object_get_property() use subs.
+
 * 2019-10-06 0.14.4
   * Changes in Boxed to save the class name and type.
   * Add get-native-gboxed() in Boxed and changed native-gboxed().
