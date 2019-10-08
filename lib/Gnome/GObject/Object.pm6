@@ -930,6 +930,43 @@ sub g_initially_unowned_get_type (  )
 
 #`{{
 #-------------------------------------------------------------------------------
+#TM:0:g_object_get_property:
+=begin pod
+=head2 [g_object_] get_property
+
+  method g_object_get_property (
+    Str $property_name, Gnome::GObject::Type $type
+    --> Gnome::GObject::Value
+  )
+
+Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
+
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
+
+=item $property_name; the name of the property to get.
+=item $value; return location for the property value.
+
+=end pod
+
+sub g_object_get_property (
+  N-GObject $object, Str $property_name, Int $type
+  --> Gnome::GObject::Value
+) {
+note "o: ", $object;
+  my Gnome::GObject::Value $v .= new(:init($type));
+  _g_object_get_property( $object, $property_name, $v());
+  $v
+}
+
+sub _g_object_get_property (
+  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
+) is native(&gobject-lib)
+  is symbol('g_object_get_property')
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
 #TM:0:g_object_class_install_property:
 =begin pod
 =head2 [g_object_] class_install_property
@@ -1557,7 +1594,7 @@ sub g_object_set_property ( N-GObject $object, Str $property_name, N-GObject $va
   is native(&gobject-lib)
   { * }
 
-#`{{
+
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_property:
 =begin pod
@@ -1583,31 +1620,63 @@ bindings, C<g_object_get()> is much more convenient for C programming.
 sub g_object_get_property ( N-GObject $object, Str $property_name, N-GObject $value )
   is native(&gobject-lib)
   { * }
-}}
+]]
 #-------------------------------------------------------------------------------
-#TM:0:g_object_get_property:
 =begin pod
 =head2 [g_object_] get_property
+
+Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
+
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
 
   method g_object_get_property (
     Str $property_name, Gnome::GObject::Type $type
     --> Gnome::GObject::Value
   )
 
-Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
-
-In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
+  method g_object_get_property (
+    Str $property_name, Gnome::GObject::Value $value
+  )
 
 =item $property_name; the name of the property to get.
-=item $value; return location for the property value.
+=item $value; the property value. The value is stored in the Value object. Use any of the getter methods of Value to get the data. Also setters are available to modify data.
 
 =end pod
 
-sub g_object_get_property (
+# Following methods work properly, save it as an example for elsewhere
+# get-property() calls methods
+# get_property(), g-object-get-property() and g_object_get_property() calls subs
+#TM:1:get-property(N-GObject,Gnome::GObject::Value):TextTagTable.t
+multi method get-property (
+  Str $property_name, Gnome::GObject::Value $v
+) {
+  _g_object_get_property( $!g-object, $property_name, $v());
+}
+
+#TM:1:get-property(N-GObject,Int):TextTagTable.t
+multi method get-property (
+  Str $property_name, Int $type
+  --> Gnome::GObject::Value
+) {
+  my Gnome::GObject::Value $v .= new(:init($type));
+  _g_object_get_property( $!g-object, $property_name, $v());
+  $v
+}
+
+
+
+#TM:1:g_object_get_property(N-GObject,N-GValue):TextTagTable.t
+multi sub g_object_get_property (
+  N-GObject $object, Str $property_name, N-GValue $v
+) {
+  _g_object_get_property( $object, $property_name, $v);
+}
+
+#TM:1:g_object_get_property(N-GObject,Int):TextTagTable.t
+multi sub g_object_get_property (
   N-GObject $object, Str $property_name, Int $type
   --> Gnome::GObject::Value
 ) {
-note "o: ", $object;
   my Gnome::GObject::Value $v .= new(:init($type));
   _g_object_get_property( $object, $property_name, $v());
   $v
@@ -1619,6 +1688,7 @@ sub _g_object_get_property (
   is symbol('g_object_get_property')
   { * }
 
+#`[[
 #-------------------------------------------------------------------------------
 #TM:0:g_object_freeze_notify:
 =begin pod
