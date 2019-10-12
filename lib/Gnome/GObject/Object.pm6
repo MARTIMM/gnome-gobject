@@ -183,8 +183,8 @@ Create a Perl6 widget object using a B<Gnome::Gtk3::Builder>. The builder object
 =end pod
 
 #TM:1:new():inheriting
-#TM:2:new(:widget):
-#TM:2:new(:build-id):
+#TM:2:new(:widget):*
+#TM:2:new(:build-id):*
 
 submethod BUILD ( *%options ) {
 
@@ -301,8 +301,10 @@ submethod BUILD ( *%options ) {
     note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
     my Array $builders = self.get-builders;
     for @$builders -> $builder {
+
+#note "B0b where: ", $builder.get-native-gobject.WHERE;
       # this action does not increase object refcount, do it here.
-      $widget = $builder.get-object(%options<build-id>);
+      $widget = $builder.get-object(%options<build-id>) // N-GObject;
       #TODO self.g_object_ref();
       last if ?$widget;
     }
@@ -553,11 +555,11 @@ method native-gobject ( N-GObject:D $widget --> N-GObject ) {
 
   #TODO self.g_object_unref() if ?$!g-object;
   $!g-object = $widget;
+  $!gobject-is-valid = True;
   #TODO self.g_object_ref();
 
   # when object is set, create signal object too
   $!g-signal .= new(:$!g-object);
-
   $!g-object
 }
 
@@ -576,7 +578,7 @@ method set-builder ( $builder ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method get-builders ( --> Array ) {
-  $builders;
+  $builders
 }
 
 #-------------------------------------------------------------------------------
