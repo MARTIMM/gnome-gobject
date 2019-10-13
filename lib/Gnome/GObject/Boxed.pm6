@@ -75,10 +75,12 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    if $p.^name ~~
-       m/:s ^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::'/ {
+    note "Substitution of parameter \[$++]: ", $p.^name if $Gnome::N::x-debug;
 
-      $params.push($p());
+    if $p.^name ~~
+       m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::'/ {
+
+      $params.push($p.get-native-gboxed);
     }
 
     else {

@@ -408,16 +408,20 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or other *SomeThing object.
   my Array $params = [];
   for c.list -> $p {
+    note "Substitution of parameter \[$++]: ", $p.^name if $Gnome::N::x-debug;
 
-    note "Substitution of $p.^name()" if $Gnome::N::x-debug;
-
+#`[[
+#TODO RGBA is changed!
     # must handle RGBA differently because it's a structure, not a widget
     # with a native object
+
     if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
       $params.push($p);
     }
 
     elsif $p.^name ~~
+]]
+    if $p.^name ~~
           m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::' / {
 
       $params.push($p());
