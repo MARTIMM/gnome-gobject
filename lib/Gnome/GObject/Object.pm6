@@ -408,7 +408,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or other *SomeThing object.
   my Array $params = [];
   for c.list -> $p {
-    note "Substitution of parameter \[$++]: ", $p.^name if $Gnome::N::x-debug;
+    note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
 
 #`[[
 #TODO RGBA is changed!

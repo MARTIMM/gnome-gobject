@@ -75,7 +75,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
   for c.list -> $p {
-    note "Substitution of parameter \[$++]: ", $p.^name if $Gnome::N::x-debug;
+    note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
 
     if $p.^name ~~
        m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::'/ {
