@@ -1,7 +1,10 @@
 ## Release notes
 
+* 2019-10-13 0.14.7
+  * Changes in Object and Boxed for checks on GdkRGBA. Module is changed in Gdk3 package.
+
 * 2019-10-11 0.14.6
-  * Bugfixes in GObject
+  * Bugfixes in Object
 
 * 2019-10-06 0.14.5
   * Added g_object_get_property() again. Added method counterparts get-property(). get-property() will use methods, get_property(), g-object-get-property() and g_object_get_property() use subs.
