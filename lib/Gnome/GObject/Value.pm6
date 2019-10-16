@@ -202,6 +202,9 @@ submethod BUILD ( *%options ) {
               )
     );
   }
+
+  # only after creating the widget, the gtype is known
+  self.set-class-info('GValue');
 }
 
 #-------------------------------------------------------------------------------
@@ -211,5 +214,6 @@ method _fallback ( $native-sub, |c ) {
   try { $s = &::($native-sub); }
   try { $s = &::("g_value_$native-sub"); } unless ?$s;
 
+  self.set-class-name-of-sub('GValue');
   $s
 }

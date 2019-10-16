@@ -12,7 +12,7 @@ my Gnome::GObject::Param $p .= new(:empty);
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   isa-ok $p, Gnome::GObject::Param;
-  note $p().flags;
+  is $p().flags, 0, 'no flags set';
 }
 
 #-------------------------------------------------------------------------------

@@ -1,10 +1,12 @@
-use v6;
+#TL:1:Gnome::GObject::Signal:
+
+use v6.d;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::GObject::Signal
+=head1 Gnome::GObject::Signal
 
-=SUBTITLE A means for customization of object behaviour and a general purpose notification mechanism
+A means for customization of object behaviour and a general purpose notification mechanism
 
 =head1 Description
 
@@ -15,38 +17,39 @@ use v6;
 
 =head2 Example
 
-  # define method
-  method mouse-event ( :widget($w), :event($e)) { ... }
+  use NativeCall;
+  use Gnome::N::N-GObject;
+  use Gnome::Gdk3::Events;
+  use Gnome::Gtk3::Window;
 
-  # get the window object
+  # Get a window object
   my Gnome::Gtk3::Window $w .= new( ... );
 
-  # define proper handler. you must study the GTK develper guides. you will
-  # then notice that C<connect-object> is a bit different than the real mcCoy.
-  my Callable $handler;
-  $handler = -> N-GObject $ignore-w, Pointer $e,
-                OpaquePointer $ignore-d {
-    self.mouse-event( :widget($w), :event($e) );
-  }
-
-  # connect signal to the handler
-  $w.connect-object( 'button-press-event', $handler);
-
-It will be easier to use the C<register-signal()> method defined in C<Gnome::GObject::Object>.
-
-  # define method
-  method mouse-event ( :widget($w), :event($e), :$time) {
+  # Define proper handler. The handler API must describe all arguments
+  # and their types.
+  my Callable $handler = sub (
+    N-GObject $native-widget, GdkEvent $event, OpaquePointer $ignore-d
+  ) {
     ...
   }
 
-  # get the window object
+  # Connect signal to the handler.
+  $w.connect-object( 'button-press-event', $handler);
+
+The other option to connect a signal is to use the C<register-signal()> method defined in B<Gnome::GObject::Object>. It all depends on how elaborate things are or taste.
+
+  use Gnome::Gdk3::Events;
+  use Gnome::Gtk3::Window;
+
+  # Define handler method. The handler API must describe all positional
+  # arguments and their types.
+  method mouse-event ( GdkEvent $event, :$widget ) { ... }
+
+  # Get a window object
   my Gnome::Gtk3::Window $w .= new( ... );
 
-  # then register
-  $w.register-signal(
-    self, 'mouse-event',
-    'button-press-event', :time(now)
-  );
+  # Then register
+  $w.register-signal( self, 'mouse-event', 'button-press-event');
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -55,7 +58,6 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
-#use Gnome::Gdk3::Events;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gobject/gsignal.h
@@ -64,29 +66,167 @@ use Gnome::N::N-GObject;
 unit class Gnome::GObject::Signal:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
-# signal-type: widget, data
-#my Signature $signal-type = :( N-GObject, OpaquePointer );
-
-# other-signal-type: widget, OpaquePointer, data
-#my Signature $nativewidget-type = :( N-GObject, N-GObject, OpaquePointer );
-
-# event-type: widget, event, data
-#my Signature $event-type = :( N-GObject, OpaquePointer, OpaquePointer );
+has N-GObject $!g-object;
 
 #-------------------------------------------------------------------------------
-#`{{
 =begin pod
-=head1 Enumerations
-=head2 GConnectFlags
-=item G_CONNECT_AFTER; whether the handler should be called before or after the default handler of the signal.
-=item G_CONNECT_SWAPPED; whether the instance and data should be swapped when calling the handler; see g_signal_connect_swapped() for an example.
+=head1 Methods
 =end pod
 
-enum GConnectFlags is export (
-  G_CONNECT_AFTER	        => 1,
-  G_CONNECT_SWAPPED	      => 1 +< 1
-);
+#-------------------------------------------------------------------------------
+# Native object is handed over by a Gnome::GObject::Object object
+#TM:2:new():Object
+submethod BUILD ( N-GObject:D :$!g-object ) { }
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
+
+  CATCH { test-catch-exception( $_, $native-sub); }
+
+  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+#`{{
+  die X::Gnome.new(:message(
+      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
+    )
+  ) unless $native-sub.index('_') >= 0;
 }}
+
+  my Callable $s;
+#note "s s0: $native-sub, ", $s;
+  try { $s = &::($native-sub); }
+#note "s s1: g_signal_$native-sub, ", $s unless ?$s;
+  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
+#note "s s2: ==> ", $s;
+
+  #test-call-without-natobj( $s, |c)
+  $return-sub-only ?? $s !! $s( $!g-object, |c)
+}
+
+
+#-------------------------------------------------------------------------------
+#TM:2:g_signal_connect_object:
+# original strait forward sub
+sub g_signal_connect_object (
+  N-GObject $instance, Str $detailed-signal, Callable $handler
+  --> Int
+) {
+
+  # create parameter list
+  my @parameterList = (
+    Parameter.new(type => N-GObject),     # $instance
+    Parameter.new(type => Str),           # $detailed-signal
+    Parameter.new(                        # $handler
+      type => Callable,
+      sub-signature => $handler.signature
+    ),
+    Parameter.new(type => OpaquePointer), # $data is ignored
+    Parameter.new(type => int32)          # $connect-flags is ignored
+  );
+
+  # create signature
+  my Signature $signature .= new(
+    :params( |@parameterList ),
+    :returns(uint64)
+  );
+#note "S: ", $signature;
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', Pointer);
+#note "P: ", $ptr;
+  my Callable $f = nativecast( $signature, $ptr);
+
+#note "F: ", $f;
+  $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
+}
+
+#-------------------------------------------------------------------------------
+# sub with conversion of user callback. user-handler is used to get the types
+# from, while the provided-handler is an intermediate between native and user.
+method _convert_g_signal_connect_object (
+  N-GObject $instance, Str $detailed-signal,
+  Callable $user-handler, Callable $provided-handler
+  --> Int
+) {
+
+#note "cnv sig: $detailed-signal, ", $user-handler, ', ', $provided-handler;
+
+  # create callback handlers signature using the users callback.
+  # first argument is always a native widget.
+  my @sub-parameter-list = (
+    Parameter.new(type => N-GObject),     # object which received the signal
+  );
+
+  # then process all parameters of the callback and pick only
+  # those with named argument '$handler-arg' followed with a digit.
+  for $user-handler.signature.params -> $p {
+
+    next if $p.name ~~ Nil;       # seems to between it in the list
+    next if $p.name eq '%_';      # only at the end I think
+    next if $p.named;             # named argument
+#note "Name: ", $p, ', ', $p.name;
+
+    my $ha-type = $p.type;
+    $ha-type = uint32 if $ha-type ~~ UInt;
+    $ha-type = int32 if $ha-type ~~ Int;
+    $ha-type = num32 if $ha-type ~~ Num;
+    @sub-parameter-list.push(     # next signal arguments
+      Parameter.new(type => $ha-type),
+    );
+  }
+
+  # finish with data pointer argument
+  @sub-parameter-list.push(
+    Parameter.new(type => OpaquePointer), # data pointer which is ignored
+  );
+
+  # create signature, test for return value
+  my Signature $sub-signature;
+#note "Handler returns: ", $user-handler.signature.returns;
+  if $user-handler.signature.returns ~~ Mu {
+    $sub-signature .= new(
+      :params( |@sub-parameter-list ),
+      :returns(int32)
+    );
+  }
+
+  else {
+    $sub-signature .= new(
+      :params( |@sub-parameter-list ),
+      :returns($user-handler.signature.returns)
+    );
+  }
+
+  # create parameter list for call to g_signal_connect_object
+  my @parameterList = (
+    Parameter.new(type => N-GObject),     # $instance
+    Parameter.new(type => Str),           # $detailed-signal
+    Parameter.new(                        # $user-handler
+      :type(Callable),
+      :$sub-signature
+    ),
+    Parameter.new(type => OpaquePointer), # $data is ignored
+    Parameter.new(type => int32)          # $connect-flags is ignored
+  );
+
+  # create signature for call to g_signal_connect_object
+  my Signature $signature .= new(
+    :params( |@parameterList ),
+    :returns(uint64)
+  );
+#note "S: ", $signature;
+#note "lib: ", gobject-lib();
+
+  # get a pointer to the sub, then cast it to a sub with the created
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( gobject-lib(), 'g_signal_connect_object', Pointer);
+#note "P: ", $ptr;
+  my Callable $f = nativecast( $signature, $ptr);
+
+#note "F: ", $f;
+  $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
+}
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -110,74 +250,6 @@ sub g_signal_connect (
 ) is inlinable {
   g_signal_connect_object( $widget, $signal, $handler)
 }
-}}
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head1 Methods
-=end pod
-#`{{
-=begin pod
-=head2 [g_signal_] connect_object
-
-Connects a callback function to a signal for a particular object.
-
-  method g_signal_connect_object( Str $signal, Callable $handler --> uint64 )
-
-=item $signal; a string of the form C<signal-name::detail>.
-=item $handler; the callback to connect.
-
-=end pod
-
-sub g_signal_connect_object(
-  N-GObject $widget, Str $signal, Callable $handler
-  --> uint64
-) {
-
-  # OpaquePointer for userdata which will never be send around
-  # 0 for connect_flags which cannot be used for G_CONNECT_AFTER
-  #   nor G_CONNECT_SWAPPED
-  my @args = $widget, $signal, $handler, OpaquePointer, 0;
-
-  given $handler.signature {
-    when $signal-type { _g_signal_connect_object_signal(|@args) }
-#    when $event-type { _g_signal_connect_object_event(|@args) }
-    when $nativewidget-type { _g_signal_connect_object_nativewidget(|@args) }
-
-    default {
-      die X::Gnome.new(:message('Handler doesn\'t have proper signature'));
-    }
-  }
-}
-
-sub _g_signal_connect_object_signal(
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer ),
-  OpaquePointer $data, int32 $connect_flags
-) returns uint64
-  is native(&gobject-lib)
-  is symbol('g_signal_connect_object')
-  { * }
-
-#`{{
-sub _g_signal_connect_object_event(
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer, OpaquePointer ),
-  OpaquePointer $data, int32 $connect_flags
-) returns uint64
-  is native(&gobject-lib)
-  is symbol('g_signal_connect_object')
-  { * }
-}}
-
-sub _g_signal_connect_object_nativewidget(
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, N-GObject, OpaquePointer ),
-  OpaquePointer $data, int32 $connect_flags
-) returns uint64
-  is native(&gobject-lib)
-  is symbol('g_signal_connect_object')
-  { * }
 }}
 #-------------------------------------------------------------------------------
 #`{{
@@ -281,6 +353,7 @@ sub g_signal_emit (
 # Handlers above provided to the signal connect calls are having 2 arguments
 # a widget and data. So the provided extra arguments are then those 2
 # plus a return value
+#TM:0:emit_by_name:
 =begin pod
 =head2 [g_signal_] emit_by_name
 
@@ -312,6 +385,7 @@ sub _g_signal_emit_by_name (
   { * }
 
 #-------------------------------------------------------------------------------
+#TM:0:g_signal_handler_disconnect:
 =begin pod
 =head2 [g_signal_] handler_disconnect
 
@@ -327,34 +401,3 @@ The handler_id has to be a valid signal handler id, connected to a signal of ins
 sub g_signal_handler_disconnect( N-GObject $widget, int32 $handler_id )
   is native(&gobject-lib)
   { * }
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-has N-GObject $!g-object;
-
-#-------------------------------------------------------------------------------
-# Native object is handed over by GObject object
-submethod BUILD ( N-GObject:D :$!g-object ) { }
-
-#-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
-#`{{
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') >= 0;
-}}
-
-  my Callable $s;
-#note "s s0: $native-sub, ", $s;
-  try { $s = &::($native-sub); }
-#note "s s1: g_signal_$native-sub, ", $s unless ?$s;
-  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
-#note "s s2: ==> ", $s;
-
-  #test-call( $s, Any, |c)
-  $return-sub-only ?? $s !! $s( $!g-object, |c)
-}

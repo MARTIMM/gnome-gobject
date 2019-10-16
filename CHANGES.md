@@ -1,5 +1,27 @@
 ## Release notes
 
+* 2019-10-13 0.14.7
+  * Changes in Object and Boxed for checks on GdkRGBA. Module is changed in Gdk3 package.
+
+* 2019-10-11 0.14.6
+  * Bugfixes in Object
+
+* 2019-10-06 0.14.5
+  * Added g_object_get_property() again. Added method counterparts get-property(). get-property() will use methods, get_property(), g-object-get-property() and g_object_get_property() use subs.
+
+* 2019-10-06 0.14.4
+  * Changes in Boxed to save the class name and type.
+  * Add get-native-gboxed() in Boxed and changed native-gboxed().
+  * Add get-native-gobject() in Object and changed native-gobject().
+
+* 2019-09-30 0.14.3
+  * improve register signal to prevent a problem in user provided :widget() in named arguments list.
+
+* 2019-09-02 0.14.2
+  * System changes to have a general way of handling all types of signals
+  * added _query_interfaces() to Object
+  * added _interface() to Interface.
+
 * 2019-08-25 0.14.1
   * Object extended and documented a bit
   * Type extended and documented a bit and added test file.
