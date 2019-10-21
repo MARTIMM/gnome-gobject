@@ -381,6 +381,8 @@ method CALL-ME ( N-GObject $widget? --> N-GObject ) {
 # works too.
 method FALLBACK ( $native-sub is copy, |c ) {
 
+  note "\nSearch for $native-sub in $!gtk-class-name" if $Gnome::N::x-debug;
+
   CATCH { test-catch-exception( $_, $native-sub); }
 
   # convert all dashes to underscores if there are any. then check if
@@ -480,11 +482,14 @@ method _fallback ( $native-sub --> Callable ) {
 
 # search in the interface modules
 #-------------------------------------------------------------------------------
-method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
+method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
 
   my Callable $s;
 
   for @interface-classes -> Str $class {
+    note "Search for $native-sub in $class on behalf of $!gtk-class-name"
+      if $Gnome::N::x-debug;
+
     try {
       require ::($class);
       my $no = ::($class).new(:widget($!g-object));
@@ -493,8 +498,6 @@ method _query_interfaces ( $native-sub, *@interface-classes --> Callable ) {
       CATCH {
         default {
           if $Gnome::N::x-debug {
-            once {note "\nQuerying interfaces for module $!gtk-class-name"};
-
             if .message ~~ m:s/$class/ {
               note "Interface $class not (yet) implemented";
             }
@@ -708,7 +711,6 @@ multi method register-signal (
       }
     }
 
-#note "SType: $signal-type";
     return False unless ?$signal-type;
 
     # self can't be closed over
@@ -754,10 +756,13 @@ multi method register-signal (
       # handle a widget, maybe other arguments and an ignorable data pointer
       when / w $<nbr-args> = (\d*) / {
 
-#note "SH: $signal-type";
         state %shkeys = %(
           :w0(&w0), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4), :w5(&w5)
         );
+
+        note "SH: $signal-type, $signal-name, ",
+             ( $!g-object.perl, $sh.perl, %shkeys{$signal-type}.perl).join(', ')
+             if $Gnome::N::x-debug;
 
         $!g-signal._convert_g_signal_connect_object(
           $!g-object, $signal-name, $sh, %shkeys{$signal-type}
