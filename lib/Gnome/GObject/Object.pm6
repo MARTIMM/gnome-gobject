@@ -404,7 +404,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   # call the _fallback functions of this classes children starting
   # at the bottom
-  if $cache{$native-sub}:exists {
+  if $cache{$!gtk-class-name-of-sub}{$native-sub}:exists {
     note "Use cached sub address of $native-sub in $!gtk-class-name-of-sub"
       if $Gnome::N::x-debug;
   }
@@ -414,6 +414,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
     if $s.defined {
       note "Found $native-sub in $!gtk-class-name-of-sub" if $Gnome::N::x-debug;
+      $cache{$!gtk-class-name-of-sub}{$native-sub} = $s;
     }
 
     else {
