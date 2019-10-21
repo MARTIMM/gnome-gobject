@@ -53,7 +53,7 @@ method _interface (
 ) {
 
   my Callable $s;
-  $s = self._fallback($native-sub) unless ?$s;
+  $s = self._fallback($native-sub);
 
   $s;
 }
