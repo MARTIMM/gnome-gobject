@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2019-10-21 0.14.8
+  * Add one more debug message.
+  * Add caching of found sub addresses
+
 * 2019-10-13 0.14.7
   * Changes in Object and Boxed for checks on GdkRGBA. Module is changed in Gdk3 package.
 
