@@ -129,15 +129,12 @@ sub g_signal_connect_object (
     :params( |@parameterList ),
     :returns(uint64)
   );
-#note "S: ", $signature;
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
   state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', Pointer);
-#note "P: ", $ptr;
   my Callable $f = nativecast( $signature, $ptr);
 
-#note "F: ", $f;
   $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
 }
 
@@ -150,22 +147,18 @@ method _convert_g_signal_connect_object (
   --> Int
 ) {
 
-#note "cnv sig: $detailed-signal, ", $user-handler, ', ', $provided-handler;
-
   # create callback handlers signature using the users callback.
   # first argument is always a native widget.
   my @sub-parameter-list = (
     Parameter.new(type => N-GObject),     # object which received the signal
   );
 
-  # then process all parameters of the callback and pick only
-  # those with named argument '$handler-arg' followed with a digit.
+  # then process all parameters of the callback.
   for $user-handler.signature.params -> $p {
 
-    next if $p.name ~~ Nil;       # seems to between it in the list
+    next if $p.name ~~ Nil;       # seems to be between it in the list
     next if $p.name eq '%_';      # only at the end I think
     next if $p.named;             # named argument
-#note "Name: ", $p, ', ', $p.name;
 
     my $ha-type = $p.type;
     $ha-type = uint32 if $ha-type ~~ UInt;
@@ -183,7 +176,6 @@ method _convert_g_signal_connect_object (
 
   # create signature, test for return value
   my Signature $sub-signature;
-#note "Handler returns: ", $user-handler.signature.returns;
   if $user-handler.signature.returns ~~ Mu {
     $sub-signature .= new(
       :params( |@sub-parameter-list ),
@@ -215,16 +207,13 @@ method _convert_g_signal_connect_object (
     :params( |@parameterList ),
     :returns(uint64)
   );
-#note "S: ", $signature;
-#note "lib: ", gobject-lib();
 
   # get a pointer to the sub, then cast it to a sub with the created
   # signature. after that, the sub can be called, returning a value.
   state $ptr = cglobal( gobject-lib(), 'g_signal_connect_object', Pointer);
-#note "P: ", $ptr;
+
   my Callable $f = nativecast( $signature, $ptr);
 
-#note "F: ", $f;
   $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
 }
 
