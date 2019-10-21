@@ -381,7 +381,10 @@ method CALL-ME ( N-GObject $widget? --> N-GObject ) {
 # works too.
 method FALLBACK ( $native-sub is copy, |c ) {
 
-  note "\nSearch for $native-sub in $!gtk-class-name" if $Gnome::N::x-debug;
+  state Hash $cache = %();
+
+  note "\nSearch for $native-sub in $!gtk-class-name following ", self.^mro
+    if $Gnome::N::x-debug;
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
@@ -401,10 +404,22 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   # call the _fallback functions of this classes children starting
   # at the bottom
-  $s = self._fallback($native-sub);
+  if $cache{$native-sub}:exists {
+    note "Use cached sub address of $native-sub in $!gtk-class-name-of-sub"
+      if $Gnome::N::x-debug;
+  }
 
-  die X::Gnome.new(:message("Native sub '$native-sub' not found"))
-      unless $s.defined;
+  else {
+    $s = self._fallback($native-sub);
+
+    if $s.defined {
+      note "Found $native-sub in $!gtk-class-name-of-sub" if $Gnome::N::x-debug;
+    }
+
+    else {
+      die X::Gnome.new(:message("Native sub '$native-sub' not found"));
+    }
+  }
 
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or other *SomeThing object.
@@ -444,9 +459,11 @@ method FALLBACK ( $native-sub is copy, |c ) {
   #TODO Not all classes have $!gtk-class-* defined so we need to test it
   if ?$!gtk-class-gtype and ?$!gtk-class-name and ?$!gtk-class-name-of-sub and
      $!gtk-class-name ne $!gtk-class-name-of-sub {
-    note "\nObject gtype: $!gtk-class-gtype" if $Gnome::N::x-debug;
-    note "Cast $!gtk-class-name to $!gtk-class-name-of-sub"
-      if $Gnome::N::x-debug;
+
+    if $Gnome::N::x-debug {
+      note "\nObject gtype: $!gtk-class-gtype";
+      note "Cast $!gtk-class-name to $!gtk-class-name-of-sub";
+    }
 
     $g-object-cast = Gnome::GObject::Type.new().check-instance-cast(
       $!g-object, $!gtk-class-gtype
@@ -484,9 +501,18 @@ method _fallback ( $native-sub --> Callable ) {
 #-------------------------------------------------------------------------------
 method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
 
+  state Hash $cache = %();
+
   my Callable $s;
 
   for @interface-classes -> Str $class {
+    if $cache{$class}:exists and $cache{$class}{$native-sub}:exists {
+      note "Use cached sub address of $native-sub from interface $class"
+        if $Gnome::N::x-debug;
+
+      return $cache{$class}{$native-sub};
+    }
+
     note "Search for $native-sub in $class on behalf of $!gtk-class-name"
       if $Gnome::N::x-debug;
 
@@ -494,6 +520,9 @@ method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
       require ::($class);
       my $no = ::($class).new(:widget($!g-object));
       $s = $no._interface( $native-sub, $class, $!gtk-class-name);
+      if $s.defined {
+        $cache{$class}{$native-sub} = $s;
+      }
 
       CATCH {
         default {
@@ -513,6 +542,8 @@ method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
         }
       }
     }
+
+    last if $s.defined;
   }
 
   $s
