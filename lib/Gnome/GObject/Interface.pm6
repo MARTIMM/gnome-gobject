@@ -49,11 +49,11 @@ method _fallback ( $native-sub is copy --> Callable ) {
 # does not need callsame.
 method _interface (
   Str $native-sub, Str $interface-class-name, Str $class-name
-  --> Callable
+  --> List
 ) {
 
   my Callable $s;
   $s = self._fallback($native-sub);
 
-  $s;
+  ( self.get-class-name-of-sub(), $s);
 }

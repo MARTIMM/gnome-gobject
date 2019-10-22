@@ -388,10 +388,11 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
-  # convert all dashes to underscores if there are any. then check if
-  # name is not too short.
+  # convert all dashes to underscores if there are any.
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+
 #`{{
+  # check if there are underscores in the name. then the name is not too short.
   die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short." ~
       " Keep at least one '-' or '_'."
@@ -399,14 +400,14 @@ method FALLBACK ( $native-sub is copy, |c ) {
   ) unless $native-sub.index('_') // -1 >= 0;
 }}
 
-  # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
 
-  # call the _fallback functions of this classes children starting
+  # call the _fallback functions of this class's children starting
   # at the bottom
-  if $cache{$!gtk-class-name-of-sub}{$native-sub}:exists {
-    note "Use cached sub address of $native-sub in $!gtk-class-name-of-sub"
-      if $Gnome::N::x-debug;
+  if $cache{$native-sub}:exists {
+
+    note "Use cached sub address of $native-sub" if $Gnome::N::x-debug;
+    $s = $cache{$native-sub};
   }
 
   else {
@@ -414,7 +415,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
     if $s.defined {
       note "Found $native-sub in $!gtk-class-name-of-sub" if $Gnome::N::x-debug;
-      $cache{$!gtk-class-name-of-sub}{$native-sub} = $s;
+      $cache{$native-sub} = $s;
     }
 
     else {
@@ -498,8 +499,8 @@ method _fallback ( $native-sub --> Callable ) {
   $s
 }
 
-# search in the interface modules
 #-------------------------------------------------------------------------------
+# search in the interface modules
 method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
 
   state Hash $cache = %();
@@ -508,10 +509,14 @@ method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
 
   for @interface-classes -> Str $class {
     if $cache{$class}:exists and $cache{$class}{$native-sub}:exists {
-      note "Use cached sub address of $native-sub from interface $class"
-        if $Gnome::N::x-debug;
 
-      return $cache{$class}{$native-sub};
+      ( $!gtk-class-name-of-sub, $s) = $cache{$class}{$native-sub};
+
+      note "Use cached sub address of ", $native-sub,
+           " from $!gtk-class-name-of-sub from interface $class",
+           if $Gnome::N::x-debug;
+
+      last;
     }
 
     note "Search for $native-sub in $class on behalf of $!gtk-class-name"
@@ -520,9 +525,15 @@ method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
     try {
       require ::($class);
       my $no = ::($class).new(:widget($!g-object));
-      $s = $no._interface( $native-sub, $class, $!gtk-class-name);
+      ( $!gtk-class-name-of-sub, $s) = $no._interface(
+        $native-sub, $class, $!gtk-class-name
+      );
+
       if $s.defined {
-        $cache{$class}{$native-sub} = $s;
+        note "Found $native-sub in $!gtk-class-name-of-sub"
+          if $Gnome::N::x-debug;
+
+        $cache{$class}{$native-sub} = ( $!gtk-class-name-of-sub, $s);
       }
 
       CATCH {
@@ -560,6 +571,10 @@ method set-class-info ( Str:D $!gtk-class-name ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method set-class-name-of-sub ( Str:D $!gtk-class-name-of-sub ) { }
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method get-class-name-of-sub ( --> Str ) { $!gtk-class-name-of-sub }
 
 #-------------------------------------------------------------------------------
 =begin pod
