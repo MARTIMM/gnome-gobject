@@ -462,10 +462,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
   if ?$!gtk-class-gtype and ?$!gtk-class-name and ?$!gtk-class-name-of-sub and
      $!gtk-class-name ne $!gtk-class-name-of-sub {
 
-    if $Gnome::N::x-debug {
-      note "\nObject gtype: $!gtk-class-gtype";
-      note "Cast $!gtk-class-name to $!gtk-class-name-of-sub";
-    }
+    note "Cast $!gtk-class-name to $!gtk-class-name-of-sub"
+      if $Gnome::N::x-debug;
 
     $g-object-cast = Gnome::GObject::Type.new().check-instance-cast(
       $!g-object, $!gtk-class-gtype
