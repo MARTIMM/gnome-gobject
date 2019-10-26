@@ -429,17 +429,6 @@ method FALLBACK ( $native-sub is copy, |c ) {
   for c.list -> $p {
     note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
 
-#`[[
-#TODO RGBA is changed!
-    # must handle RGBA differently because it's a structure, not a widget
-    # with a native object
-
-    if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
-      $params.push($p);
-    }
-
-    elsif $p.^name ~~
-]]
     if $p.^name ~~
           m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::' / {
 
@@ -493,68 +482,6 @@ method _fallback ( $native-sub --> Callable ) {
 
   self.set-class-name-of-sub('GObject');
   $s = callsame unless ?$s;
-
-  $s
-}
-
-#-------------------------------------------------------------------------------
-# search in the interface modules
-method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
-
-  state Hash $cache = %();
-
-  my Callable $s;
-
-  for @interface-classes -> Str $class {
-    if $cache{$class}:exists and $cache{$class}{$native-sub}:exists {
-
-      ( $!gtk-class-name-of-sub, $s) = $cache{$class}{$native-sub};
-
-      note "Use cached sub address of ", $native-sub,
-           " from $!gtk-class-name-of-sub from interface $class",
-           if $Gnome::N::x-debug;
-
-      last;
-    }
-
-    note "Search for $native-sub in $class on behalf of $!gtk-class-name"
-      if $Gnome::N::x-debug;
-
-    try {
-      require ::($class);
-      my $no = ::($class).new(:widget($!g-object));
-      ( $!gtk-class-name-of-sub, $s) = $no._interface(
-        $native-sub, $class, $!gtk-class-name
-      );
-
-      if $s.defined {
-        note "Found $native-sub in $!gtk-class-name-of-sub"
-          if $Gnome::N::x-debug;
-
-        $cache{$class}{$native-sub} = ( $!gtk-class-name-of-sub, $s);
-      }
-
-      CATCH {
-        default {
-          if $Gnome::N::x-debug {
-            if .message ~~ m:s/$class/ {
-              note "Interface $class not (yet) implemented";
-            }
-
-            elsif .message ~~ m:s/Could not find/ {
-              note ".new() or ._interface() not defined";
-            }
-
-            else {
-              note "Error: ", .message();
-            }
-          }
-        }
-      }
-    }
-
-    last if $s.defined;
-  }
 
   $s
 }
