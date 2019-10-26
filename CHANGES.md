@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-10-26 0.14.10
+  * Removed Interface module. Was already empty. It also imposes an inheritance problem when two interface modules are needed.
+
 * 2019-10-24 0.14.9
   * Remove \_query_interfaces() because it doesn't work using `require &:(xyz)`. Interface modules must be queried directly from the using class. Because of this, the Interface module used by the interface modules is not needed anymore. It is kept however so common utilities could be stored there.
 
