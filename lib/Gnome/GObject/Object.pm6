@@ -381,14 +381,18 @@ method CALL-ME ( N-GObject $widget? --> N-GObject ) {
 # works too.
 method FALLBACK ( $native-sub is copy, |c ) {
 
-  note "\nSearch for $native-sub in $!gtk-class-name" if $Gnome::N::x-debug;
+  state Hash $cache = %();
+
+  note "\nSearch for $native-sub in $!gtk-class-name following ", self.^mro
+    if $Gnome::N::x-debug;
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
-  # convert all dashes to underscores if there are any. then check if
-  # name is not too short.
+  # convert all dashes to underscores if there are any.
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+
 #`{{
+  # check if there are underscores in the name. then the name is not too short.
   die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short." ~
       " Keep at least one '-' or '_'."
@@ -396,15 +400,28 @@ method FALLBACK ( $native-sub is copy, |c ) {
   ) unless $native-sub.index('_') // -1 >= 0;
 }}
 
-  # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
 
-  # call the _fallback functions of this classes children starting
+  # call the _fallback functions of this class's children starting
   # at the bottom
-  $s = self._fallback($native-sub);
+  if $cache{$native-sub}:exists {
 
-  die X::Gnome.new(:message("Native sub '$native-sub' not found"))
-      unless $s.defined;
+    note "Use cached sub address of $native-sub" if $Gnome::N::x-debug;
+    $s = $cache{$native-sub};
+  }
+
+  else {
+    $s = self._fallback($native-sub);
+
+    if $s.defined {
+      note "Found $native-sub in $!gtk-class-name-of-sub" if $Gnome::N::x-debug;
+      $cache{$native-sub} = $s;
+    }
+
+    else {
+      die X::Gnome.new(:message("Native sub '$native-sub' not found"));
+    }
+  }
 
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or other *SomeThing object.
@@ -412,17 +429,6 @@ method FALLBACK ( $native-sub is copy, |c ) {
   for c.list -> $p {
     note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
 
-#`[[
-#TODO RGBA is changed!
-    # must handle RGBA differently because it's a structure, not a widget
-    # with a native object
-
-    if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
-      $params.push($p);
-    }
-
-    elsif $p.^name ~~
-]]
     if $p.^name ~~
           m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::' / {
 
@@ -444,7 +450,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   #TODO Not all classes have $!gtk-class-* defined so we need to test it
   if ?$!gtk-class-gtype and ?$!gtk-class-name and ?$!gtk-class-name-of-sub and
      $!gtk-class-name ne $!gtk-class-name-of-sub {
-    note "\nObject gtype: $!gtk-class-gtype" if $Gnome::N::x-debug;
+
     note "Cast $!gtk-class-name to $!gtk-class-name-of-sub"
       if $Gnome::N::x-debug;
 
@@ -480,44 +486,6 @@ method _fallback ( $native-sub --> Callable ) {
   $s
 }
 
-# search in the interface modules
-#-------------------------------------------------------------------------------
-method _query_interfaces ( Str $native-sub, *@interface-classes --> Callable ) {
-
-  my Callable $s;
-
-  for @interface-classes -> Str $class {
-    note "Search for $native-sub in $class on behalf of $!gtk-class-name"
-      if $Gnome::N::x-debug;
-
-    try {
-      require ::($class);
-      my $no = ::($class).new(:widget($!g-object));
-      $s = $no._interface( $native-sub, $class, $!gtk-class-name);
-
-      CATCH {
-        default {
-          if $Gnome::N::x-debug {
-            if .message ~~ m:s/$class/ {
-              note "Interface $class not (yet) implemented";
-            }
-
-            elsif .message ~~ m:s/Could not find/ {
-              note ".new() or ._interface() not defined";
-            }
-
-            else {
-              note "Error: ", .message();
-            }
-          }
-        }
-      }
-    }
-  }
-
-  $s
-}
-
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method set-class-info ( Str:D $!gtk-class-name ) {
@@ -528,6 +496,10 @@ method set-class-info ( Str:D $!gtk-class-name ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method set-class-name-of-sub ( Str:D $!gtk-class-name-of-sub ) { }
+
+#-------------------------------------------------------------------------------
+# no pod. user does not have to know about it.
+method get-class-name-of-sub ( --> Str ) { $!gtk-class-name-of-sub }
 
 #-------------------------------------------------------------------------------
 =begin pod

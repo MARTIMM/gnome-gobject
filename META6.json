@@ -1,7 +1,7 @@
 {
   "description": "Perl6 Gnome gobject api, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.14.7",
+  "version": "0.14.10",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
@@ -11,7 +11,6 @@
   "provides": {
     "Gnome::GObject::Boxed": "lib/Gnome/GObject/Boxed.pm6",
     "Gnome::GObject::InitiallyUnowned": "lib/Gnome/GObject/InitiallyUnowned.pm6",
-    "Gnome::GObject::Interface": "lib/Gnome/GObject/Interface.pm6",
     "Gnome::GObject::Object": "lib/Gnome/GObject/Object.pm6",
     "Gnome::GObject::Param": "lib/Gnome/GObject/Param.pm6",
     "Gnome::GObject::Signal": "lib/Gnome/GObject/Signal.pm6",
