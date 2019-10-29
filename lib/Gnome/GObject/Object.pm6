@@ -732,9 +732,9 @@ multi method register-signal (
           :w0(&w0), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4), :w5(&w5)
         );
 
-        note "SH: $signal-type, $signal-name, ",
-             ( $!g-object.perl, $sh.perl, %shkeys{$signal-type}.perl).join(', ')
-             if $Gnome::N::x-debug;
+        note "Signal type and name: $signal-type, $signal-name\(",
+             ( $!g-object.perl, $sh.perl, %shkeys{$signal-type}.perl
+             ).join(', '), ')' if $Gnome::N::x-debug;
 
         $!g-signal._convert_g_signal_connect_object(
           $!g-object, $signal-name, $sh, %shkeys{$signal-type}
@@ -852,7 +852,9 @@ method start-thread (
 
   # don't start thread if handler is not available
   my Method $sh = $handler-object.^lookup($handler-name) // Method;
-  return Promise unless ? $sh;
+  die X::Gnome.new(
+    :message("Method '$handler-name' not available in object")
+  ) unless ? $sh;
 
   my Promise $p = start {
 
