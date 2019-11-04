@@ -430,7 +430,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
     note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
 
     if $p.^name ~~
-          m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::' / {
+          m/^ 'Gnome::' [ Gtk || Gdk || Glib || Gio || GObject ] \d? '::' / {
 
       $params.push($p());
     }
