@@ -503,7 +503,7 @@ Increments the reference count of the class structure belonging to
 I<type>. This function will demand-create the class if it doesn't
 exist already.
 
-Returns: (type GObject.TypeClass) (transfer none): the I<GTypeClass>
+Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
 structure for the given type ID
 
   method g_type_class_ref ( --> Pointer  )
@@ -527,7 +527,7 @@ As a consequence, this function may return C<Any> if the class
 of the type passed in does not currently exist (hasn't been
 referenced before).
 
-Returns: (type GObject.TypeClass) (transfer none): the I<GTypeClass>
+Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
 structure for the given type ID or C<Any> if the class does not
 currently exist
 
@@ -549,7 +549,7 @@ sub g_type_class_peek ( int32 $type )
 A more efficient version of C<g_type_class_peek()> which works only for
 static types.
 
-Returns: (type GObject.TypeClass) (transfer none): the I<GTypeClass>
+Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
 structure for the given type ID or C<Any> if the class does not
 currently exist or is dynamically loaded
 
@@ -577,7 +577,7 @@ class pointer after C<g_type_class_unref()> are invalid.
 
   method g_type_class_unref ( Pointer $g_class )
 
-=item Pointer $g_class; (type GObject.TypeClass): a I<GTypeClass> structure to unref
+=item Pointer $g_class; (type GObject.TypeClass): a I<N-GTypeClass> structure to unref
 
 =end pod
 
@@ -604,7 +604,7 @@ of I<g_class>
 
   method g_type_class_peek_parent ( Pointer $g_class --> Pointer  )
 
-=item Pointer $g_class; (type GObject.TypeClass): the I<GTypeClass> structure to retrieve the parent class for
+=item Pointer $g_class; (type GObject.TypeClass): the I<N-GTypeClass> structure to retrieve the parent class for
 
 =end pod
 
@@ -627,7 +627,7 @@ otherwise
 
   method g_type_interface_peek ( Pointer $instance_class, int32 $iface_type --> Pointer  )
 
-=item Pointer $instance_class; (type GObject.TypeClass): a I<GTypeClass> structure
+=item Pointer $instance_class; (type GObject.TypeClass): a I<N-GTypeClass> structure
 =item int32 $iface_type; an interface ID which this class conforms to
 
 =end pod
@@ -1203,7 +1203,7 @@ Since: 2.38
 
   method g_type_class_get_instance_private_offset ( Pointer $g_class --> Int  )
 
-=item Pointer $g_class; (type GObject.TypeClass): a I<GTypeClass>
+=item Pointer $g_class; (type GObject.TypeClass): a I<N-GTypeClass>
 
 =end pod
 
@@ -1469,7 +1469,7 @@ otherwise.
 
   method g_type_class_unref_uncached ( Pointer $g_class )
 
-=item Pointer $g_class; (type GObject.TypeClass): a I<GTypeClass> structure to unref
+=item Pointer $g_class; (type GObject.TypeClass): a I<N-GTypeClass> structure to unref
 
 =end pod
 
