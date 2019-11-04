@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-10-30 0.15.0
+  * Add new module Enums. A base class for all types for Gio, Glib and GObject.
+
 * 2019-10-26 0.14.10
   * Removed Interface module. Was already empty. It also imposes an inheritance problem when two interface modules are needed.
 
