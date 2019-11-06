@@ -414,7 +414,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
     $s = self._fallback($native-sub);
 
     if $s.defined {
-      note "Found $native-sub in $!gtk-class-name-of-sub" if $Gnome::N::x-debug;
+      note "Found $native-sub in $!gtk-class-name-of-sub"
+        if $Gnome::N::x-debug;
       $cache{$native-sub} = $s;
     }
 
