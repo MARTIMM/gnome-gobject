@@ -108,8 +108,8 @@ class N-GParamSpec is export is repr('CStruct') {
   has Pointer $!g_type_instance;  # GTypeInstance
   has str $.name;
   has int32 $.flags;              # enum GParamFlags
-  has int32 $.value_type;         # GType
-  has int32 $.owner_type;         # GType
+  has uint64 $.value_type;        # GType
+  has uint64 $.owner_type;        # GType
   has str $!_nick;
   has str $!_blurb;
   has Pointer $!qdata;            # GData
