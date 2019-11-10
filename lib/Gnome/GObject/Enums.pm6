@@ -54,9 +54,6 @@ use Gnome::GObject::Type;
 # https://developer.gnome.org/WWW
 unit class Gnome::GObject::Enums:auth<github:MARTIMM>;
 
-#also does Gnome::Gtk3::Buildable;
-#also does Gnome::Gtk3::Orientable;
-
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GEnumValue
@@ -126,7 +123,6 @@ class N-GFlagsClass is export is repr('CStruct') {
 }
 
 #-------------------------------------------------------------------------------
-
 =begin pod
 =head1 Methods
 =head2 new
@@ -185,8 +181,6 @@ method _fallback ( $native-sub is copy --> Callable ) {
   my Callable $s;
   try { $s = &::($native-sub); }
   try { $s = &::("g_enums_$native-sub"); } unless ?$s;
-#  $s = self._buildable_interface($native-sub) unless ?$s;
-#  $s = self._orientable_interface($native-sub) unless ?$s;
 
   self.set-class-name-of-sub('GEnums');
   $s = callsame unless ?$s;
