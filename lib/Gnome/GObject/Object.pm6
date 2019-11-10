@@ -225,7 +225,7 @@ submethod BUILD ( *%options ) {
       loop ( my Int $i = 0; $i < ^ %options<names>.elems; $i++ ) {
         $n[$i] = %options<names>[$i];
         my $vi = %options<values>[$i];
-        $v[$i] = $vi ~~ Gnome::GObject::Value ?? $vi() !! $vi;
+        $v[$i] = ($vi ~~ Gnome::GObject::Value) ?? $vi.get-native-gboxed !! $vi;
       }
 
       self.native-gobject(
@@ -239,7 +239,7 @@ submethod BUILD ( *%options ) {
     else {
 
       if $!gobject-is-valid {
-        g_object_unref($!g-object);
+        #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
 
@@ -268,7 +268,7 @@ submethod BUILD ( *%options ) {
 
     if ?$w and $w ~~ N-GObject {
       if $!gobject-is-valid {
-        g_object_unref($!g-object);
+        #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       self.native-gobject($w);
@@ -278,7 +278,7 @@ submethod BUILD ( *%options ) {
 
     elsif ?$w and $w ~~ NativeCall::Types::Pointer {
       if $!gobject-is-valid {
-        g_object_unref($!g-object);
+        #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       self.native-gobject(nativecast( N-GObject, $w));
@@ -289,7 +289,7 @@ submethod BUILD ( *%options ) {
     else {
       note "wrong type or undefined widget" if $Gnome::N::x-debug;
       if $!gobject-is-valid {
-        g_object_unref($!g-object);
+        #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
       die X::Gnome.new(:message('Wrong type or undefined widget'));
@@ -1636,7 +1636,7 @@ In general, a copy is made of the property contents and the caller is responsibl
 multi method get-property (
   Str $property_name, Gnome::GObject::Value $v
 ) {
-  _g_object_get_property( $!g-object, $property_name, $v());
+  _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
 }
 
 #TM:1:get-property(N-GObject,Int):TextTagTable.t
@@ -1645,7 +1645,7 @@ multi method get-property (
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  _g_object_get_property( $!g-object, $property_name, $v());
+  _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
   $v
 }
 
@@ -1664,7 +1664,7 @@ multi sub g_object_get_property (
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  _g_object_get_property( $object, $property_name, $v());
+  _g_object_get_property( $object, $property_name, $v.get-native-gboxed);
   $v
 }
 
