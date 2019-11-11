@@ -109,12 +109,13 @@ also is Gnome::GObject::Boxed;
 #-------------------------------------------------------------------------------
 #TS:1:N-GValue:
 class N-GValue is repr('CStruct') is export {
-  has uint64 $!g-type;
+  has uint64 $.g-type;
 
   # Data is a union. We do not use it but GTK does so here it is
   # only set to a type with 64 bits for the longest field in the union.
   has int64 $!g-data;
 
+  # As if it was G_VALUE_INIT macro
   submethod TWEAK {
     $!g-type = 0;
     $!g-data = 0;
@@ -142,6 +143,7 @@ Create an object using a native object from a builder. See also B<Gnome::GObject
 
 #TM:1:new(:init):
 #TM:1:new(:type,:value):
+#TM:1:new(:gvalue):
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -184,6 +186,10 @@ submethod BUILD ( *%options ) {
     #self.native-gboxed($nv);
   }
 
+  elsif %options<gvalue> ~~ N-GValue {
+    self.native-gboxed(%options<gvalue>);
+  }
+
   elsif %options.keys.elems {
     die X::Gnome.new(
       :message('Unsupported options for ' ~ self.^name ~
@@ -217,7 +223,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 =begin pod
 =head2 g_value_init
 
-Initializes I<value> with the default value of I<type>.
+Initializes I<$value> with the default value of I<$g_type>.
 
 Returns: (transfer none): the B<GValue> structure that has been passed in
 
@@ -232,30 +238,39 @@ sub g_value_init ( N-GValue $value, uint64 $g_type )
   is native(&gobject-lib)
   { * }
 
+#`{{
+# Useless sub. destination must be initialized with type and value of which
+# value gets overwritten. So before copy, one must create the dest first
+# before it can be used to copy to.
 #-------------------------------------------------------------------------------
-#TM:0:g_value_copy:
+# TM:0:g_value_copy:
 =begin pod
 =head2 g_value_copy
 
-Copies the value of I<src_value> into I<dest_value>.
+Returns a copy of this object.
 
-  method g_value_copy ( N-GValue $dest_value )
-
-=item N-GValue $dest_value; An initialized B<GValue> structure of the same type as I<src_value>.
+  method g_value_copy ( --> Gnome::GObject::Value )
 
 =end pod
 
-sub g_value_copy ( N-GValue $src_value, N-GValue $dest_value )
-  is native(&gobject-lib)
-  { * }
+sub g_value_copy ( N-GValue $src_value --> Gnome::GObject::Value ) {
+note "type: ", $src_value.g-type;
+  my N-GValue $nv .= new(:init($src_value.g-type));
+  _g_value_copy( $src_value, $nv);
+  Gnome::GObject::Value.new(:gvalue($nv))
+}
 
+sub _g_value_copy ( N-GValue $src_value, N-GValue $dest_value is rw )
+  is native(&gobject-lib)
+  is symbol('g_value_copy')
+  { * }
+}}
 #-------------------------------------------------------------------------------
-#TM:0:g_value_reset:
+#TM:1:g_value_reset:
 =begin pod
 =head2 g_value_reset
 
-Clears the current value in I<value> and resets it to the default value
-(as if the value had just been initialized).
+Clears the current value in this object and resets it to the default value (as if the value had just been initialized).
 
 Returns: the B<GValue> structure that has been passed in
 
@@ -270,17 +285,13 @@ sub g_value_reset ( N-GValue $value )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_unset:
+#TM:1:g_value_unset:
 =begin pod
 =head2 g_value_unset
 
-Clears the current value in I<value> (if any) and "unsets" the type,
-this releases all resources associated with this GValue. An unset
-value is the same as an uninitialized (zero-filled) B<GValue>
-structure.
+Clears the current value in I<value> (if any) and "unsets" the type, this releases all resources associated with this GValue. An unset value is the same as an uninitialized (zero-filled) B<GValue> structure.
 
   method g_value_unset ( )
-
 
 =end pod
 
@@ -293,8 +304,7 @@ sub g_value_unset ( N-GValue $value )
 =begin pod
 =head2 [g_value_] set_instance
 
-Sets I<value> from an instantiatable type via the
-value_table's C<collect_value()> function.
+Sets the value from an instantiatable type via the value_table's C<collect_value()> function.
 
   method g_value_set_instance ( Pointer $instance )
 
@@ -581,7 +591,7 @@ sub g_value_get_boolean ( N-GValue $value )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_set_int:
+#TM:1:g_value_set_int:
 =begin pod
 =head2 g_value_set_int
 
@@ -598,7 +608,7 @@ sub g_value_set_int ( N-GValue $value, int32 $v_int )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_get_int:
+#TM:0:1_value_get_int:
 =begin pod
 =head2 g_value_get_int
 
@@ -826,7 +836,7 @@ sub g_value_get_float ( N-GValue $value )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_set_double:
+#TM:1:g_value_set_double:
 =begin pod
 =head2 g_value_set_double
 
@@ -843,7 +853,7 @@ sub g_value_set_double ( N-GValue $value, num64 $v_double )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_get_double:
+#TM:1:g_value_get_double:
 =begin pod
 =head2 g_value_get_double
 
@@ -887,7 +897,7 @@ sub g_value_get_flags ( N-GValue $value )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_set_string:
+#TM:1:g_value_set_string:
 =begin pod
 =head2 g_value_set_string
 
@@ -923,13 +933,13 @@ sub g_value_set_static_string ( N-GValue $value, Str $v_string )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_value_get_string:
+#TM:1:g_value_get_string:
 =begin pod
 =head2 g_value_get_string
 
 Get the contents of a C<G_TYPE_STRING> B<GValue>.
 
-Returns: string content of I<value>
+Returns: string content of I<$value>
 
   method g_value_get_string ( --> Str  )
 
