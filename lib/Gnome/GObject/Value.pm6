@@ -127,17 +127,17 @@ class N-GValue is repr('CStruct') is export {
 =head1 Methods
 =head2 new
 
-Create a new plain object.
+Create a value object and initialize to type. Exampes of a type is G_TYPE_INT or G_TYPE_BOOLEAN.
 
-  multi method new ( Bool :empty! )
+  multi method new ( Int :$init! )
 
-Create an object using a native object from elsewhere. See also B<Gnome::GObject::Object>.
+Create a value object and initialize to type and set a value.
 
-  multi method new ( N-GObject :$widget! )
+  multi method new ( Int :$type!, Any :$value )
 
-Create an object using a native object from a builder. See also B<Gnome::GObject::Object>.
+Create an object using a native object from elsewhere.
 
-  multi method new ( Str :$build-id! )
+  multi method new ( N-GObject :$gvalue! )
 
 =end pod
 
@@ -157,7 +157,7 @@ submethod BUILD ( *%options ) {
     my $type = %options<type>;
     self.native-gboxed(g_value_init( N-GValue.new, $type));
 
-    my $nv := self.get-native-gboxed;
+    my $nv = self.get-native-gboxed;
     my $value = %options<value>;
 
     given $type {
@@ -183,7 +183,7 @@ submethod BUILD ( *%options ) {
       when G_TYPE_VARIANT {note "Type variant for $value not yet available";}# { g_value_set_( $nv, $value); }
     }
 
-    #self.native-gboxed($nv);
+    self.native-gboxed($nv);
   }
 
   elsif %options<gvalue> ~~ N-GValue {
