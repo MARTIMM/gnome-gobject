@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2019-11-13 0.15.2
+  * Added `get-parameter()` to Type. A method to get a perl6 Parameter from a a given GType and optionally an object.
+  * Improved and retested get/set object properties.
+
 * 2019-11-10 0.15.1
   * Review of Type and Value.
   * bugfixed N-GType had a wrong size
