@@ -21,6 +21,7 @@ submethod BUILD ( *%options ) {
   die X::Gnome.new(:message('Forbidden to initialize for ' ~ self.^name));
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method _fallback ( $native-sub is copy --> Callable ) {
 
@@ -33,3 +34,4 @@ method _fallback ( $native-sub is copy --> Callable ) {
   my Callable $s = callsame;
   $s;
 }
+}}
