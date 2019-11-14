@@ -215,6 +215,7 @@ submethod BUILD ( *%options ) {
   }
 
   # process options
+#`{{
   if ? %options<type> and ? %options<names> and ? %options<values> {
     if %options<names> ~~ Array and %options<values> ~~ Array and
        %options<names>.elems == %options<values>.elems {
@@ -256,8 +257,10 @@ submethod BUILD ( *%options ) {
       );
     }
   }
+}}
 
-  elsif ? %options<widget> {
+  #elsif ? %options<widget> {
+  if ? %options<widget> {
     note "gobject widget: ", %options<widget> if $Gnome::N::x-debug;
 
     my $w = %options<widget>;
@@ -896,16 +899,13 @@ method start-thread (
   $p
 }
 
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_initially_unowned_get_type:
 =begin pod
 =head2 g_initially_unowned_get_type
 
-
-
   method g_initially_unowned_get_type ( --> int32  )
-
 
 =end pod
 
@@ -913,43 +913,381 @@ sub g_initially_unowned_get_type (  )
   returns int32
   is native(&gobject-lib)
   { * }
+}}
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_object_get_property:
+#TM:0:g_object_get:
+=begin pod
+=head2 g_object_get
+
+Gets properties of an object.
+
+In general, a copy is made of the property contents and the caller
+is responsible for freeing the memory in the appropriate manner for
+the type, for instance by calling C<g_free()> or C<g_object_unref()>.
+
+Here is an example of using C<g_object_get()> to get the contents
+of three properties: an integer, a string and an object:
+|[<!-- language="C" -->
+gint intval;
+gchar *strval;
+GObject *objval;
+
+g_object_get (my_object,
+"int-property", &intval,
+"str-property", &strval,
+"obj-property", &objval,
+NULL);
+
+// Do something with intval, strval, objval
+
+g_free (strval);
+g_object_unref (objval);
+]|
+
+  method g_object_get ( Pointer $object, Str $first_property_name )
+
+=item Pointer $object; (type GObject.Object): a I<GObject>
+=item Str $first_property_name; name of the first property to get @...: return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
+
+=end pod
+
+
+sub g_object_get ( N-GObject $object, *@properties --> List ) {
+
+  my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
+
+  my @pl = ();
+  for @properties -> $p {
+    @parameter-list.push: Parameter.new(:type(Str));
+    @parameter-list.push: Parameter.new(:type(N-TypesMap));
+
+    @pl.push: $p;
+    @pl.push: N-TypesMap.new;
+  }
+
+
+  # to finish the list with 0
+  @parameter-list.push: Parameter.new(type => int32);
+
+  # create signature
+  my Signature $signature .= new(
+    :params( |@parameter-list),
+    :returns(int32)
+  );
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gtk-lib, 'g_object_get', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+note "f: ", $f.perl;
+note "fa: ", ($object, |@pl, 0).join(', ');
+  $f( $object, |@pl, 0);
+
+  my @ret-values = ();
+  for @pl -> $p, $v {
+    @ret-values.push: $v;
+  }
+
+  @ret-values
+}
+}}
+
+#sub g_object_get ( Pointer $object, Str $first_property_name, Any $any = Any )
+#  is native(&gobject-lib)
+#  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_object_set:
+=begin pod
+=head2 g_object_set
+
+Sets properties on an object.
+
+Note that the "notify" signals are queued and only emitted (in reverse order) after all properties have been set. See C<g_object_freeze_notify()>.
+
+  method g_object_set (
+    Gnome::GObject::Object $object, Str $prop_name, Str $prop_value
+  )
+
+=item Pointer $object; (type GObject.Object): a I<GObject>
+=item Str $first_property_name; name of the first property to set @...: value for the first property, followed optionally by more name/value pairs, followed by C<Any>
+
+=end pod
+
+sub g_object_set (
+  N-GObject $object, Str $prop-name, Str $prop-value, int32 $end = 0
+) is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_setv:
+=begin pod
+=head2 g_object_setv
+
+Sets I<$n_properties> properties for this object. Properties to be set will be taken from I<$values>. All properties must be valid. Warnings will be emitted and undefined behaviour may result if invalid properties are passed in.
+
+Since: 2.54
+
+  method g_object_setv ( @names, @values )
+
+=item Str @names; the names of each property to be set
+=item N-GValue @values; the values of each property to be set
+
+=end pod
+
+method g-object-setv ( Array $names, Array $values ) {
+
+  my Int $l = $names.elems;
+
+  die X::Gnome.new(:message("Arrays do not have equal length"))
+      unless $l == $values.elems;
+
+  my CArray[Str] $n .= new;
+  my CArray[N-GValue] $v .= new;
+  loop ( my $i = 0; $i < $l; $i++ ) {
+    $n[$i] = $names[$i];
+    $v[$i] = $values[$i];
+  }
+
+  _g_object_setv( self.get-native-gobject, $l, $n, $v)
+}
+
+sub _g_object_setv (
+  N-GObject $object, uint32 $n_properties,
+  CArray[Str] $names, CArray[N-GValue] $values
+) is native(&gobject-lib)
+  is symbol('g_object_setv')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_set_valist:
+=begin pod
+=head2 [g_object_] set_valist
+
+Sets properties on an object.
+
+  method g_object_set_valist (
+    Str $first_property_name, CArray[N-GValue] $var_args
+  )
+
+=item Str $first_property_name; name of the first property to set
+=item CArray[N-GValue] $var_args; value for the first property, followed optionally by more name/value pairs, followed by C<Any>
+
+=end pod
+
+sub g_object_set_valist ( N-GObject $object, Str $first_property_name, CArray[N-GValue] $var_args )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_getv:
+=begin pod
+=head2 g_object_getv
+
+Gets I<n_properties> properties for an I<object>.
+Obtained properties will be set to I<values>. All properties must be valid.
+Warnings will be emitted and undefined behaviour may result if invalid
+properties are passed in.
+
+Since: 2.54
+
+  method g_object_getv (
+    UInt $n_properties, CArray[Str] $names, CArray[N-GValue] $values )
+
+=item UInt $n_properties; the number of properties
+=item CArray[Str] $names; (array length=n_properties): the names of each property to get
+=item CArray[N-GValue] $values; (array length=n_properties): the values of each property to get
+
+=end pod
+
+sub g_object_getv ( N-GObject $object, uint32 $n_properties, CArray[Str] $names, CArray[N-GValue] $values)
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_get_valist:
+=begin pod
+=head2 [g_object_] get_valist
+
+Gets properties of an object.
+
+In general, a copy is made of the property contents and the caller
+is responsible for freeing the memory in the appropriate manner for
+the type, for instance by calling C<g_free()> or C<g_object_unref()>.
+
+See C<g_object_get()>.
+
+  method g_object_get_valist (
+    Str $first_property_name, CArray[N-GValue] $var_args
+  )
+
+=item Str $first_property_name; name of the first property to get
+=item CArray[N-GValue] $var_args; return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
+
+=end pod
+
+sub g_object_get_valist ( N-GObject $object, Str $first_property_name, CArray[N-GValue] $var_args )
+  is native(&gobject-lib)
+  { * }
+}}
+
+#-------------------------------------------------------------------------------
+#TM:2:g_object_set_property:xt/Object.t
+=begin pod
+=head2 [g_object_] set_property
+
+Sets a property on an object.
+
+method g_object_set_property (
+  Str $property_name, Gnome::GObject::Value $value
+)
+
+=item Str $property_name; the name of the property to set
+=item N-GObject $value; the value
+
+=end pod
+
+sub g_object_set_property (
+  N-GObject $object, Str $property_name, N-GValue $value
+) is native(&gobject-lib)
+  is symbol('g_object_set_property')
+  { * }
+
+#-------------------------------------------------------------------------------
 =begin pod
 =head2 [g_object_] get_property
-
-  method g_object_get_property (
-    Str $property_name, Gnome::GObject::Type $type
-    --> Gnome::GObject::Value
-  )
 
 Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
 
 In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
 
+  method g_object_get_property (
+    Str $property_name, Int $gtype
+    --> Gnome::GObject::Value
+  )
+
+  method g_object_get_property (
+    Str $property_name, Gnome::GObject::Value $value
+  )
+
 =item $property_name; the name of the property to get.
-=item $value; return location for the property value.
+=item $value; the property value. The value is stored in the Value object. Use any of the getter methods of Value to get the data. Also setters are available to modify data.
 
 =end pod
 
-sub g_object_get_property (
+# Following methods work properly, save it as an example for elsewhere
+# get-property() calls methods
+# get_property(), g-object-get-property() and g_object_get_property() calls subs
+#TM:2:get-property(N-GObject,Prop,Gnome::GObject::Value):xt/Object.t
+multi method get-property (
+  Str $property_name, Gnome::GObject::Value $v
+) {
+  _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
+}
+
+#TM:2:get-property(N-GObject,Prop,Int):xt/Object.t
+multi method get-property (
+  Str $property_name, Int $type
+  --> Gnome::GObject::Value
+) {
+  my Gnome::GObject::Value $v .= new(:init($type));
+  my N-GValue $nv = $v.get-native-gboxed;
+  _g_object_get_property( $!g-object, $property_name, $nv);
+  $v.native-gboxed($nv);
+
+  $v
+}
+
+#`{{
+#TM:2:g_object_get_property(N-GObject,N-GValue):xt/Object.t
+multi sub g_object_get_property (
+  N-GObject $object, Str $property_name, Gnome::GObject::Value $v
+) {
+  _g_object_get_property( $object, $property_name, $v.get-native-gboxed);
+}
+
+#TM:2:g_object_get_property(N-GObject,Int):xt/Object.t
+multi sub g_object_get_property (
   N-GObject $object, Str $property_name, Int $type
   --> Gnome::GObject::Value
 ) {
-note "o: ", $object;
   my Gnome::GObject::Value $v .= new(:init($type));
-  _g_object_get_property( $object, $property_name, $v());
+  my N-GValue $nv = $v.get-native-gboxed;
+  _g_object_get_property( $object, $property_name, $nv);
+  $v.native-gboxed($nv);
+
   $v
 }
+}}
 
 sub _g_object_get_property (
   N-GObject $object, Str $property_name, N-GValue $gvalue is rw
 ) is native(&gobject-lib)
   is symbol('g_object_get_property')
   { * }
-}}
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_ref:
+=begin pod
+=head2 g_object_ref
+
+Increases the reference count of I<object>.
+
+Since GLib 2.56, if `GLIB_VERSION_MAX_ALLOWED` is 2.56 or greater, the type
+of I<object> will be propagated to the return type (using the GCC C<typeof()>
+extension), so any casting the caller needs to do on the return type must be
+explicit.
+
+Returns: the same I<object>
+
+  method g_object_ref ( N-GObject $object --> N-GObject  )
+
+=item N-GObject $object; a I<GObject>
+
+=end pod
+
+sub g_object_ref ( N-GObject $object )
+  returns N-GObject
+  is native(&gobject-lib)
+  { * }
+
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_unref:
+=begin pod
+=head2 g_object_unref
+
+Decreases the reference count of I<object>. When its reference count
+drops to 0, the object is finalized (i.e. its memory is freed).
+
+If the pointer to the I<GObject> may be reused in future (for example, if it is
+an instance variable of another object), it is recommended to clear the
+pointer to C<Any> rather than retain a dangling pointer to a potentially
+invalid I<GObject> instance. Use C<g_clear_object()> for this.
+
+  method g_object_unref ( N-GObject $object )
+
+=item N-GObject $object; a I<GObject>
+
+=end pod
+
+sub g_object_unref ( N-GObject $object )
+  is native(&gobject-lib)
+  { * }
+
+
+
+
+
+
+
+
+
+=finish
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -1303,7 +1641,6 @@ sub g_object_new_with_properties (
   is native(&gobject-lib)
   { * }
 
-#`[[
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_valist:
@@ -1332,72 +1669,6 @@ sub g_object_new_valist (
   { * }
 }}
 
-#`[[
-#-------------------------------------------------------------------------------
-#TM:0:g_object_set:
-=begin pod
-=head2 g_object_set
-
-Sets properties on an object.
-
-Note that the "notify" signals are queued and only emitted (in
-reverse order) after all properties have been set. See
-C<g_object_freeze_notify()>.
-
-  method g_object_set ( Pointer $object, Str $first_property_name )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-=item Str $first_property_name; name of the first property to set @...: value for the first property, followed optionally by more name/value pairs, followed by C<Any>
-
-=end pod
-
-sub g_object_set ( Pointer $object, Str $first_property_name, Any $any = Any )
-  is native(&gobject-lib)
-  { * }
-]]
-
-#`[[
-#-------------------------------------------------------------------------------
-#TM:0:g_object_get:
-=begin pod
-=head2 g_object_get
-
-Gets properties of an object.
-
-In general, a copy is made of the property contents and the caller
-is responsible for freeing the memory in the appropriate manner for
-the type, for instance by calling C<g_free()> or C<g_object_unref()>.
-
-Here is an example of using C<g_object_get()> to get the contents
-of three properties: an integer, a string and an object:
-|[<!-- language="C" -->
-gint intval;
-gchar *strval;
-GObject *objval;
-
-g_object_get (my_object,
-"int-property", &intval,
-"str-property", &strval,
-"obj-property", &objval,
-NULL);
-
-// Do something with intval, strval, objval
-
-g_free (strval);
-g_object_unref (objval);
-]|
-
-  method g_object_get ( Pointer $object, Str $first_property_name )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-=item Str $first_property_name; name of the first property to get @...: return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
-
-=end pod
-
-sub g_object_get ( Pointer $object, Str $first_property_name, Any $any = Any )
-  is native(&gobject-lib)
-  { * }
-]]
 
 #`[[
 #-------------------------------------------------------------------------------
@@ -1468,211 +1739,6 @@ sub g_object_disconnect ( Pointer $object, Str $signal_spec, Any $any = Any )
   is native(&gobject-lib)
   { * }
 ]]
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_setv:
-=begin pod
-=head2 g_object_setv
-
-Sets I<$n_properties> properties for this object. Properties to be set will be taken from I<$values>. All properties must be valid. Warnings will be emitted and undefined behaviour may result if invalid properties are passed in.
-
-Since: 2.54
-
-  method g_object_setv (
-    UInt $n_properties, CArray[Str] $names, CArray[N-GValue] $values )
-
-=item UInt $n_properties; the number of properties
-=item CArray[Str] $names; (array length=n_properties): the names of each property to be set
-=item CArray[N-GValue] $values; (array length=n_properties): the values of each property to be set
-
-=end pod
-
-sub g_object_setv ( N-GObject $object, uint32 $n_properties, CArray[Str] $names, CArray[N-GValue] $values)
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_set_valist:
-=begin pod
-=head2 [g_object_] set_valist
-
-Sets properties on an object.
-
-  method g_object_set_valist (
-    Str $first_property_name, CArray[N-GValue] $var_args
-  )
-
-=item Str $first_property_name; name of the first property to set
-=item CArray[N-GValue] $var_args; value for the first property, followed optionally by more name/value pairs, followed by C<Any>
-
-=end pod
-
-sub g_object_set_valist ( N-GObject $object, Str $first_property_name, CArray[N-GValue] $var_args )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_getv:
-=begin pod
-=head2 g_object_getv
-
-Gets I<n_properties> properties for an I<object>.
-Obtained properties will be set to I<values>. All properties must be valid.
-Warnings will be emitted and undefined behaviour may result if invalid
-properties are passed in.
-
-Since: 2.54
-
-  method g_object_getv (
-    UInt $n_properties, CArray[Str] $names, CArray[N-GValue] $values )
-
-=item UInt $n_properties; the number of properties
-=item CArray[Str] $names; (array length=n_properties): the names of each property to get
-=item CArray[N-GValue] $values; (array length=n_properties): the values of each property to get
-
-=end pod
-
-sub g_object_getv ( N-GObject $object, uint32 $n_properties, CArray[Str] $names, CArray[N-GValue] $values)
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_get_valist:
-=begin pod
-=head2 [g_object_] get_valist
-
-Gets properties of an object.
-
-In general, a copy is made of the property contents and the caller
-is responsible for freeing the memory in the appropriate manner for
-the type, for instance by calling C<g_free()> or C<g_object_unref()>.
-
-See C<g_object_get()>.
-
-  method g_object_get_valist (
-    Str $first_property_name, CArray[N-GValue] $var_args
-  )
-
-=item Str $first_property_name; name of the first property to get
-=item CArray[N-GValue] $var_args; return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
-
-=end pod
-
-sub g_object_get_valist ( N-GObject $object, Str $first_property_name, CArray[N-GValue] $var_args )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_set_property:
-=begin pod
-=head2 [g_object_] set_property
-
-Sets a property on an object.
-
-  method g_object_set_property ( Str $property_name, N-GObject $value )
-
-=item Str $property_name; the name of the property to set
-=item N-GObject $value; the value
-
-=end pod
-
-sub g_object_set_property ( N-GObject $object, Str $property_name, N-GObject $value )
-  is native(&gobject-lib)
-  { * }
-
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_get_property:
-=begin pod
-=head2 [g_object_] get_property
-
-Gets a property of an object. I<value> must have been initialized to the
-expected type of the property (or a type to which the expected type can be
-transformed) using C<g_value_init()>.
-
-In general, a copy is made of the property contents and the caller is
-responsible for freeing the memory by calling C<g_value_unset()>.
-
-Note that C<g_object_get_property()> is really intended for language
-bindings, C<g_object_get()> is much more convenient for C programming.
-
-  method g_object_get_property ( Str $property_name, N-GObject $value )
-
-=item Str $property_name; the name of the property to get
-=item N-GObject $value; return location for the property value
-
-=end pod
-
-sub g_object_get_property ( N-GObject $object, Str $property_name, N-GObject $value )
-  is native(&gobject-lib)
-  { * }
-]]
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] get_property
-
-Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
-
-In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
-
-  method g_object_get_property (
-    Str $property_name, Gnome::GObject::Type $type
-    --> Gnome::GObject::Value
-  )
-
-  method g_object_get_property (
-    Str $property_name, Gnome::GObject::Value $value
-  )
-
-=item $property_name; the name of the property to get.
-=item $value; the property value. The value is stored in the Value object. Use any of the getter methods of Value to get the data. Also setters are available to modify data.
-
-=end pod
-
-# Following methods work properly, save it as an example for elsewhere
-# get-property() calls methods
-# get_property(), g-object-get-property() and g_object_get_property() calls subs
-#TM:1:get-property(N-GObject,Gnome::GObject::Value):TextTagTable.t
-multi method get-property (
-  Str $property_name, Gnome::GObject::Value $v
-) {
-  _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
-}
-
-#TM:1:get-property(N-GObject,Int):TextTagTable.t
-multi method get-property (
-  Str $property_name, Int $type
-  --> Gnome::GObject::Value
-) {
-  my Gnome::GObject::Value $v .= new(:init($type));
-  _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
-  $v
-}
-
-
-
-#TM:1:g_object_get_property(N-GObject,N-GValue):TextTagTable.t
-multi sub g_object_get_property (
-  N-GObject $object, Str $property_name, N-GValue $v
-) {
-  _g_object_get_property( $object, $property_name, $v);
-}
-
-#TM:1:g_object_get_property(N-GObject,Int):TextTagTable.t
-multi sub g_object_get_property (
-  N-GObject $object, Str $property_name, Int $type
-  --> Gnome::GObject::Value
-) {
-  my Gnome::GObject::Value $v .= new(:init($type));
-  _g_object_get_property( $object, $property_name, $v.get-native-gboxed);
-  $v
-}
-
-sub _g_object_get_property (
-  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
-) is native(&gobject-lib)
-  is symbol('g_object_get_property')
-  { * }
 
 #`[[
 #-------------------------------------------------------------------------------
@@ -1859,55 +1925,6 @@ sub g_object_ref_sink ( Pointer $object )
   { * }
 ]]
 
-#-------------------------------------------------------------------------------
-#TM:0:g_object_ref:
-=begin pod
-=head2 g_object_ref
-
-Increases the reference count of I<object>.
-
-Since GLib 2.56, if `GLIB_VERSION_MAX_ALLOWED` is 2.56 or greater, the type
-of I<object> will be propagated to the return type (using the GCC C<typeof()>
-extension), so any casting the caller needs to do on the return type must be
-explicit.
-
-Returns: the same I<object>
-
-  method g_object_ref ( N-GObject $object --> N-GObject  )
-
-=item N-GObject $object; a I<GObject>
-
-=end pod
-
-sub g_object_ref ( N-GObject $object )
-  returns N-GObject
-  is native(&gobject-lib)
-  { * }
-
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_unref:
-=begin pod
-=head2 g_object_unref
-
-Decreases the reference count of I<object>. When its reference count
-drops to 0, the object is finalized (i.e. its memory is freed).
-
-If the pointer to the I<GObject> may be reused in future (for example, if it is
-an instance variable of another object), it is recommended to clear the
-pointer to C<Any> rather than retain a dangling pointer to a potentially
-invalid I<GObject> instance. Use C<g_clear_object()> for this.
-
-  method g_object_unref ( N-GObject $object )
-
-=item N-GObject $object; a I<GObject>
-
-=end pod
-
-sub g_object_unref ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-#`[[
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -1956,6 +1973,7 @@ sub g_object_weak_unref ( N-GObject $object, GWeakNotify $notify, Pointer $data 
   { * }
 }}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_add_weak_pointer:
 =begin pod
@@ -1999,6 +2017,7 @@ to match the one used with C<g_object_add_weak_pointer()>.
 sub g_object_remove_weak_pointer ( N-GObject $object, Pointer $weak_pointer_location )
   is native(&gobject-lib)
   { * }
+}}
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -2069,7 +2088,7 @@ sub g_object_remove_toggle_ref ( N-GObject $object, GToggleNotify $notify, Point
   is native(&gobject-lib)
   { * }
 }}
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_qdata:
 =begin pod
@@ -2115,7 +2134,7 @@ removes the data stored.
 sub g_object_set_qdata ( N-GObject $object, int32 $quark, Pointer $data )
   is native(&gobject-lib)
   { * }
-
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_qdata_full:
@@ -2140,7 +2159,7 @@ sub g_object_set_qdata_full ( N-GObject $object, int32 $quark, Pointer $data, GD
   is native(&gobject-lib)
   { * }
 }}
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_steal_qdata:
 =begin pod
@@ -2194,7 +2213,7 @@ sub g_object_steal_qdata ( N-GObject $object, int32 $quark )
   returns Pointer
   is native(&gobject-lib)
   { * }
-
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_dup_qdata:
@@ -2275,7 +2294,7 @@ sub g_object_replace_qdata ( N-GObject $object, int32 $quark, Pointer $oldval, P
   is native(&gobject-lib)
   { * }
 }}
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_data:
 =begin pod
@@ -2318,7 +2337,7 @@ the old association will be destroyed.
 sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
   is native(&gobject-lib)
   { * }
-
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_data_full:
@@ -2343,7 +2362,7 @@ sub g_object_set_data_full ( N-GObject $object, Str $key, Pointer $data, GDestro
   is native(&gobject-lib)
   { * }
 }}
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_steal_data:
 =begin pod
@@ -2366,7 +2385,7 @@ sub g_object_steal_data ( N-GObject $object, Str $key )
   is native(&gobject-lib)
   { * }
 
-#`{{
+
 #-------------------------------------------------------------------------------
 #TM:0:g_object_dup_data:
 =begin pod
@@ -2548,7 +2567,7 @@ sub g_closure_new_object ( uint32 $sizeof_closure, N-GObject $object )
   is native(&gobject-lib)
   { * }
 }}
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_object:
 =begin pod
@@ -2619,7 +2638,7 @@ sub g_value_dup_object ( N-GObject $value )
   returns Pointer
   is native(&gobject-lib)
   { * }
-
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_signal_connect_object:
@@ -2652,7 +2671,7 @@ sub g_signal_connect_object ( Pointer $instance, Str $detailed_signal, GCallback
   is native(&gobject-lib)
   { * }
 }}
-
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_force_floating:
 =begin pod
@@ -2745,7 +2764,7 @@ Since: 2.28
 sub g_clear_object ( N-GObject $object_ptr )
   is native(&gobject-lib)
   { * }
-
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_weak_ref_init:
@@ -2853,44 +2872,6 @@ sub g_weak_ref_set ( GWeakRef $weak_ref, Pointer $object )
   is native(&gobject-lib)
   { * }
 }}
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not yet implemented methods
-g_object_new
-g_object_class_install_property
-g_object_class_find_property
-g_object_class_list_properties
-g_object_class_override_property
-g_object_class_install_properties
-g_object_watch_closure
-g_cclosure_new_object
-g_cclosure_new_object_swap
-g_closure_new_object
-g_signal_connect_object
-g_object_connect
-g_object_new_valist
-g_object_weak_ref
-g_object_weak_unref
-g_object_add_toggle_ref
-g_object_remove_toggle_ref
-g_object_set_qdata_full
-g_object_dup_qdata
-...
-=end comment
-=end pod
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not implemented methods
-
-=head3 method  ( ... )
-
-=end comment
-=end pod
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -2936,188 +2917,3 @@ It is important to note that you must use [canonical parameter names][canonical-
 =item $pspec; the I<N-GParamSpec> of the property which changed.
 
 =end pod
-
-
-
-
-
-
-
-
-
-
-
-
-
-=finish
-
-#`{{
-#-------------------------------------------------------------------------------
-# Increases the reference count of $object. The new() methods will increase the
-# reference count of the native object automatically and when destroyed or
-# overwritten decreased.
-
-# no pod. user does not have to know about it.
-sub g_object_ref ( N-GObject $object )
-  returns N-GObject
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Decreases the reference count of object. When its reference count drops to 0,
-# the object is finalized (i.e. its memory is freed). The widget classes will
-# automatically decrease the reference count to the native object when
-# destroyed or when overwritten.
-
-# no pod. user does not have to know about it.
-sub g_object_unref ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Increase the reference count of object , and possibly remove the floating
-# reference. See also https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-ref-sink.
-
-# no pod. user does not have to know about it.
-sub g_object_ref_sink ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Clears a reference to a GObject. The reference count of the object is
-# decreased and the pointer is set to NULL.
-
-# no pod. user does not have to know about it.
-sub g_clear_object ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# Checks whether object has a floating reference.
-
-# no pod. user does not have to know about it.
-sub g_object_is_floating ( N-GObject $object )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# This function is intended for GObject implementations to re-enforce a
-# floating object reference. Doing this is seldom required: all
-# GInitiallyUnowneds are created with a floating reference which usually just
-# needs to be sunken by calling g_object_ref_sink().
-
-# no pod. user does not have to know about it.
-sub g_object_force_floating ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] set_property
-
-  method g_object_set_property (
-    Str $property_name, Gnome::GObject::GValue $value
-  )
-
-Sets a property on an object.
-
-=item $property_name; the name of the property to set.
-=item $value; the value.
-
-=end pod
-
-sub g_object_set_property (
-  N-GObject $object, Str $property_name, N-GValue $value
-) is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] get_property
-
-  method g_object_get_property (
-    Str $property_name, Gnome::GObject::Type $type
-    --> Gnome::GObject::Value
-  )
-
-Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
-
-In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
-
-=item $property_name; the name of the property to get.
-=item $value; return location for the property value.
-
-=end pod
-
-sub g_object_get_property (
-  N-GObject $object, Str $property_name, Gnome::GObject::Type $type
-  --> Gnome::GObject::Value
-) {
-  my Gnome::GObject::Value $v .= new(:init($type));
-  _g_object_get_property( $object, $property_name, $v());
-  $v
-}
-
-sub _g_object_get_property (
-  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
-) is native(&gobject-lib)
-  is symbol('g_object_get_property')
-  { * }
-
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 g_object_notify
-
-  method g_object_notify ( Str $property_name )
-
-Emits a C<notify> signal for the property C<property_name> on object .
-
-When possible, e.g. when signaling a property change from within the class that registered the property, you should use C<g_object_notify_by_pspec()>(not supported yet) instead.
-
-Note that emission of the notify signal may be blocked with C<g_object_freeze_notify()>. In this case, the signal emissions are queued and will be emitted (in reverse order) when C<g_object_thaw_notify()> is called.
-
-=item $property_name; the name of a property installed on the class of object.
-
-=end pod
-
-sub g_object_notify ( N-GObject $object, Str $property_name)
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] freeze_notify
-
-  method g_object_freeze_notify ( )
-
-Increases the freeze count on object . If the freeze count is non-zero, the emission of C<notify> signals on object is stopped. The signals are queued until the freeze count is decreased to zero. Duplicate notifications are squashed so that at most one C<notify> signal is emitted for each property modified while the object is frozen.
-
-This is necessary for accessors that modify multiple properties to prevent premature notification while the object is still being modified.
-
-=end pod
-
-sub g_object_freeze_notify ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [g_object_] thaw_notify
-
-  method g_object_thaw_notify ( )
-
-Reverts the effect of a previous call to C<g_object_freeze_notify()>. The freeze count is decreased on object and when it reaches zero, queued C<notify> signals are emitted.
-
-Duplicate notifications for each property are squashed so that at most one C<notify> signal is emitted for each property, in the reverse order in which they have been queued.
-
-It is an error to call this function when the freeze count is zero.
-=end pod
-
-sub g_object_thaw_notify ( N-GObject $object )
-  is native(&gobject-lib)
-  { * }
-}}
-
-]]
