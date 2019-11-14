@@ -153,7 +153,7 @@ submethod BUILD ( *%options ) {
     self.native-gboxed(g_value_init( N-GValue.new, %options<init>));
   }
 
-  elsif ? %options<type> and ? %options<value> {
+  elsif %options<type>.defined and %options<value>.defined {
     my $type = %options<type>;
     self.native-gboxed(g_value_init( N-GValue.new, $type));
 
