@@ -371,6 +371,42 @@ method FALLBACK ( $native-sub is copy, |c ) {
 }
 
 #-------------------------------------------------------------------------------
+# conveniance method to convert a type to a perl6 parameter
+#TM:2:get-parameter:Gnome::Gtk3::ListStore
+method get-parameter( Int $type, :$otype --> Parameter ) {
+
+  my Parameter $p;
+  given $type {
+    when G_TYPE_CHAR    { $p .= new(type => int8); }
+    when G_TYPE_UCHAR   { $p .= new(type => uint8); }
+    when G_TYPE_BOOLEAN { $p .= new(type => int32); }
+    when G_TYPE_INT     { $p .= new(type => int32); }
+    when G_TYPE_UINT    { $p .= new(type => uint32); }
+    when G_TYPE_LONG    { $p .= new(type => int64); }
+    when G_TYPE_ULONG   { $p .= new(type => uint64); }
+    when G_TYPE_INT64   { $p .= new(type => int64); }
+    when G_TYPE_UINT64  { $p .= new(type => uint64); }
+    when G_TYPE_ENUM    { $p .= new(type => int32); }
+    when G_TYPE_FLAGS   { $p .= new(type => int32); }
+    when G_TYPE_FLOAT   { $p .= new(type => num32); }
+    when G_TYPE_DOUBLE  { $p .= new(type => num64); }
+    when G_TYPE_STRING  { $p .= new(type => str); }
+
+    when G_TYPE_OBJECT | G_TYPE_BOXED {
+      die X::Gnome.new(:message('Object in named argument :o not defined'))
+          unless ?$otype;
+      $p .= new(type => $otype.get-class-gtype);
+    }
+
+#    when G_TYPE_POINTER { $p .= new(type => ); }
+#    when G_TYPE_PARAM { $p .= new(type => ); }
+#    when G_TYPE_VARIANT {$p .= new(type => ); }
+  }
+
+  $p
+}
+
+#-------------------------------------------------------------------------------
 #TM:1:g_type_name:
 =begin pod
 =head2 g_type_name
