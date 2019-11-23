@@ -43,7 +43,7 @@ There are always some problems! If you find one please help by filing an issue a
 
 [//]: # (---- [refs] ----------------------------------------------------------)
 [changes]: https://github.com/MARTIMM/perl6-gnome-gobject/blob/master/CHANGES.md
-[logo]: https://github.com/MARTIMM/perl6-gnome-gobject/blob/master/doc/images/gtk-logo-100.png
+[logo]: https://martimm.github.io/perl6-gnome-gtk3/content-docs/images/gtk-perl6.png
 [issues]: https://github.com/MARTIMM/perl6-gnome-gtk3/issues
 
 [InitiallyUnowned]: https://developer.gnome.org/gtk3/stable/ch02.html

@@ -1,5 +1,16 @@
 ## Release notes
 
+* 2019-11-13 0.15.2
+  * Added `get-parameter()` to Type. A method to get a perl6 Parameter from a a given GType and optionally an object.
+  * Improved and retested get/set object properties.
+
+* 2019-11-10 0.15.1
+  * Review of Type and Value.
+  * bugfixed N-GType had a wrong size
+
+* 2019-10-30 0.15.0
+  * Add new module Enums. A base class for all types for Glib and GObject.
+
 * 2019-10-26 0.14.10
   * Removed Interface module. Was already empty. It also imposes an inheritance problem when two interface modules are needed.
 
