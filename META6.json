@@ -1,9 +1,9 @@
 {
   "description": "Perl6 Gnome gobject api, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.15.2",
+  "version": "0.15.3",
   "authors": [ "Marcel Timmerman"],
-  "tags": [ "gnome", "glib"],
+  "tags": [ "gnome", "glib", "gobject", "GTK"],
 
   "perl": "6",
   "license": "Artistic-2.0",

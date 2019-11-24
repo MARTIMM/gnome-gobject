@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-11-24 0.15.3
+  * Bugfixed; Caching mechanism of sub addresses must have more information to select the proper sub from the right class.
+  
 * 2019-11-13 0.15.2
   * Added `get-parameter()` to Type. A method to get a perl6 Parameter from a a given GType and optionally an object.
   * Improved and retested get/set object properties.
