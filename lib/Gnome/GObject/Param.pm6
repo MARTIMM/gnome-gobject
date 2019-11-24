@@ -324,8 +324,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
 method _fallback ( $native-sub is copy --> Callable ) {
 
   my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_param_$native-sub"); } unless ?$s;
+  try { $s = &::("g_param_$native-sub"); };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
 #  self.set-class-name-of-sub('GParam');
   $s = callsame unless ?$s;
