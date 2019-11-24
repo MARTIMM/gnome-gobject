@@ -209,8 +209,9 @@ submethod BUILD ( *%options ) {
 method _fallback ( $native-sub is copy --> Callable ) {
 
   my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_value_$native-sub"); } unless ?$s;
+  try { $s = &::("g_value_$native-sub"); };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 #  $s = self._buildable_interface($native-sub) unless ?$s;
 #  $s = self._orientable_interface($native-sub) unless ?$s;
 

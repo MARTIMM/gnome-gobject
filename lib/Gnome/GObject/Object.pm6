@@ -465,9 +465,9 @@ method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
 
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_object_$native-sub"); } unless ?$s;
-
+  try { $s = &::("g_object_$native-sub"); };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   # Try to solve sub names from the GSignal class
   unless ?$s {

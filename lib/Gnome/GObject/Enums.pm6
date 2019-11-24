@@ -179,8 +179,9 @@ submethod BUILD ( *%options ) {
 method _fallback ( $native-sub is copy --> Callable ) {
 
   my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_enums_$native-sub"); } unless ?$s;
+  try { $s = &::("g_enums_$native-sub"); };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   self.set-class-name-of-sub('GEnums');
   $s = callsame unless ?$s;
