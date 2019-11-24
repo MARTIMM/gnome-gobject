@@ -386,7 +386,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   state Hash $cache = %();
 
-  note "\nSearch for $native-sub in $!gtk-class-name following ", self.^mro
+  note "\nSearch for .$native-sub\() in $!gtk-class-name following ", self.^mro
     if $Gnome::N::x-debug;
 
   CATCH { test-catch-exception( $_, $native-sub); }
@@ -394,32 +394,25 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # convert all dashes to underscores if there are any.
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
 
-#`{{
-  # check if there are underscores in the name. then the name is not too short.
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short." ~
-      " Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') // -1 >= 0;
-}}
-
   my Callable $s;
 
   # call the _fallback functions of this class's children starting
   # at the bottom
-  if $cache{$native-sub}:exists {
+  if $cache{$!gtk-class-name}{$native-sub}:exists {
 
-    note "Use cached sub address of $native-sub" if $Gnome::N::x-debug;
-    $s = $cache{$native-sub};
+    note "Use cached sub address of .$native-sub\() in $!gtk-class-name"
+      if $Gnome::N::x-debug;
+
+    $s = $cache{$!gtk-class-name}{$native-sub};
   }
 
   else {
     $s = self._fallback($native-sub);
 
     if $s.defined {
-      note "Found $native-sub in $!gtk-class-name-of-sub"
+      note "Found $native-sub in $!gtk-class-name-of-sub for $!gtk-class-name"
         if $Gnome::N::x-debug;
-      $cache{$native-sub} = $s;
+      $cache{$!gtk-class-name}{$native-sub} = $s;
     }
 
     else {
