@@ -222,7 +222,7 @@ class N-GTypeValueTable is export is repr('CStruct') {
 constant G_TYPE_FUNDAMENTAL_SHIFT = 2;
 
 #define	G_TYPE_FUNDAMENTAL_MAX		(255 << G_TYPE_FUNDAMENTAL_SHIFT)
-sub G_TYPE_MAKE_FUNDAMENTAL_MAX ( --> int32) {
+sub G_TYPE_MAKE_FUNDAMENTAL_MAX ( --> int32) is export {
   255 +< G_TYPE_FUNDAMENTAL_SHIFT;
 }
 
@@ -402,6 +402,9 @@ method get-parameter( Int $type, :$otype --> Parameter ) {
 #    when G_TYPE_POINTER { $p .= new(type => ); }
 #    when G_TYPE_PARAM { $p .= new(type => ); }
 #    when G_TYPE_VARIANT {$p .= new(type => ); }
+    default {
+      $p .= new(type => $otype.get-class-gtype);
+    }
   }
 
   $p
