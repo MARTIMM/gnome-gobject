@@ -222,7 +222,7 @@ method _convert_g_signal_connect_object (
 =begin pod
 =head1 Methods
 
-=head2 g_signal_connect
+=head2 [g_] signal_connect
 
 In this project it uses C<g_signal_connect_object()> explained below.
 
@@ -243,7 +243,7 @@ sub g_signal_connect (
 #-------------------------------------------------------------------------------
 #`{{
 =begin pod
-=head2 [g_signal_] connect_data
+=head2 [[g_] signal_] connect_data
 
 Connects a callback function to a signal for a particular object. Similar to C<g_signal_connect()>, but allows to provide a GClosureNotify for the data which will be called when the signal handler is disconnected and no longer used.
 
@@ -344,7 +344,7 @@ sub g_signal_emit (
 # plus a return value
 #TM:0:emit_by_name:
 =begin pod
-=head2 [g_signal_] emit_by_name
+=head2 [[g_] signal_] emit_by_name
 
 Emits a signal.
 
@@ -376,7 +376,7 @@ sub _g_signal_emit_by_name (
 #-------------------------------------------------------------------------------
 #TM:0:g_signal_handler_disconnect:
 =begin pod
-=head2 [g_signal_] handler_disconnect
+=head2 [[g_] signal_] handler_disconnect
 
 Disconnects a handler from an instance so it will not be called during any future or currently ongoing emissions of the signal it has been connected to. The handler_id becomes invalid and may be reused.
 
