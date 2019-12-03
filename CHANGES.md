@@ -1,4 +1,6 @@
 ## Release notes
+* 2019-12-03 0.15.5:
+  * Documentation changes
 
 * 2019-11-24 0.15.4
   * Changed order of tests in `_fallback()` routines.
