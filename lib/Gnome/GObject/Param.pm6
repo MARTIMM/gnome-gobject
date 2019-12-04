@@ -338,7 +338,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_ref:
 =begin pod
-=head2 [g_param_] spec_ref
+=head2 [[g_] param_] spec_ref
 
 Increments the reference count of I<pspec>.
 
@@ -358,7 +358,7 @@ sub g_param_spec_ref ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_unref:
 =begin pod
-=head2 [g_param_] spec_unref
+=head2 [[g_] param_] spec_unref
 
 Decrements the reference count of a I<pspec>.
 
@@ -375,7 +375,7 @@ sub g_param_spec_unref ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_sink:
 =begin pod
-=head2 [g_param_] spec_sink
+=head2 [[g_] param_] spec_sink
 
 The initial reference count of a newly created I<N-GParamSpec> is 1, even though no one has explicitly called C<g_param_spec_ref()> on it yet. So the initial reference count is flagged as "floating", until someone calls C<g_param_spec_ref(pspec)> and C<g_param_spec_sink(pspec)> in sequence on it, taking over the initial reference count (thus ending up with a I<pspec> that has a reference count of 1 still, but is not flagged "floating" anymore).
 
@@ -392,7 +392,7 @@ sub g_param_spec_sink ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_ref_sink:
 =begin pod
-=head2 [g_param_] spec_ref_sink
+=head2 [[g_] param_] spec_ref_sink
 
 Convenience function to ref and sink a I<N-GParamSpec>.
 
@@ -413,7 +413,7 @@ sub g_param_spec_ref_sink ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_qdata:
 =begin pod
-=head2 [g_param_] spec_get_qdata
+=head2 [[g_] param_] spec_get_qdata
 
 Gets back user data pointers stored via C<g_param_spec_set_qdata()>.
 
@@ -434,7 +434,7 @@ sub g_param_spec_get_qdata ( N-GParamSpec $pspec, N-GObject $quark )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_set_qdata:
 =begin pod
-=head2 [g_param_] spec_set_qdata
+=head2 [[g_] param_] spec_set_qdata
 
 Sets an opaque, named pointer on a I<N-GParamSpec>. The name is
 specified through a I<GQuark> (retrieved e.g. via
@@ -459,7 +459,7 @@ sub g_param_spec_set_qdata ( N-GParamSpec $pspec, N-GObject $quark, Pointer $dat
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_set_qdata_full:
 =begin pod
-=head2 [g_param_] spec_set_qdata_full
+=head2 [[g_] param_] spec_set_qdata_full
 
 This function works like C<g_param_spec_set_qdata()>, but in addition,
 a `void (*destroy) (gpointer)` function may be
@@ -484,7 +484,7 @@ sub g_param_spec_set_qdata_full ( N-GParamSpec $pspec, N-GObject $quark, Pointer
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_steal_qdata:
 =begin pod
-=head2 [g_param_] spec_steal_qdata
+=head2 [[g_] param_] spec_steal_qdata
 
 Gets back user data pointers stored via C<g_param_spec_set_qdata()>
 and removes the I<data> from I<pspec> without invoking its C<destroy()>
@@ -508,7 +508,7 @@ sub g_param_spec_steal_qdata ( N-GParamSpec $pspec, N-GObject $quark )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_redirect_target:
 =begin pod
-=head2 [g_param_] spec_get_redirect_target
+=head2 [[g_] param_] spec_get_redirect_target
 
 If the paramspec redirects operations to another paramspec,
 returns that paramspec. Redirect is used typically for
@@ -537,7 +537,7 @@ sub g_param_spec_get_redirect_target ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_value_set_default:
 =begin pod
-=head2 [g_param_] value_set_default
+=head2 [[g_] param_] value_set_default
 
 Sets I<value> to its default value as specified in I<pspec>.
 
@@ -555,7 +555,7 @@ sub g_param_value_set_default ( N-GParamSpec $pspec, N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_value_defaults:
 =begin pod
-=head2 [g_param_] value_defaults
+=head2 [[g_] param_] value_defaults
 
 Checks whether I<value> contains the default value as specified in I<pspec>.
 
@@ -576,7 +576,7 @@ sub g_param_value_defaults ( N-GParamSpec $pspec, N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_value_validate:
 =begin pod
-=head2 [g_param_] value_validate
+=head2 [[g_] param_] value_validate
 
 Ensures that the contents of I<value> comply with the specifications
 set out by I<pspec>. For example, a I<N-GParamSpecInt> might require
@@ -602,7 +602,7 @@ sub g_param_value_validate ( N-GParamSpec $pspec, N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_value_convert:
 =begin pod
-=head2 [g_param_] value_convert
+=head2 [[g_] param_] value_convert
 
 Transforms I<src_value> into I<dest_value> if possible, and then
 validates I<dest_value>, in order for it to conform to I<pspec>.  If
@@ -632,7 +632,7 @@ sub g_param_value_convert ( N-GParamSpec $pspec, N-GObject $src_value, N-GObject
 #-------------------------------------------------------------------------------
 #TM:0:g_param_values_cmp:
 =begin pod
-=head2 [g_param_] values_cmp
+=head2 [[g_] param_] values_cmp
 
 Compares I<value1> with I<value2> according to I<pspec>, and return -1, 0 or +1,
 if I<value1> is found to be less than, equal to or greater than I<value2>,
@@ -656,7 +656,7 @@ sub g_param_values_cmp ( N-GParamSpec $pspec, N-GObject $value1, N-GObject $valu
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_name:
 =begin pod
-=head2 [g_param_] spec_get_name
+=head2 [[g_] param_] spec_get_name
 
 Get the name of a I<N-GParamSpec>.
 
@@ -679,7 +679,7 @@ sub g_param_spec_get_name ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_nick:
 =begin pod
-=head2 [g_param_] spec_get_nick
+=head2 [[g_] param_] spec_get_nick
 
 Get the nickname of a I<N-GParamSpec>.
 
@@ -699,7 +699,7 @@ sub g_param_spec_get_nick ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_blurb:
 =begin pod
-=head2 [g_param_] spec_get_blurb
+=head2 [[g_] param_] spec_get_blurb
 
 Get the short description of a I<N-GParamSpec>.
 
@@ -719,7 +719,7 @@ sub g_param_spec_get_blurb ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_param:
 =begin pod
-=head2 g_value_set_param
+=head2 [g_] value_set_param
 
 Set the contents of a C<G_TYPE_PARAM> I<GValue> to I<param>.
 
@@ -737,7 +737,7 @@ sub g_value_set_param ( N-GObject $value, N-GParamSpec $param )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_param:
 =begin pod
-=head2 g_value_get_param
+=head2 [g_] value_get_param
 
 Get the contents of a C<G_TYPE_PARAM> I<GValue>.
 
@@ -757,7 +757,7 @@ sub g_value_get_param ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_dup_param:
 =begin pod
-=head2 g_value_dup_param
+=head2 [g_] value_dup_param
 
 Get the contents of a C<G_TYPE_PARAM> I<GValue>, increasing its
 reference count.
@@ -779,7 +779,7 @@ sub g_value_dup_param ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_take_param:
 =begin pod
-=head2 g_value_take_param
+=head2 [g_] value_take_param
 
 Sets the contents of a C<G_TYPE_PARAM> I<GValue> to I<param> and takes
 over the ownership of the callers reference to I<param>; the caller
@@ -801,7 +801,7 @@ sub g_value_take_param ( N-GObject $value, N-GParamSpec $param )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_default_value:
 =begin pod
-=head2 [g_param_] spec_get_default_value
+=head2 [[g_] param_] spec_get_default_value
 
 Gets the default value of I<pspec> as a pointer to a I<GValue>.
 
@@ -825,7 +825,7 @@ sub g_param_spec_get_default_value ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_get_name_quark:
 =begin pod
-=head2 [g_param_] spec_get_name_quark
+=head2 [[g_] param_] spec_get_name_quark
 
 Gets the GQuark for the name.
 
@@ -848,7 +848,7 @@ sub g_param_spec_get_name_quark ( N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_type_register_static:
 =begin pod
-=head2 [g_param_] type_register_static
+=head2 [[g_] param_] type_register_static
 
 Registers I<name> as the name of a new static type derived from
 I<G_TYPE_PARAM>. The type system uses the information contained in
@@ -873,7 +873,7 @@ sub g_param_type_register_static ( Str $name, N-GParamSpecTypeInfo $pspec_info )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_internal:
 =begin pod
-=head2 [g_param_] spec_internal
+=head2 [[g_] param_] spec_internal
 
 Creates a new I<N-GParamSpec> instance.
 
@@ -914,7 +914,7 @@ sub g_param_spec_internal ( N-GObject $param_type, Str $name, Str $nick, Str $bl
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_pool_new:
 =begin pod
-=head2 [g_param_] spec_pool_new
+=head2 [[g_] param_] spec_pool_new
 
 Creates a new I<N-GParamSpecPool>.
 
@@ -939,7 +939,7 @@ sub g_param_spec_pool_new ( int32 $type_prefixing )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_pool_insert:
 =begin pod
-=head2 [g_param_] spec_pool_insert
+=head2 [[g_] param_] spec_pool_insert
 
 Inserts a I<N-GParamSpec> in the pool.
 
@@ -958,7 +958,7 @@ sub g_param_spec_pool_insert ( N-GParamSpecPool $pool, N-GParamSpec $pspec, N-GO
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_pool_remove:
 =begin pod
-=head2 [g_param_] spec_pool_remove
+=head2 [[g_] param_] spec_pool_remove
 
 Removes a I<N-GParamSpec> from the pool.
 
@@ -976,7 +976,7 @@ sub g_param_spec_pool_remove ( N-GParamSpecPool $pool, N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_pool_lookup:
 =begin pod
-=head2 [g_param_] spec_pool_lookup
+=head2 [[g_] param_] spec_pool_lookup
 
 Looks up a I<N-GParamSpec> in the pool.
 
@@ -1000,7 +1000,7 @@ sub g_param_spec_pool_lookup ( N-GParamSpecPool $pool, Str $param_name, N-GObjec
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_pool_list_owned:
 =begin pod
-=head2 [g_param_] spec_pool_list_owned
+=head2 [[g_] param_] spec_pool_list_owned
 
 Gets an I<GList> of all I<N-GParamSpecs> owned by I<owner_type> in
 the pool.
@@ -1024,7 +1024,7 @@ sub g_param_spec_pool_list_owned ( N-GParamSpecPool $pool, N-GObject $owner_type
 #-------------------------------------------------------------------------------
 #TM:0:g_param_spec_pool_list:
 =begin pod
-=head2 [g_param_] spec_pool_list
+=head2 [[g_] param_] spec_pool_list
 
 Gets an array of all I<N-GParamSpecs> owned by I<owner_type> in
 the pool.

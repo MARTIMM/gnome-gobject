@@ -224,7 +224,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 #-------------------------------------------------------------------------------
 #TM:2:g_value_init:new(:init)
 =begin pod
-=head2 g_value_init
+=head2 [g_] value_init
 
 Initializes I<$value> with the default value of I<$g_type>.
 
@@ -248,7 +248,7 @@ sub g_value_init ( N-GValue $value, uint64 $g_type )
 #-------------------------------------------------------------------------------
 # TM:0:g_value_copy:
 =begin pod
-=head2 g_value_copy
+=head2 [g_] value_copy
 
 Returns a copy of this object.
 
@@ -271,7 +271,7 @@ sub _g_value_copy ( N-GValue $src_value, N-GValue $dest_value is rw )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_reset:
 =begin pod
-=head2 g_value_reset
+=head2 [g_] value_reset
 
 Clears the current value in this object and resets it to the default value (as if the value had just been initialized).
 
@@ -290,7 +290,7 @@ sub g_value_reset ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_unset:
 =begin pod
-=head2 g_value_unset
+=head2 [g_] value_unset
 
 Clears the current value in I<value> (if any) and "unsets" the type, this releases all resources associated with this GValue. An unset value is the same as an uninitialized (zero-filled) B<GValue> structure.
 
@@ -305,7 +305,7 @@ sub g_value_unset ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_instance:
 =begin pod
-=head2 [g_value_] set_instance
+=head2 [[g_] value_] set_instance
 
 Sets the value from an instantiatable type via the value_table's C<collect_value()> function.
 
@@ -322,7 +322,7 @@ sub g_value_set_instance ( N-GValue $value, Pointer $instance )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_init_from_instance:
 =begin pod
-=head2 [g_value_] init_from_instance
+=head2 [[g_] value_] init_from_instance
 
 Initializes and sets I<value> from an instantiatable type via the
 value_table's C<collect_value()> function.
@@ -347,7 +347,7 @@ sub g_value_init_from_instance ( N-GValue $value, Pointer $instance )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_fits_pointer:
 =begin pod
-=head2 [g_value_] fits_pointer
+=head2 [[g_] value_] fits_pointer
 
 Determines if I<value> will fit inside the size of a pointer value.
 This is an internal function introduced mainly for C marshallers.
@@ -367,7 +367,7 @@ sub g_value_fits_pointer ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_peek_pointer:
 =begin pod
-=head2 [g_value_] peek_pointer
+=head2 [[g_] value_] peek_pointer
 
 Returns the value contents as pointer. This function asserts that
 C<g_value_fits_pointer()> returned C<1> for the passed in value.
@@ -388,7 +388,7 @@ sub g_value_peek_pointer ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_type_compatible:
 =begin pod
-=head2 [g_value_] type_compatible
+=head2 [[g_] value_] type_compatible
 
 Returns whether a B<GValue> of type I<src_type> can be copied into
 a B<GValue> of type I<dest_type>.
@@ -410,7 +410,7 @@ sub g_value_type_compatible ( uint64 $src_type, uint64 $dest_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_type_transformable:
 =begin pod
-=head2 [g_value_] type_transformable
+=head2 [[g_] value_] type_transformable
 
 Check whether C<g_value_transform()> is able to transform values
 of type I<src_type> into values of type I<dest_type>. Note that for
@@ -434,7 +434,7 @@ sub g_value_type_transformable ( uint64 $src_type, uint64 $dest_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_transform:
 =begin pod
-=head2 g_value_transform
+=head2 [g_] value_transform
 
 Tries to cast the contents of I<src_value> into a type appropriate
 to store in I<dest_value>, e.g. to transform a C<G_TYPE_INT> value
@@ -462,7 +462,7 @@ sub g_value_transform ( N-GValue $src_value, N-GValue $dest_value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_register_transform_func:
 =begin pod
-=head2 [g_value_] register_transform_func
+=head2 [[g_] value_] register_transform_func
 
 Registers a value transformation function for use in C<g_value_transform()>.
 A previously registered transformation function for I<src_type> and I<dest_type>
@@ -487,7 +487,7 @@ sub g_value_register_transform_func ( uint64 $src_type, uint64 $dest_type, GValu
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_schar:
 =begin pod
-=head2 g_value_set_schar
+=head2 [g_] value_set_schar
 
 Set the contents of a C<G_TYPE_CHAR> B<GValue> to I<v_char>.
 
@@ -506,7 +506,7 @@ sub g_value_set_schar ( N-GValue $value, int8 $v_char )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_schar:
 =begin pod
-=head2 g_value_get_schar
+=head2 [g_] value_get_schar
 
 Get the contents of a C<G_TYPE_CHAR> B<GValue>.
 
@@ -525,7 +525,7 @@ sub g_value_get_schar ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_uchar:
 =begin pod
-=head2 g_value_set_uchar
+=head2 [g_] value_set_uchar
 
 Set the contents of a C<G_TYPE_UCHAR> B<GValue> to I<v_uchar>.
 
@@ -542,7 +542,7 @@ sub g_value_set_uchar ( N-GValue $value, byte $v_uchar )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_uchar:
 =begin pod
-=head2 g_value_get_uchar
+=head2 [g_] value_get_uchar
 
 Get the contents of a C<G_TYPE_UCHAR> B<GValue>.
 
@@ -561,7 +561,7 @@ sub g_value_get_uchar ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_boolean:
 =begin pod
-=head2 g_value_set_boolean
+=head2 [g_] value_set_boolean
 
 Set the contents of a C<G_TYPE_BOOLEAN> B<GValue> to I<v_boolean>.
 
@@ -578,7 +578,7 @@ sub g_value_set_boolean ( N-GValue $value, int32 $v_boolean )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_boolean:
 =begin pod
-=head2 g_value_get_boolean
+=head2 [g_] value_get_boolean
 
 Get the contents of a C<G_TYPE_BOOLEAN> B<GValue>.
 
@@ -596,7 +596,7 @@ sub g_value_get_boolean ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_set_int:
 =begin pod
-=head2 g_value_set_int
+=head2 [g_] value_set_int
 
 Set the contents of a C<G_TYPE_INT> B<GValue> to I<v_int>.
 
@@ -613,7 +613,7 @@ sub g_value_set_int ( N-GValue $value, int32 $v_int )
 #-------------------------------------------------------------------------------
 #TM:0:1_value_get_int:
 =begin pod
-=head2 g_value_get_int
+=head2 [g_] value_get_int
 
 Get the contents of a C<G_TYPE_INT> B<GValue>.
 
@@ -631,7 +631,7 @@ sub g_value_get_int ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_uint:
 =begin pod
-=head2 g_value_set_uint
+=head2 [g_] value_set_uint
 
 Set the contents of a C<G_TYPE_UINT> B<GValue> to I<v_uint>.
 
@@ -648,7 +648,7 @@ sub g_value_set_uint ( N-GValue $value, uint32 $v_uint )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_uint:
 =begin pod
-=head2 g_value_get_uint
+=head2 [g_] value_get_uint
 
 Get the contents of a C<G_TYPE_UINT> B<GValue>.
 
@@ -666,7 +666,7 @@ sub g_value_get_uint ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_long:
 =begin pod
-=head2 g_value_set_long
+=head2 [g_] value_set_long
 
 Set the contents of a C<G_TYPE_LONG> B<GValue> to I<v_long>.
 
@@ -683,7 +683,7 @@ sub g_value_set_long ( N-GValue $value, int64 $v_long )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_long:
 =begin pod
-=head2 g_value_get_long
+=head2 [g_] value_get_long
 
 Get the contents of a C<G_TYPE_LONG> B<GValue>.
 
@@ -701,7 +701,7 @@ sub g_value_get_long ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_ulong:
 =begin pod
-=head2 g_value_set_ulong
+=head2 [g_] value_set_ulong
 
 Set the contents of a C<G_TYPE_ULONG> B<GValue> to I<v_ulong>.
 
@@ -718,7 +718,7 @@ sub g_value_set_ulong ( N-GValue $value, uint64 $v_ulong )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_ulong:
 =begin pod
-=head2 g_value_get_ulong
+=head2 [g_] value_get_ulong
 
 Get the contents of a C<G_TYPE_ULONG> B<GValue>.
 
@@ -736,7 +736,7 @@ sub g_value_get_ulong ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_int64:
 =begin pod
-=head2 g_value_set_int64
+=head2 [g_] value_set_int64
 
 Set the contents of a C<G_TYPE_INT64> B<GValue> to I<v_int64>.
 
@@ -753,7 +753,7 @@ sub g_value_set_int64 ( N-GValue $value, int64 $v_int64 )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_int64:
 =begin pod
-=head2 g_value_get_int64
+=head2 [g_] value_get_int64
 
 Get the contents of a C<G_TYPE_INT64> B<GValue>.
 
@@ -771,7 +771,7 @@ sub g_value_get_int64 ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_uint64:
 =begin pod
-=head2 g_value_set_uint64
+=head2 [g_] value_set_uint64
 
 Set the contents of a C<G_TYPE_UINT64> B<GValue> to I<v_uint64>.
 
@@ -788,7 +788,7 @@ sub g_value_set_uint64 ( N-GValue $value, uint64 $v_uint64 )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_uint64:
 =begin pod
-=head2 g_value_get_uint64
+=head2 [g_] value_get_uint64
 
 Get the contents of a C<G_TYPE_UINT64> B<GValue>.
 
@@ -806,7 +806,7 @@ sub g_value_get_uint64 ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_float:
 =begin pod
-=head2 g_value_set_float
+=head2 [g_] value_set_float
 
 Set the contents of a C<G_TYPE_FLOAT> B<GValue> to I<v_float>.
 
@@ -823,7 +823,7 @@ sub g_value_set_float ( N-GValue $value, num32 $v_float )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_float:
 =begin pod
-=head2 g_value_get_float
+=head2 [g_] value_get_float
 
 Get the contents of a C<G_TYPE_FLOAT> B<GValue>.
 
@@ -841,7 +841,7 @@ sub g_value_get_float ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_set_double:
 =begin pod
-=head2 g_value_set_double
+=head2 [g_] value_set_double
 
 Set the contents of a C<G_TYPE_DOUBLE> B<GValue> to I<v_double>.
 
@@ -858,7 +858,7 @@ sub g_value_set_double ( N-GValue $value, num64 $v_double )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_get_double:
 =begin pod
-=head2 g_value_get_double
+=head2 [g_] value_get_double
 
 Get the contents of a C<G_TYPE_DOUBLE> B<GValue>.
 
@@ -902,7 +902,7 @@ sub g_value_get_flags ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_set_string:
 =begin pod
-=head2 g_value_set_string
+=head2 [g_] value_set_string
 
 Set the contents of a C<G_TYPE_STRING> B<GValue> to I<v_string>.
 
@@ -919,7 +919,7 @@ sub g_value_set_string ( N-GValue $value, Str $v_string )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_static_string:
 =begin pod
-=head2 g_value_set_static_string
+=head2 [g_] value_set_static_string
 
 Set the contents of a C<G_TYPE_STRING> B<GValue> to I<v_string>.
 The string is assumed to be static, and is thus not duplicated
@@ -938,7 +938,7 @@ sub g_value_set_static_string ( N-GValue $value, Str $v_string )
 #-------------------------------------------------------------------------------
 #TM:1:g_value_get_string:
 =begin pod
-=head2 g_value_get_string
+=head2 [g_] value_get_string
 
 Get the contents of a C<G_TYPE_STRING> B<GValue>.
 
@@ -956,7 +956,7 @@ sub g_value_get_string ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_dup_string:
 =begin pod
-=head2 g_value_dup_string
+=head2 [g_] value_dup_string
 
 Get a copy the contents of a C<G_TYPE_STRING> B<GValue>.
 
@@ -974,7 +974,7 @@ sub g_value_dup_string ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_pointer:
 =begin pod
-=head2 g_value_set_pointer
+=head2 [g_] value_set_pointer
 
 Set the contents of a pointer B<GValue> to I<v_pointer>.
 
@@ -991,7 +991,7 @@ sub g_value_set_pointer ( N-GValue $value, Pointer $v_pointer )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_pointer:
 =begin pod
-=head2 g_value_get_pointer
+=head2 [g_] value_get_pointer
 
 Get the contents of a pointer B<GValue>.
 
@@ -1009,7 +1009,7 @@ sub g_value_get_pointer ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_gtype_get_type:
 =begin pod
-=head2 g_gtype_get_type
+=head2 [g_] gtype_get_type
 
 
 
@@ -1026,7 +1026,7 @@ sub g_gtype_get_type (  )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_gtype:
 =begin pod
-=head2 g_value_set_gtype
+=head2 [g_] value_set_gtype
 
 Set the contents of a C<G_TYPE_GTYPE> B<GValue> to I<v_gtype>.
 
@@ -1045,7 +1045,7 @@ sub g_value_set_gtype ( N-GValue $value, uint64 $v_gtype )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_gtype:
 =begin pod
-=head2 g_value_get_gtype
+=head2 [g_] value_get_gtype
 
 Get the contents of a C<G_TYPE_GTYPE> B<GValue>.
 
@@ -1065,7 +1065,7 @@ sub g_value_get_gtype ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_variant:
 =begin pod
-=head2 g_value_set_variant
+=head2 [g_] value_set_variant
 
 Set the contents of a variant B<GValue> to I<variant>.
 If the variant is floating, it is consumed.
@@ -1085,7 +1085,7 @@ sub g_value_set_variant ( N-GValue $value, N-GValue $variant )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_take_variant:
 =begin pod
-=head2 g_value_take_variant
+=head2 [g_] value_take_variant
 
 Set the contents of a variant B<GValue> to I<variant>, and takes over
 the ownership of the caller's reference to I<variant>;
@@ -1115,7 +1115,7 @@ sub g_value_take_variant ( N-GValue $value, N-GValue $variant )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_variant:
 =begin pod
-=head2 g_value_get_variant
+=head2 [g_] value_get_variant
 
 Get the contents of a variant B<GValue>.
 
@@ -1135,7 +1135,7 @@ sub g_value_get_variant ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_dup_variant:
 =begin pod
-=head2 g_value_dup_variant
+=head2 [g_] value_dup_variant
 
 Get the contents of a variant B<GValue>, increasing its refcount. The returned
 B<GVariant> is never floating.
@@ -1157,7 +1157,7 @@ sub g_value_dup_variant ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_pointer_type_register_static:
 =begin pod
-=head2 g_pointer_type_register_static
+=head2 [g_] pointer_type_register_static
 
 Creates a new C<G_TYPE_POINTER> derived type id for a new
 pointer type with name I<name>.
@@ -1178,7 +1178,7 @@ sub g_pointer_type_register_static ( Str $name )
 #-------------------------------------------------------------------------------
 #TM:0:g_strdup_value_contents:
 =begin pod
-=head2 g_strdup_value_contents
+=head2 [g_] strdup_value_contents
 
 Return a newly allocated string, which describes the contents of a
 B<GValue>.  The main purpose of this function is to describe B<GValue>
@@ -1199,7 +1199,7 @@ sub g_strdup_value_contents ( N-GValue $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_take_string:
 =begin pod
-=head2 g_value_take_string
+=head2 [g_] value_take_string
 
 Sets the contents of a C<G_TYPE_STRING> B<GValue> to I<v_string>.
 

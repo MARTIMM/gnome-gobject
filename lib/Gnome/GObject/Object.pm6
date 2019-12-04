@@ -896,7 +896,7 @@ method start-thread (
 #-------------------------------------------------------------------------------
 #TM:0:g_initially_unowned_get_type:
 =begin pod
-=head2 g_initially_unowned_get_type
+=head2 [g_] initially_unowned_get_type
 
   method g_initially_unowned_get_type ( --> int32  )
 
@@ -912,7 +912,7 @@ sub g_initially_unowned_get_type (  )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get:
 =begin pod
-=head2 g_object_get
+=head2 [g_] object_get
 
 Gets properties of an object.
 
@@ -996,7 +996,7 @@ note "fa: ", ($object, |@pl, 0).join(', ');
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set:
 =begin pod
-=head2 g_object_set
+=head2 [g_] object_set
 
 Sets properties on an object.
 
@@ -1019,7 +1019,7 @@ sub g_object_set (
 #-------------------------------------------------------------------------------
 #TM:0:g_object_setv:
 =begin pod
-=head2 g_object_setv
+=head2 [g_] object_setv
 
 Sets I<$n_properties> properties for this object. Properties to be set will be taken from I<$values>. All properties must be valid. Warnings will be emitted and undefined behaviour may result if invalid properties are passed in.
 
@@ -1059,7 +1059,7 @@ sub _g_object_setv (
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_valist:
 =begin pod
-=head2 [g_object_] set_valist
+=head2 [[g_] object_] set_valist
 
 Sets properties on an object.
 
@@ -1079,7 +1079,7 @@ sub g_object_set_valist ( N-GObject $object, Str $first_property_name, CArray[N-
 #-------------------------------------------------------------------------------
 #TM:0:g_object_getv:
 =begin pod
-=head2 g_object_getv
+=head2 [g_] object_getv
 
 Gets I<n_properties> properties for an I<object>.
 Obtained properties will be set to I<values>. All properties must be valid.
@@ -1104,7 +1104,7 @@ sub g_object_getv ( N-GObject $object, uint32 $n_properties, CArray[Str] $names,
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_valist:
 =begin pod
-=head2 [g_object_] get_valist
+=head2 [[g_] object_] get_valist
 
 Gets properties of an object.
 
@@ -1131,7 +1131,7 @@ sub g_object_get_valist ( N-GObject $object, Str $first_property_name, CArray[N-
 #-------------------------------------------------------------------------------
 #TM:2:g_object_set_property:xt/Object.t
 =begin pod
-=head2 [g_object_] set_property
+=head2 [[g_] object_] set_property
 
 Sets a property on an object.
 
@@ -1152,7 +1152,7 @@ sub g_object_set_property (
 
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 [g_object_] get_property
+=head2 [[g_] object_] get_property
 
 Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
 
@@ -1226,7 +1226,7 @@ sub _g_object_get_property (
 #-------------------------------------------------------------------------------
 #TM:0:g_object_ref:
 =begin pod
-=head2 g_object_ref
+=head2 [g_] object_ref
 
 Increases the reference count of I<object>.
 
@@ -1252,7 +1252,7 @@ sub g_object_ref ( N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_unref:
 =begin pod
-=head2 g_object_unref
+=head2 [g_] object_unref
 
 Decreases the reference count of I<object>. When its reference count
 drops to 0, the object is finalized (i.e. its memory is freed).
@@ -1286,7 +1286,7 @@ sub g_object_unref ( N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_class_install_property:
 =begin pod
-=head2 [g_object_] class_install_property
+=head2 [[g_] object_] class_install_property
 
 Installs a new property.
 
@@ -1314,7 +1314,7 @@ sub g_object_class_install_property ( GObjectClass $oclass, uint32 $property_id,
 #-------------------------------------------------------------------------------
 #TM:0:g_object_class_find_property:
 =begin pod
-=head2 [g_object_] class_find_property
+=head2 [[g_] object_] class_find_property
 
 Looks up the I<N-GParamSpec> for a property of a class.
 
@@ -1336,7 +1336,7 @@ sub g_object_class_find_property ( GObjectClass $oclass, Str $property_name )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_class_list_properties:
 =begin pod
-=head2 [g_object_] class_list_properties
+=head2 [[g_] object_] class_list_properties
 
 Get an array of I<N-GParamSpec>* for all properties of a class.
 
@@ -1358,7 +1358,7 @@ sub g_object_class_list_properties ( GObjectClass $oclass, uint32 $n_properties 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_class_override_property:
 =begin pod
-=head2 [g_object_] class_override_property
+=head2 [[g_] object_] class_override_property
 
 Registers I<property_id> as referring to a property with the name
 I<name> in a parent class or in an interface implemented by I<oclass>.
@@ -1394,7 +1394,7 @@ sub g_object_class_override_property ( GObjectClass $oclass, uint32 $property_id
 #-------------------------------------------------------------------------------
 #TM:0:g_object_class_install_properties:
 =begin pod
-=head2 [g_object_] class_install_properties
+=head2 [[g_] object_] class_install_properties
 
 Installs new properties from an array of I<N-GParamSpecs>.
 
@@ -1473,11 +1473,11 @@ sub g_object_class_install_properties ( GObjectClass $oclass, uint32 $n_pspecs, 
   { * }
 }}
 
-#`[[
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_interface_install_property:
 =begin pod
-=head2 [g_object_] interface_install_property
+=head2 [[g_] object_] interface_install_property
 
 Add a property to an interface; this is only useful for interfaces
 that are added to GObject-derived types. Adding a property to an
@@ -1512,7 +1512,7 @@ sub g_object_interface_install_property ( Pointer $g_iface, N-GParamSpec $pspec 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_interface_find_property:
 =begin pod
-=head2 [g_object_] interface_find_property
+=head2 [[g_] object_] interface_find_property
 
 Find the I<N-GParamSpec> with the given name for an
 interface. Generally, the interface vtable passed in as I<g_iface>
@@ -1541,7 +1541,7 @@ sub g_object_interface_find_property ( Pointer $g_iface, Str $property_name )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_interface_list_properties:
 =begin pod
-=head2 [g_object_] interface_list_properties
+=head2 [[g_] object_] interface_list_properties
 
 Lists the properties of an interface.Generally, the interface
 vtable passed in as I<g_iface> will be the default vtable from
@@ -1572,7 +1572,7 @@ sub g_object_interface_list_properties ( Pointer $g_iface, uint32 $n_properties_
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new:
 =begin pod
-=head2 g_object_new
+=head2 [g_] object_new
 
 Creates a new instance of a I<GObject> subtype and sets its properties.
 
@@ -1596,11 +1596,11 @@ sub g_object_new ( int32 $object_type, Str $first_property_name, Any $any = Any 
 }}
 
 
-]]
+}}
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_with_properties:
 =begin pod
-=head2 [g_object_] new_with_properties
+=head2 [[g_] object_] new_with_properties
 
 Creates a new instance of a I<GObject> subtype and sets its properties using
 the provided arrays. Both arrays must have exactly I<n_properties> elements,
@@ -1638,7 +1638,7 @@ sub g_object_new_with_properties (
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_valist:
 =begin pod
-=head2 [g_object_] new_valist
+=head2 [[g_] object_] new_valist
 
 Creates a new instance of a I<GObject> subtype and sets its properties.
 
@@ -1663,11 +1663,11 @@ sub g_object_new_valist (
 }}
 
 
-#`[[
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_connect:
 =begin pod
-=head2 g_object_connect
+=head2 [g_] object_connect
 
 A convenience function to connect multiple signals at once.
 
@@ -1706,13 +1706,11 @@ sub g_object_connect ( Pointer $object, Str $signal_spec, Any $any = Any )
   returns Pointer
   is native(&gobject-lib)
   { * }
-]]
 
-#`[[
 #-------------------------------------------------------------------------------
 #TM:0:g_object_disconnect:
 =begin pod
-=head2 g_object_disconnect
+=head2 [g_] object_disconnect
 
 A convenience function to disconnect multiple signals at once.
 
@@ -1731,13 +1729,11 @@ disconnects the signal named "signal_name".
 sub g_object_disconnect ( Pointer $object, Str $signal_spec, Any $any = Any )
   is native(&gobject-lib)
   { * }
-]]
 
-#`[[
 #-------------------------------------------------------------------------------
 #TM:0:g_object_freeze_notify:
 =begin pod
-=head2 [g_object_] freeze_notify
+=head2 [[g_] object_] freeze_notify
 
 Increases the freeze count on I<object>. If the freeze count is
 non-zero, the emission of "notify" signals on I<object> is
@@ -1761,7 +1757,7 @@ sub g_object_freeze_notify ( N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_notify:
 =begin pod
-=head2 g_object_notify
+=head2 [g_] object_notify
 
 Emits a "notify" signal for the property I<property_name> on I<object>.
 
@@ -1787,7 +1783,7 @@ sub g_object_notify ( N-GObject $object, Str $property_name )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_notify_by_pspec:
 =begin pod
-=head2 [g_object_] notify_by_pspec
+=head2 [[g_] object_] notify_by_pspec
 
 Emits a "notify" signal for the property specified by I<pspec> on I<object>.
 
@@ -1842,7 +1838,7 @@ sub g_object_notify_by_pspec ( N-GObject $object, N-GParamSpec $pspec )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_thaw_notify:
 =begin pod
-=head2 [g_object_] thaw_notify
+=head2 [[g_] object_] thaw_notify
 
 Reverts the effect of a previous call to
 C<g_object_freeze_notify()>. The freeze count is decreased on I<object>
@@ -1866,7 +1862,7 @@ sub g_object_thaw_notify ( N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_is_floating:
 =begin pod
-=head2 [g_object_] is_floating
+=head2 [[g_] object_] is_floating
 
 Checks whether I<object> has a [floating][floating-ref] reference.
 
@@ -1888,7 +1884,7 @@ sub g_object_is_floating ( Pointer $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_ref_sink:
 =begin pod
-=head2 [g_object_] ref_sink
+=head2 [[g_] object_] ref_sink
 
 Increase the reference count of I<object>, and possibly remove the
 [floating][floating-ref] reference, if I<object> has a floating reference.
@@ -1916,14 +1912,14 @@ sub g_object_ref_sink ( Pointer $object )
   returns Pointer
   is native(&gobject-lib)
   { * }
-]]
+}}
 
 
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_weak_ref:
 =begin pod
-=head2 [g_object_] weak_ref
+=head2 [[g_] object_] weak_ref
 
 Adds a weak reference callback to an object. Weak references are
 used for notification when an object is finalized. They are called
@@ -1950,7 +1946,7 @@ sub g_object_weak_ref ( N-GObject $object, GWeakNotify $notify, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_weak_unref:
 =begin pod
-=head2 [g_object_] weak_unref
+=head2 [[g_] object_] weak_unref
 
 Removes a weak reference callback to an object.
 
@@ -1970,7 +1966,7 @@ sub g_object_weak_unref ( N-GObject $object, GWeakNotify $notify, Pointer $data 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_add_weak_pointer:
 =begin pod
-=head2 [g_object_] add_weak_pointer
+=head2 [[g_] object_] add_weak_pointer
 
 Adds a weak reference from weak_pointer to I<object> to indicate that
 the pointer located at I<weak_pointer_location> is only valid during
@@ -1995,7 +1991,7 @@ sub g_object_add_weak_pointer ( N-GObject $object, Pointer $weak_pointer_locatio
 #-------------------------------------------------------------------------------
 #TM:0:g_object_remove_weak_pointer:
 =begin pod
-=head2 [g_object_] remove_weak_pointer
+=head2 [[g_] object_] remove_weak_pointer
 
 Removes a weak reference from I<object> that was previously added
 using C<g_object_add_weak_pointer()>. The I<weak_pointer_location> has
@@ -2016,7 +2012,7 @@ sub g_object_remove_weak_pointer ( N-GObject $object, Pointer $weak_pointer_loca
 #-------------------------------------------------------------------------------
 #TM:0:g_object_add_toggle_ref:
 =begin pod
-=head2 [g_object_] add_toggle_ref
+=head2 [[g_] object_] add_toggle_ref
 
 Increases the reference count of the object by one and sets a
 callback to be called when all other references to the object are
@@ -2063,7 +2059,7 @@ sub g_object_add_toggle_ref ( N-GObject $object, GToggleNotify $notify, Pointer 
 #-------------------------------------------------------------------------------
 #TM:0:g_object_remove_toggle_ref:
 =begin pod
-=head2 [g_object_] remove_toggle_ref
+=head2 [[g_] object_] remove_toggle_ref
 
 Removes a reference added with C<g_object_add_toggle_ref()>. The
 reference count of the object is decreased by one.
@@ -2085,7 +2081,7 @@ sub g_object_remove_toggle_ref ( N-GObject $object, GToggleNotify $notify, Point
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_qdata:
 =begin pod
-=head2 [g_object_] get_qdata
+=head2 [[g_] object_] get_qdata
 
 This function gets back user data pointers stored via
 C<g_object_set_qdata()>.
@@ -2106,7 +2102,7 @@ sub g_object_get_qdata ( N-GObject $object, int32 $quark )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_qdata:
 =begin pod
-=head2 [g_object_] set_qdata
+=head2 [[g_] object_] set_qdata
 
 This sets an opaque, named pointer on an object.
 The name is specified through a I<GQuark> (retrived e.g. via
@@ -2132,7 +2128,7 @@ sub g_object_set_qdata ( N-GObject $object, int32 $quark, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_qdata_full:
 =begin pod
-=head2 [g_object_] set_qdata_full
+=head2 [[g_] object_] set_qdata_full
 
 This function works like C<g_object_set_qdata()>, but in addition,
 a void (*destroy) (gpointer) function may be specified which is
@@ -2156,7 +2152,7 @@ sub g_object_set_qdata_full ( N-GObject $object, int32 $quark, Pointer $data, GD
 #-------------------------------------------------------------------------------
 #TM:0:g_object_steal_qdata:
 =begin pod
-=head2 [g_object_] steal_qdata
+=head2 [[g_] object_] steal_qdata
 
 This function gets back user data pointers stored via
 C<g_object_set_qdata()> and removes the I<data> from object
@@ -2211,7 +2207,7 @@ sub g_object_steal_qdata ( N-GObject $object, int32 $quark )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_dup_qdata:
 =begin pod
-=head2 [g_object_] dup_qdata
+=head2 [[g_] object_] dup_qdata
 
 This is a variant of C<g_object_get_qdata()> which returns
 a 'duplicate' of the value. I<dup_func> defines the
@@ -2251,7 +2247,7 @@ sub g_object_dup_qdata ( N-GObject $object, int32 $quark, GDuplicateFunc $dup_fu
 #-------------------------------------------------------------------------------
 #TM:0:g_object_replace_qdata:
 =begin pod
-=head2 [g_object_] replace_qdata
+=head2 [[g_] object_] replace_qdata
 
 Compares the user data for the key I<quark> on I<object> with
 I<oldval>, and if they are the same, replaces I<oldval> with
@@ -2291,7 +2287,7 @@ sub g_object_replace_qdata ( N-GObject $object, int32 $quark, Pointer $oldval, P
 #-------------------------------------------------------------------------------
 #TM:0:g_object_get_data:
 =begin pod
-=head2 [g_object_] get_data
+=head2 [[g_] object_] get_data
 
 Gets a named field from the objects table of associations (see C<g_object_set_data()>).
 
@@ -2312,7 +2308,7 @@ sub g_object_get_data ( N-GObject $object, Str $key )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_data:
 =begin pod
-=head2 [g_object_] set_data
+=head2 [[g_] object_] set_data
 
 Each object carries around a table of associations from
 strings to pointers.  This function lets you set an association.
@@ -2335,7 +2331,7 @@ sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_set_data_full:
 =begin pod
-=head2 [g_object_] set_data_full
+=head2 [[g_] object_] set_data_full
 
 Like C<g_object_set_data()> except it adds notification
 for when the association is destroyed, either by setting it
@@ -2359,7 +2355,7 @@ sub g_object_set_data_full ( N-GObject $object, Str $key, Pointer $data, GDestro
 #-------------------------------------------------------------------------------
 #TM:0:g_object_steal_data:
 =begin pod
-=head2 [g_object_] steal_data
+=head2 [[g_] object_] steal_data
 
 Remove a specified datum from the object's data associations,
 without invoking the association's destroy handler.
@@ -2382,7 +2378,7 @@ sub g_object_steal_data ( N-GObject $object, Str $key )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_dup_data:
 =begin pod
-=head2 [g_object_] dup_data
+=head2 [[g_] object_] dup_data
 
 This is a variant of C<g_object_get_data()> which returns
 a 'duplicate' of the value. I<dup_func> defines the
@@ -2424,7 +2420,7 @@ sub g_object_dup_data ( N-GObject $object, Str $key, GDuplicateFunc $dup_func, P
 #-------------------------------------------------------------------------------
 #TM:0:g_object_replace_data:
 =begin pod
-=head2 [g_object_] replace_data
+=head2 [[g_] object_] replace_data
 
 Compares the user data for the key I<key> on I<object> with
 I<oldval>, and if they are the same, replaces I<oldval> with
@@ -2464,7 +2460,7 @@ sub g_object_replace_data ( N-GObject $object, Str $key, Pointer $oldval, Pointe
 #-------------------------------------------------------------------------------
 #TM:0:g_object_watch_closure:
 =begin pod
-=head2 [g_object_] watch_closure
+=head2 [[g_] object_] watch_closure
 
 This function essentially limits the life time of the I<closure> to
 the life time of the object. That is, when the object is finalized,
@@ -2489,7 +2485,7 @@ sub g_object_watch_closure ( N-GObject $object, N-GObject $closure )
 #-------------------------------------------------------------------------------
 #TM:0:g_cclosure_new_object:
 =begin pod
-=head2 g_cclosure_new_object
+=head2 [g_] cclosure_new_object
 
 A variant of C<g_cclosure_new()> which uses I<object> as I<user_data> and
 calls C<g_object_watch_closure()> on I<object> and the created
@@ -2514,7 +2510,7 @@ sub g_cclosure_new_object ( GCallback $callback_func, N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_cclosure_new_object_swap:
 =begin pod
-=head2 g_cclosure_new_object_swap
+=head2 [g_] cclosure_new_object_swap
 
 A variant of C<g_cclosure_new_swap()> which uses I<object> as I<user_data>
 and calls C<g_object_watch_closure()> on I<object> and the created
@@ -2539,7 +2535,7 @@ sub g_cclosure_new_object_swap ( GCallback $callback_func, N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_closure_new_object:
 =begin pod
-=head2 g_closure_new_object
+=head2 [g_] closure_new_object
 
 A variant of C<g_closure_new_simple()> which stores I<object> in the
 I<data> field of the closure and calls C<g_object_watch_closure()> on
@@ -2564,7 +2560,7 @@ sub g_closure_new_object ( uint32 $sizeof_closure, N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_object:
 =begin pod
-=head2 g_value_set_object
+=head2 [g_] value_set_object
 
 Set the contents of a C<G_TYPE_OBJECT> derived I<GValue> to I<v_object>.
 
@@ -2592,7 +2588,7 @@ sub g_value_set_object ( N-GObject $value, Pointer $v_object )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_object:
 =begin pod
-=head2 g_value_get_object
+=head2 [g_] value_get_object
 
 Get the contents of a C<G_TYPE_OBJECT> derived I<GValue>.
 
@@ -2612,7 +2608,7 @@ sub g_value_get_object ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_dup_object:
 =begin pod
-=head2 g_value_dup_object
+=head2 [g_] value_dup_object
 
 Get the contents of a C<G_TYPE_OBJECT> derived I<GValue>, increasing
 its reference count. If the contents of the I<GValue> are C<Any>, then
@@ -2636,7 +2632,7 @@ sub g_value_dup_object ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_signal_connect_object:
 =begin pod
-=head2 g_signal_connect_object
+=head2 [g_] signal_connect_object
 
 This is similar to C<g_signal_connect_data()>, but uses a closure which
 ensures that the I<gobject> stays alive during the call to I<c_handler>
@@ -2668,7 +2664,7 @@ sub g_signal_connect_object ( Pointer $instance, Str $detailed_signal, GCallback
 #-------------------------------------------------------------------------------
 #TM:0:g_object_force_floating:
 =begin pod
-=head2 [g_object_] force_floating
+=head2 [[g_] object_] force_floating
 
 This function is intended for I<GObject> implementations to re-enforce
 a [floating][floating-ref] object reference. Doing this is seldom
@@ -2689,7 +2685,7 @@ sub g_object_force_floating ( N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_object_run_dispose:
 =begin pod
-=head2 [g_object_] run_dispose
+=head2 [[g_] object_] run_dispose
 
 Releases all references to other objects. This can be used to break
 reference cycles.
@@ -2708,7 +2704,7 @@ sub g_object_run_dispose ( N-GObject $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_take_object:
 =begin pod
-=head2 g_value_take_object
+=head2 [g_] value_take_object
 
 Sets the contents of a C<G_TYPE_OBJECT> derived I<GValue> to I<v_object>
 and takes over the ownership of the callers reference to I<v_object>;
@@ -2734,7 +2730,7 @@ sub g_value_take_object ( N-GObject $value, Pointer $v_object )
 #-------------------------------------------------------------------------------
 #TM:0:g_clear_object:
 =begin pod
-=head2 g_clear_object
+=head2 [g_] clear_object
 
 Clears a reference to a I<GObject>.
 
@@ -2762,7 +2758,7 @@ sub g_clear_object ( N-GObject $object_ptr )
 #-------------------------------------------------------------------------------
 #TM:0:g_weak_ref_init:
 =begin pod
-=head2 g_weak_ref_init
+=head2 [g_] weak_ref_init
 
 Initialise a non-statically-allocated I<GWeakRef>.
 
@@ -2790,7 +2786,7 @@ sub g_weak_ref_init ( GWeakRef $weak_ref, Pointer $object )
 #-------------------------------------------------------------------------------
 #TM:0:g_weak_ref_clear:
 =begin pod
-=head2 g_weak_ref_clear
+=head2 [g_] weak_ref_clear
 
 Frees resources associated with a non-statically-allocated I<GWeakRef>.
 After this call, the I<GWeakRef> is left in an undefined state.
@@ -2813,7 +2809,7 @@ sub g_weak_ref_clear ( GWeakRef $weak_ref )
 #-------------------------------------------------------------------------------
 #TM:0:g_weak_ref_get:
 =begin pod
-=head2 g_weak_ref_get
+=head2 [g_] weak_ref_get
 
 If I<weak_ref> is not empty, atomically acquire a strong
 reference to the object it points to, and return that reference.
@@ -2844,7 +2840,7 @@ sub g_weak_ref_get ( GWeakRef $weak_ref )
 #-------------------------------------------------------------------------------
 #TM:0:g_weak_ref_set:
 =begin pod
-=head2 g_weak_ref_set
+=head2 [g_] weak_ref_set
 
 Change the object to which I<weak_ref> points, or set it to
 C<Any>.
