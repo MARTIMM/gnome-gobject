@@ -413,7 +413,7 @@ method get-parameter( Int $type, :$otype --> Parameter ) {
 #-------------------------------------------------------------------------------
 #TM:1:g_type_name:
 =begin pod
-=head2 g_type_name
+=head2 [g_] type_name
 
 Get the unique name that is assigned to a type ID. Note that this function (like all other GType API) cannot cope with invalid type IDs. C<G_TYPE_INVALID> may be passed to this function, as may be any other validly registered type ID, but randomized type IDs should not be passed in and will most likely lead to a crash.
 
@@ -432,7 +432,7 @@ sub g_type_name ( uint64 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_qname:
 =begin pod
-=head2 g_type_qname
+=head2 [g_] type_qname
 
 Get the corresponding quark of the type IDs name.
 
@@ -452,7 +452,7 @@ sub g_type_qname ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:1:g_type_from_name:
 =begin pod
-=head2 [g_type_] from_name
+=head2 [[g_] type_] from_name
 
 Lookup the type ID from a given type name, returning 0 if no type has been registered under this name (this is the preferred method to find out by name whether a specific type has been registered yet).
 
@@ -472,7 +472,7 @@ sub g_type_from_name ( Str $name )
 #-------------------------------------------------------------------------------
 #TM:1:g_type_parent:
 =begin pod
-=head2 g_type_parent
+=head2 [g_] type_parent
 
 Return the direct parent type of the passed in type. If the passed
 in type has no parent, i.e. is a fundamental type, 0 is returned.
@@ -491,7 +491,7 @@ sub g_type_parent ( uint64 $type )
 #-------------------------------------------------------------------------------
 #TM:1:g_type_depth:
 =begin pod
-=head2 g_type_depth
+=head2 [g_] type_depth
 
 Returns the length of the ancestry of the passed in type. This
 includes the type itself, so that e.g. a fundamental type has depth 1.
@@ -512,7 +512,7 @@ sub g_type_depth ( uint64 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_next_base:
 =begin pod
-=head2 [g_type_] next_base
+=head2 [[g_] type_] next_base
 
 Given a I<leaf_type> and a I<root_type> which is contained in its
 anchestry, return the type that I<root_type> is the immediate parent
@@ -539,7 +539,7 @@ sub g_type_next_base ( int32 $leaf_type, int32 $root_type )
 #-------------------------------------------------------------------------------
 #TM:1:g_type_is_a:
 =begin pod
-=head2 [g_type_] is_a
+=head2 [[g_] type_] is_a
 
 If I<$is_a_type> is a derivable type, check whether I<$type> is a descendant of I<$is_a_type>. If I<$is_a_type> is an interface, check whether I<$type> conforms to it.
 
@@ -560,7 +560,7 @@ sub g_type_is_a ( uint64 $type, uint64 $is_a_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_ref:
 =begin pod
-=head2 [g_type_] class_ref
+=head2 [[g_] type_] class_ref
 
 Increments the reference count of the class structure belonging to
 I<type>. This function will demand-create the class if it doesn't
@@ -582,7 +582,7 @@ sub g_type_class_ref ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_peek:
 =begin pod
-=head2 [g_type_] class_peek
+=head2 [[g_] type_] class_peek
 
 This function is essentially the same as C<g_type_class_ref()>,
 except that the classes reference count isn't incremented.
@@ -607,7 +607,7 @@ sub g_type_class_peek ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_peek_static:
 =begin pod
-=head2 [g_type_] class_peek_static
+=head2 [[g_] type_] class_peek_static
 
 A more efficient version of C<g_type_class_peek()> which works only for
 static types.
@@ -631,7 +631,7 @@ sub g_type_class_peek_static ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_unref:
 =begin pod
-=head2 [g_type_] class_unref
+=head2 [[g_] type_] class_unref
 
 Decrements the reference count of the class structure being passed in.
 Once the last reference count of a class has been released, classes
@@ -651,7 +651,7 @@ sub g_type_class_unref ( Pointer $g_class )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_peek_parent:
 =begin pod
-=head2 [g_type_] class_peek_parent
+=head2 [[g_] type_] class_peek_parent
 
 This is a convenience function often needed in class initializers.
 It returns the class structure of the immediate parent type of the
@@ -679,7 +679,7 @@ sub g_type_class_peek_parent ( Pointer $g_class )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_interface_peek:
 =begin pod
-=head2 [g_type_] interface_peek
+=head2 [[g_] type_] interface_peek
 
 Returns the I<GTypeInterface> structure of an interface to which the
 passed in class conforms.
@@ -703,7 +703,7 @@ sub g_type_interface_peek ( Pointer $instance_class, int32 $iface_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_interface_peek_parent:
 =begin pod
-=head2 [g_type_] interface_peek_parent
+=head2 [[g_] type_] interface_peek_parent
 
 Returns the corresponding I<GTypeInterface> structure of the parent type
 of the instance type to which I<g_iface> belongs. This is useful when
@@ -729,7 +729,7 @@ sub g_type_interface_peek_parent ( Pointer $g_iface )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_default_interface_ref:
 =begin pod
-=head2 [g_type_] default_interface_ref
+=head2 [[g_] type_] default_interface_ref
 
 Increments the reference count for the interface type I<g_type>,
 and returns the default interface vtable for the type.
@@ -761,7 +761,7 @@ sub g_type_default_interface_ref ( int32 $g_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_default_interface_peek:
 =begin pod
-=head2 [g_type_] default_interface_peek
+=head2 [[g_] type_] default_interface_peek
 
 If the interface type I<g_type> is currently in use, returns its
 default interface vtable.
@@ -785,7 +785,7 @@ sub g_type_default_interface_peek ( int32 $g_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_default_interface_unref:
 =begin pod
-=head2 [g_type_] default_interface_unref
+=head2 [[g_] type_] default_interface_unref
 
 Decrements the reference count for the type corresponding to the
 interface default vtable I<g_iface>. If the type is dynamic, then
@@ -808,7 +808,7 @@ sub g_type_default_interface_unref ( Pointer $g_iface )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_children:
 =begin pod
-=head2 g_type_children
+=head2 [g_] type_children
 
 Return a newly allocated and 0-terminated array of type IDs, listing
 the child types of I<type>.
@@ -830,7 +830,7 @@ sub g_type_children ( int32 $type, uint32 $n_children )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_interfaces:
 =begin pod
-=head2 g_type_interfaces
+=head2 [g_] type_interfaces
 
 Return a newly allocated and 0-terminated array of type IDs, listing
 the interface types that I<type> conforms to.
@@ -852,7 +852,7 @@ sub g_type_interfaces ( int32 $type, uint32 $n_interfaces )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_set_qdata:
 =begin pod
-=head2 [g_type_] set_qdata
+=head2 [[g_] type_] set_qdata
 
 Attaches arbitrary data to a type.
 
@@ -870,7 +870,7 @@ sub g_type_set_qdata ( int32 $type, int32 $quark, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_get_qdata:
 =begin pod
-=head2 [g_type_] get_qdata
+=head2 [[g_] type_] get_qdata
 
 Obtains data which has previously been attached to I<type>
 with C<g_type_set_qdata()>.
@@ -895,7 +895,7 @@ sub g_type_get_qdata ( int32 $type, int32 $quark )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_query:
 =begin pod
-=head2 g_type_query
+=head2 [g_] type_query
 
 Queries the type system for information about a specific type.
 This function will fill in a user-provided structure to hold
@@ -917,7 +917,7 @@ sub g_type_query ( int32 $type, int32 $query )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_get_instance_count:
 =begin pod
-=head2 [g_type_] get_instance_count
+=head2 [[g_] type_] get_instance_count
 
 Returns the number of instances allocated of the particular type;
 this is only available if GLib is built with debugging support and
@@ -942,7 +942,7 @@ sub g_type_get_instance_count ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_register_static:
 =begin pod
-=head2 [g_type_] register_static
+=head2 [[g_] type_] register_static
 
 Registers I<type_name> as the name of a new static type derived from
 I<parent_type>. The type system uses the information contained in the
@@ -969,7 +969,7 @@ sub g_type_register_static ( int32 $parent_type, Str $type_name, int32 $info, in
 #-------------------------------------------------------------------------------
 #TM:0:g_type_register_static_simple:
 =begin pod
-=head2 [g_type_] register_static_simple
+=head2 [[g_] type_] register_static_simple
 
 Registers I<type_name> as the name of a new static type derived from
 I<parent_type>.  The value of I<flags> determines the nature (e.g.
@@ -1001,7 +1001,7 @@ sub g_type_register_static_simple ( int32 $parent_type, Str $type_name, uint32 $
 #-------------------------------------------------------------------------------
 #TM:0:g_type_register_dynamic:
 =begin pod
-=head2 [g_type_] register_dynamic
+=head2 [[g_] type_] register_dynamic
 
 Registers I<type_name> as the name of a new dynamic type derived from
 I<parent_type>.  The type system uses the information contained in the
@@ -1029,7 +1029,7 @@ sub g_type_register_dynamic ( int32 $parent_type, Str $type_name, int32 $plugin,
 #-------------------------------------------------------------------------------
 #TM:0:g_type_register_fundamental:
 =begin pod
-=head2 [g_type_] register_fundamental
+=head2 [[g_] type_] register_fundamental
 
 Registers I<type_id> as the predefined identifier and I<type_name> as the
 name of a fundamental type. If I<type_id> is already registered, or a
@@ -1060,7 +1060,7 @@ sub g_type_register_fundamental ( int32 $type_id, Str $type_name, int32 $info, i
 #-------------------------------------------------------------------------------
 #TM:0:g_type_add_interface_static:
 =begin pod
-=head2 [g_type_] add_interface_static
+=head2 [[g_] type_] add_interface_static
 
 Adds the static I<interface_type> to I<instantiable_type>.
 The information contained in the I<N-GInterfaceInfo> structure
@@ -1080,7 +1080,7 @@ sub g_type_add_interface_static ( int32 $instance_type, int32 $interface_type, N
 #-------------------------------------------------------------------------------
 #TM:0:g_type_add_interface_dynamic:
 =begin pod
-=head2 [g_type_] add_interface_dynamic
+=head2 [[g_] type_] add_interface_dynamic
 
 Adds the dynamic I<interface_type> to I<instantiable_type>. The information
 contained in the I<GTypePlugin> structure pointed to by I<plugin>
@@ -1102,7 +1102,7 @@ sub g_type_add_interface_dynamic ( int32 $instance_type, int32 $interface_type, 
 #-------------------------------------------------------------------------------
 #TM:0:g_type_interface_add_prerequisite:
 =begin pod
-=head2 [g_type_] interface_add_prerequisite
+=head2 [[g_] type_] interface_add_prerequisite
 
 Adds I<prerequisite_type> to the list of prerequisites of I<interface_type>.
 This means that any type implementing I<interface_type> must also implement
@@ -1123,7 +1123,7 @@ sub g_type_interface_add_prerequisite ( int32 $interface_type, int32 $prerequisi
 #-------------------------------------------------------------------------------
 #TM:0:g_type_interface_prerequisites:
 =begin pod
-=head2 [g_type_] interface_prerequisites
+=head2 [[g_] type_] interface_prerequisites
 
 Returns the prerequisites of an interfaces type.
 
@@ -1147,7 +1147,7 @@ sub g_type_interface_prerequisites ( int32 $interface_type, uint32 $n_prerequisi
 #-------------------------------------------------------------------------------
 #TM:0:g_type_add_instance_private:
 =begin pod
-=head2 [g_type_] add_instance_private
+=head2 [[g_] type_] add_instance_private
 
 
 
@@ -1165,7 +1165,7 @@ sub g_type_add_instance_private ( int32 $class_type, uint64 $private_size )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_instance_get_private:
 =begin pod
-=head2 [g_type_] instance_get_private
+=head2 [[g_] type_] instance_get_private
 
 
 
@@ -1184,7 +1184,7 @@ sub g_type_instance_get_private ( int32 $instance, int32 $private_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_adjust_private_offset:
 =begin pod
-=head2 [g_type_] class_adjust_private_offset
+=head2 [[g_] type_] class_adjust_private_offset
 
 
 
@@ -1202,7 +1202,7 @@ sub g_type_class_adjust_private_offset ( Pointer $g_class, int32 $private_size_o
 #-------------------------------------------------------------------------------
 #TM:0:g_type_add_class_private:
 =begin pod
-=head2 [g_type_] add_class_private
+=head2 [[g_] type_] add_class_private
 
 Registers a private class structure for a classed type;
 when the class is allocated, the private structures for
@@ -1230,7 +1230,7 @@ sub g_type_add_class_private ( int32 $class_type, uint64 $private_size )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_get_private:
 =begin pod
-=head2 [g_type_] class_get_private
+=head2 [[g_] type_] class_get_private
 
 
 
@@ -1249,7 +1249,7 @@ sub g_type_class_get_private ( int32 $klass, int32 $private_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_get_instance_private_offset:
 =begin pod
-=head2 [g_type_] class_get_instance_private_offset
+=head2 [[g_] type_] class_get_instance_private_offset
 
 Gets the offset of the private data for instances of I<g_class>.
 
@@ -1278,7 +1278,7 @@ sub g_type_class_get_instance_private_offset ( Pointer $g_class )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_ensure:
 =begin pod
-=head2 g_type_ensure
+=head2 [g_] type_ensure
 
 Ensures that the indicated I<type> has been registered with the
 type system, and its C<_class_init()> method has been run.
@@ -1307,7 +1307,7 @@ sub g_type_ensure ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_get_type_registration_serial:
 =begin pod
-=head2 [g_type_] get_type_registration_serial
+=head2 [[g_] type_] get_type_registration_serial
 
 Returns an opaque serial number that represents the state of the set
 of registered types. Any time a type is registered this serial changes,
@@ -1334,7 +1334,7 @@ sub g_type_get_type_registration_serial (  )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_get_plugin:
 =begin pod
-=head2 [g_type_] get_plugin
+=head2 [[g_] type_] get_plugin
 
 Returns the I<GTypePlugin> structure for I<type>.
 
@@ -1354,7 +1354,7 @@ sub g_type_get_plugin ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_interface_get_plugin:
 =begin pod
-=head2 [g_type_] interface_get_plugin
+=head2 [[g_] type_] interface_get_plugin
 
 Returns the I<GTypePlugin> structure for the dynamic interface
 I<interface_type> which has been added to I<instance_type>, or C<Any>
@@ -1380,7 +1380,7 @@ sub g_type_interface_get_plugin ( int32 $instance_type, int32 $interface_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_fundamental_next:
 =begin pod
-=head2 [g_type_] fundamental_next
+=head2 [[g_] type_] fundamental_next
 
 Returns the next free fundamental type id which can be used to
 register a new fundamental type with C<g_type_register_fundamental()>.
@@ -1403,7 +1403,7 @@ sub g_type_fundamental_next (  )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_fundamental:
 =begin pod
-=head2 g_type_fundamental
+=head2 [g_] type_fundamental
 
 Internal function, used to extract the fundamental type ID portion.
 Use C<G_TYPE_FUNDAMENTAL()> instead.
@@ -1423,7 +1423,7 @@ sub g_type_fundamental ( int32 $type_id )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_create_instance:
 =begin pod
-=head2 [g_type_] create_instance
+=head2 [[g_] type_] create_instance
 
 Creates and initializes an instance of I<type> if I<type> is valid and
 can be instantiated. The type system only performs basic allocation
@@ -1458,7 +1458,7 @@ sub g_type_create_instance ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_free_instance:
 =begin pod
-=head2 [g_type_] free_instance
+=head2 [[g_] type_] free_instance
 
 Frees an instance of a type, returning it to the instance pool for
 the type, if there is one.
@@ -1479,7 +1479,7 @@ sub g_type_free_instance ( int32 $instance )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_add_class_cache_func:
 =begin pod
-=head2 [g_type_] add_class_cache_func
+=head2 [[g_] type_] add_class_cache_func
 
 Adds a I<GTypeClassCacheFunc> to be called before the reference count of a
 class goes from one to zero. This can be used to prevent premature class
@@ -1503,7 +1503,7 @@ sub g_type_add_class_cache_func ( Pointer $cache_data, int32 $cache_func )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_remove_class_cache_func:
 =begin pod
-=head2 [g_type_] remove_class_cache_func
+=head2 [[g_] type_] remove_class_cache_func
 
 Removes a previously installed I<GTypeClassCacheFunc>. The cache
 maintained by I<cache_func> has to be empty when calling
@@ -1523,7 +1523,7 @@ sub g_type_remove_class_cache_func ( Pointer $cache_data, int32 $cache_func )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_class_unref_uncached:
 =begin pod
-=head2 [g_type_] class_unref_uncached
+=head2 [[g_] type_] class_unref_uncached
 
 A variant of C<g_type_class_unref()> for use in I<GTypeClassCacheFunc>
 implementations. It unreferences a class without consulting the chain
@@ -1543,7 +1543,7 @@ sub g_type_class_unref_uncached ( Pointer $g_class )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_add_interface_check:
 =begin pod
-=head2 [g_type_] add_interface_check
+=head2 [[g_] type_] add_interface_check
 
 Adds a function to be called after an interface vtable is
 initialized for any class (i.e. after the I<interface_init>
@@ -1571,7 +1571,7 @@ sub g_type_add_interface_check ( Pointer $check_data, int32 $check_func )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_remove_interface_check:
 =begin pod
-=head2 [g_type_] remove_interface_check
+=head2 [[g_] type_] remove_interface_check
 
 Removes an interface check function added with
 C<g_type_add_interface_check()>.
@@ -1592,7 +1592,7 @@ sub g_type_remove_interface_check ( Pointer $check_data, int32 $check_func )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_value_table_peek:
 =begin pod
-=head2 [g_type_] value_table_peek
+=head2 [[g_] type_] value_table_peek
 
 Returns the location of the I<GTypeValueTable> associated with I<type>.
 
@@ -1616,7 +1616,7 @@ sub g_type_value_table_peek ( int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_check_instance:
 =begin pod
-=head2 [g_type_] check_instance
+=head2 [[g_] type_] check_instance
 
 Private helper function to aid implementation of the
 C<G_TYPE_CHECK_INSTANCE()> macro.
@@ -1638,7 +1638,7 @@ sub g_type_check_instance ( N-GTypeInstance $instance )
 #-------------------------------------------------------------------------------
 #TM:3:g_type_check_instance_cast:
 =begin pod
-=head2 [g_type_] check_instance_cast
+=head2 [[g_] type_] check_instance_cast
 
 Checks that instance is an instance of the type identified by g_type and issues a warning if this is not the case. Returns instance casted to a pointer to c_type.
 
@@ -1664,7 +1664,7 @@ sub g_type_check_instance_cast ( N-GObject $instance, uint64 $iface_type )
 #-------------------------------------------------------------------------------
 #TM:1:g_type_check_instance_is_a:
 =begin pod
-=head2 [g_type_] check_instance_is_a
+=head2 [[g_] type_] check_instance_is_a
 
   method g_type_check_instance_is_a (
     N-GObject $instance, UInt $iface_type --> Int
@@ -1684,7 +1684,7 @@ sub g_type_check_instance_is_a ( N-GObject $instance, uint64 $iface_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_check_instance_is_fundamentally_a:
 =begin pod
-=head2 [g_type_] check_instance_is_fundamentally_a
+=head2 [[g_] type_] check_instance_is_fundamentally_a
 
 
 
@@ -1703,7 +1703,7 @@ sub g_type_check_instance_is_fundamentally_a ( int32 $instance, int32 $fundament
 #-------------------------------------------------------------------------------
 #TM:0:g_type_check_class_cast:
 =begin pod
-=head2 [g_type_] check_class_cast
+=head2 [[g_] type_] check_class_cast
 
 
 
@@ -1722,7 +1722,7 @@ sub g_type_check_class_cast ( int32 $g_class, int32 $is_a_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_check_class_is_a:
 =begin pod
-=head2 [g_type_] check_class_is_a
+=head2 [[g_] type_] check_class_is_a
 
 
 
@@ -1741,7 +1741,7 @@ sub g_type_check_class_is_a ( int32 $g_class, int32 $is_a_type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_check_value:
 =begin pod
-=head2 [g_type_] check_value
+=head2 [[g_] type_] check_value
 
   method g_type_check_value ( N-GObject $value --> Int  )
 
@@ -1758,7 +1758,7 @@ sub g_type_check_value ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_check_value_holds:
 =begin pod
-=head2 [g_type_] check_value_holds
+=head2 [[g_] type_] check_value_holds
 
 
 
@@ -1777,7 +1777,7 @@ sub g_type_check_value_holds ( N-GObject $value, int32 $type )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_name_from_instance:
 =begin pod
-=head2 [g_type_] name_from_instance
+=head2 [[g_] type_] name_from_instance
 
 
 
@@ -1795,7 +1795,7 @@ sub g_type_name_from_instance ( int32 $instance )
 #-------------------------------------------------------------------------------
 #TM:0:g_type_name_from_class:
 =begin pod
-=head2 [g_type_] name_from_class
+=head2 [[g_] type_] name_from_class
 
 
 

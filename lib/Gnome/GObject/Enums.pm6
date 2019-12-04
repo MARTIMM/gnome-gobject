@@ -193,7 +193,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_get_value:
 =begin pod
-=head2 g_enum_get_value
+=head2 [g_] enum_get_value
 
 Returns the B<N-GEnumValue> for a value.
 
@@ -215,7 +215,7 @@ sub g_enum_get_value ( N-GEnumClass $enum_class, int32 $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_get_value_by_name:
 =begin pod
-=head2 g_enum_get_value_by_name
+=head2 [g_] enum_get_value_by_name
 
 Looks up a B<N-GEnumValue> by name.
 
@@ -238,7 +238,7 @@ sub g_enum_get_value_by_name ( N-GEnumClass $enum_class, Str $name )
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_get_value_by_nick:
 =begin pod
-=head2 g_enum_get_value_by_nick
+=head2 [g_] enum_get_value_by_nick
 
 Looks up a B<N-GEnumValue> by nickname.
 
@@ -261,7 +261,7 @@ sub g_enum_get_value_by_nick ( N-GEnumClass $enum_class, Str $nick )
 #-------------------------------------------------------------------------------
 #TM:0:g_flags_get_first_value:
 =begin pod
-=head2 g_flags_get_first_value
+=head2 [g_] flags_get_first_value
 
 Returns the first B<N-GFlagsValue> which is set in I<value>.
 
@@ -283,7 +283,7 @@ sub g_flags_get_first_value ( N-GFlagsClass $flags_class, uint32 $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_flags_get_value_by_name:
 =begin pod
-=head2 g_flags_get_value_by_name
+=head2 [g_] flags_get_value_by_name
 
 Looks up a B<N-GFlagsValue> by name.
 
@@ -305,7 +305,7 @@ sub g_flags_get_value_by_name ( N-GFlagsClass $flags_class, Str $name )
 #-------------------------------------------------------------------------------
 #TM:0:g_flags_get_value_by_nick:
 =begin pod
-=head2 g_flags_get_value_by_nick
+=head2 [g_] flags_get_value_by_nick
 
 Looks up a B<N-GFlagsValue> by nickname.
 
@@ -327,7 +327,7 @@ sub g_flags_get_value_by_nick ( N-GFlagsClass $flags_class, Str $nick )
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_to_string:
 =begin pod
-=head2 g_enum_to_string
+=head2 [g_] enum_to_string
 
 Pretty-prints I<value> in the form of the enum’s name.
 
@@ -353,7 +353,7 @@ sub g_enum_to_string ( int32 $g_enum_type, int32 $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_flags_to_string:
 =begin pod
-=head2 g_flags_to_string
+=head2 [g_] flags_to_string
 
 Pretty-prints I<value> in the form of the flag names separated by ` | ` and
 sorted. Any extra bits will be shown at the end as a hexadecimal number.
@@ -380,7 +380,7 @@ sub g_flags_to_string ( int32 $flags_type, uint32 $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_enum:
 =begin pod
-=head2 g_value_set_enum
+=head2 [g_] value_set_enum
 
 Set the contents of a C<G_TYPE_ENUM> B<GValue> to I<v_enum>.
 
@@ -398,7 +398,7 @@ sub g_value_set_enum ( N-GObject $value, int32 $v_enum )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_enum:
 =begin pod
-=head2 g_value_get_enum
+=head2 [g_] value_get_enum
 
 Get the contents of a C<G_TYPE_ENUM> B<GValue>.
 
@@ -418,7 +418,7 @@ sub g_value_get_enum ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_set_flags:
 =begin pod
-=head2 g_value_set_flags
+=head2 [g_] value_set_flags
 
 Set the contents of a C<G_TYPE_FLAGS> B<GValue> to I<v_flags>.
 
@@ -436,7 +436,7 @@ sub g_value_set_flags ( N-GObject $value, uint32 $v_flags )
 #-------------------------------------------------------------------------------
 #TM:0:g_value_get_flags:
 =begin pod
-=head2 g_value_get_flags
+=head2 [g_] value_get_flags
 
 Get the contents of a C<G_TYPE_FLAGS> B<GValue>.
 
@@ -456,7 +456,7 @@ sub g_value_get_flags ( N-GObject $value )
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_register_static:
 =begin pod
-=head2 g_enum_register_static
+=head2 [g_] enum_register_static
 
 Registers a new static enumeration type with the name I<name>.
 
@@ -481,7 +481,7 @@ sub g_enum_register_static ( Str $name, N-GEnumValue $const_static_values )
 #-------------------------------------------------------------------------------
 #TM:0:g_flags_register_static:
 =begin pod
-=head2 g_flags_register_static
+=head2 [g_] flags_register_static
 
 Registers a new static flags type with the name I<name>.
 
@@ -506,7 +506,7 @@ sub g_flags_register_static ( Str $name, N-GFlagsValue $const_static_values )
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_complete_type_info:
 =begin pod
-=head2 g_enum_complete_type_info
+=head2 [g_] enum_complete_type_info
 
 This function is meant to be called from the `complete_type_info`
 function of a B<GTypePlugin> implementation, as in the following
@@ -544,7 +544,7 @@ sub g_enum_complete_type_info ( int32 $g_enum_type, int32 $info, N-GEnumValue $c
 #-------------------------------------------------------------------------------
 #TM:0:g_flags_complete_type_info:
 =begin pod
-=head2 g_flags_complete_type_info
+=head2 [g_] flags_complete_type_info
 
 This function is meant to be called from the C<complete_type_info()>
 function of a B<GTypePlugin> implementation, see the example for
