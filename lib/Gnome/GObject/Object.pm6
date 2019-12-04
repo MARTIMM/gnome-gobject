@@ -1473,7 +1473,7 @@ sub g_object_class_install_properties ( GObjectClass $oclass, uint32 $n_pspecs, 
   { * }
 }}
 
-#`[[
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_interface_install_property:
 =begin pod
@@ -1596,7 +1596,7 @@ sub g_object_new ( int32 $object_type, Str $first_property_name, Any $any = Any 
 }}
 
 
-]]
+}}
 #-------------------------------------------------------------------------------
 #TM:0:g_object_new_with_properties:
 =begin pod
@@ -1663,7 +1663,7 @@ sub g_object_new_valist (
 }}
 
 
-#`[[
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_object_connect:
 =begin pod
@@ -1706,9 +1706,7 @@ sub g_object_connect ( Pointer $object, Str $signal_spec, Any $any = Any )
   returns Pointer
   is native(&gobject-lib)
   { * }
-]]
 
-#`[[
 #-------------------------------------------------------------------------------
 #TM:0:g_object_disconnect:
 =begin pod
@@ -1731,9 +1729,7 @@ disconnects the signal named "signal_name".
 sub g_object_disconnect ( Pointer $object, Str $signal_spec, Any $any = Any )
   is native(&gobject-lib)
   { * }
-]]
 
-#`[[
 #-------------------------------------------------------------------------------
 #TM:0:g_object_freeze_notify:
 =begin pod
@@ -1916,7 +1912,7 @@ sub g_object_ref_sink ( Pointer $object )
   returns Pointer
   is native(&gobject-lib)
   { * }
-]]
+}}
 
 
 #`{{
