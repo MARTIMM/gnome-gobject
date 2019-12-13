@@ -222,9 +222,6 @@ class N-GTypeValueTable is export is repr('CStruct') {
 constant G_TYPE_FUNDAMENTAL_SHIFT = 2;
 
 #define	G_TYPE_FUNDAMENTAL_MAX		(255 << G_TYPE_FUNDAMENTAL_SHIFT)
-#sub G_TYPE_MAKE_FUNDAMENTAL_MAX ( --> int32) is export {
-#  255 +< G_TYPE_FUNDAMENTAL_SHIFT;
-#}
 constant G_TYPE_MAKE_FUNDAMENTAL_MAX is export =
          255 +< G_TYPE_FUNDAMENTAL_SHIFT;
 
