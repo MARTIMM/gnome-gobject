@@ -222,9 +222,8 @@ class N-GTypeValueTable is export is repr('CStruct') {
 constant G_TYPE_FUNDAMENTAL_SHIFT = 2;
 
 #define	G_TYPE_FUNDAMENTAL_MAX		(255 << G_TYPE_FUNDAMENTAL_SHIFT)
-sub G_TYPE_MAKE_FUNDAMENTAL_MAX ( --> int32) is export {
-  255 +< G_TYPE_FUNDAMENTAL_SHIFT;
-}
+constant G_TYPE_MAKE_FUNDAMENTAL_MAX is export =
+         255 +< G_TYPE_FUNDAMENTAL_SHIFT;
 
 #define G_TYPE_INVALID G_TYPE_MAKE_FUNDAMENTAL (0)
 constant G_TYPE_INVALID is export = 0 +< G_TYPE_FUNDAMENTAL_SHIFT;
@@ -393,17 +392,32 @@ method get-parameter( Int $type, :$otype --> Parameter ) {
     when G_TYPE_DOUBLE  { $p .= new(type => num64); }
     when G_TYPE_STRING  { $p .= new(type => str); }
 
-    when G_TYPE_OBJECT | G_TYPE_BOXED {
-      die X::Gnome.new(:message('Object in named argument :o not defined'))
-          unless ?$otype;
-      $p .= new(type => $otype.get-class-gtype);
-    }
+#    when G_TYPE_OBJECT | G_TYPE_BOXED {
+#      die X::Gnome.new(:message('Object in named argument :o not defined'))
+#          unless ?$otype;
+#      $p .= new(type => $otype.get-class-gtype);
+#      $p .= new(:$type);
+#    }
 
 #    when G_TYPE_POINTER { $p .= new(type => ); }
 #    when G_TYPE_PARAM { $p .= new(type => ); }
 #    when G_TYPE_VARIANT {$p .= new(type => ); }
+#    when N-GObject {
+#      $p .= new(type => G_TYPE_OBJECT);
+#    }
+
     default {
-      $p .= new(type => $otype.get-class-gtype);
+      # if type is larger than the max of fundamental types (like G_TYPE_INT) it
+      # is a type which is set when a GTK+ object is created. In Perl6 the
+      # object type is stored in the class as $!gtk-class-gtype in
+      # Gnome::GObject::Object and retrievable with .get-class-gtype()
+      if $type > G_TYPE_MAKE_FUNDAMENTAL_MAX {
+        $p .= new(:$type);
+      }
+
+      else { # ??
+        $p .= new(type => $otype.get-class-gtype);
+      }
     }
   }
 
@@ -1837,42 +1851,6 @@ sub g_type_name_from_class ( int32 $g_class )
 =finish
 
 #-------------------------------------------------------------------------------
-sub g_type_name ( int32 $type )
-  returns Str
-  is native(&gobject-lib)
-  { * }
-
-sub g_type_from_name ( Str )
-  returns int32 # GType
-  is native(&gobject-lib)
-  { * }
-
-sub g_type_parent ( int32 $type )
-  returns int32 # GType
-  is native(&gobject-lib)
-  { * }
-
-sub g_type_depth ( int32 $type )
-  returns int32 # GType
-  is native(&gobject-lib)
-  { * }
-
-sub g_type_check_value ( N-GValue $gvalue )
-  returns int32 # 0/1
-  is native(&gobject-lib)
-  { * }
-
-sub g_type_check_instance_cast (
-  N-GObject $type_instance, int32 $iface_type
-) returns N-GObject
-  is native(&gobject-lib)
-  { * }
-
-
-
-
-
-
 Code from c-source to study casting
 
 #define GTK_TYPE_MENU_SHELL             (gtk_menu_shell_get_type ())
@@ -1900,15 +1878,24 @@ GType    gtk_menu_shell_get_type       (void) G_GNUC_CONST;
 ===> $menu-shell.gtk_menu_shell_append($menu_item);
 
 
+#-------------------------------------------------------------------------------
 Study for creating new classes and types
 
-#define G_DEFINE_TYPE(TN, t_n, T_P)			    G_DEFINE_TYPE_EXTENDED (TN, t_n, T_P, 0, {})
+G_DEFINE_TYPE(TN, t_n, T_P)
+    ===> G_DEFINE_TYPE_EXTENDED (TN, t_n, T_P, 0, {})
 
-#define G_DEFINE_TYPE_EXTENDED(TN, t_n, T_P, _f_, _C_)	    _G_DEFINE_TYPE_EXTENDED_BEGIN (TN, t_n, T_P, _f_) {_C_;} _G_DEFINE_TYPE_EXTENDED_END()
+ * @TN: The name of the new type, in Camel case. E.g. GtkMenuShell
+ * @t_n: The name of the new type, in lowercase, with words
+ *  separated by '_'. E.g. gtk_menu_shell
+ * @T_P: The #GType of the parent type. E.g. type from GtkContainer
 
-#define _G_DEFINE_TYPE_EXTENDED_BEGIN(TypeName, type_name, TYPE_PARENT, flags) \
-  _G_DEFINE_TYPE_EXTENDED_BEGIN_PRE(TypeName, type_name, TYPE_PARENT) \
-  _G_DEFINE_TYPE_EXTENDED_BEGIN_REGISTER(TypeName, type_name, TYPE_PARENT, flags) \
+G_DEFINE_TYPE_EXTENDED(TN, t_n, T_P, _f_, _C_)
+    ===> _G_DEFINE_TYPE_EXTENDED_BEGIN (TN, t_n, T_P, _f_) {_C_;}
+         _G_DEFINE_TYPE_EXTENDED_END()
+
+_G_DEFINE_TYPE_EXTENDED_BEGIN(TypeName, type_name, TYPE_PARENT, flags)
+    ===> _G_DEFINE_TYPE_EXTENDED_BEGIN_PRE(TypeName, type_name, TYPE_PARENT)
+         _G_DEFINE_TYPE_EXTENDED_BEGIN_REGISTER(TypeName, type_name, TYPE_PARENT, flags) \
 
 #define _G_DEFINE_INTERFACE_EXTENDED_BEGIN(TypeName, type_name, TYPE_PREREQ) \
 \

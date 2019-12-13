@@ -1,4 +1,7 @@
 ## Release notes
+* 2019-12-13 0.15.6:
+  * Bugfixes in Object and Type
+  
 * 2019-12-03 0.15.5:
   * Documentation changes
 

@@ -423,8 +423,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or other *SomeThing object.
   my Array $params = [];
+  my Int $pcount = 0;
   for c.list -> $p {
-    note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
+    note "Substitution of parameter \[{$pcount++}]: ", $p.^name if $Gnome::N::x-debug;
 
     if $p.^name ~~
           m/^ 'Gnome::' [ Gtk || Gdk || Glib || Gio || GObject ] \d? '::' / {
