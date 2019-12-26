@@ -719,7 +719,7 @@ multi method register-signal (
       N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
     ) is export {
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
-      $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
+      $handler-object."$handler-name"( $h0, $h1, $h2, $h3, $h4, |%named-args);
     }
 
     given $signal-type {
