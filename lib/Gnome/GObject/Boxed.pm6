@@ -10,10 +10,11 @@ use Gnome::N::NativeLib;
 unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
-# No subs implemented yet.
-#-------------------------------------------------------------------------------
 # No type specified. GBoxed is a wrapper for any structure
 has Any $!g-boxed;
+
+# Wrapped object is not valid
+has Bool $!is-valid = False;
 
 has Int $!gboxed-class-gtype;
 has Str $!gboxed-class-name;
@@ -127,17 +128,43 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
-method native-gboxed ( Any:D $g-boxed --> Any ) {
+method native-gboxed ( Any:D $g-boxed --> Any ) is DEPRECATED('set-native-object') {
 
   $!g-boxed = $g-boxed;
   $!g-boxed
 }
 
 #-------------------------------------------------------------------------------
-method get-native-gboxed ( --> Any ) {
+method get-native-gboxed ( --> Any ) is DEPRECATED('get-native-object') {
 
   $!g-boxed
 }
+
+#-------------------------------------------------------------------------------
+#TODO destroy when overwritten?
+method set-native-object ( Any:D $g-boxed --> Any ) {
+
+  $!g-boxed = $g-boxed;
+  $!g-boxed
+}
+
+#-------------------------------------------------------------------------------
+method get-native-object ( --> Any ) {
+
+  $!g-boxed
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:is-valid
+# doc of $!is-valid defined above
+=begin pod
+=head2 is-valid
+
+Returns True if native boxed object is valid, otherwise C<False>.
+
+  method is-valid ( --> Bool )
+
+=end pod
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
