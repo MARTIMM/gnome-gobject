@@ -16,10 +16,10 @@ Parameter names need to start with a letter (a-z or A-Z). Subsequent characters 
 
 GValue is a polymorphic type that can hold values of any other type operations and thus can be used as a type initializer for C<g_value_init()> and are defined by a separate interface.  See the [standard values API][gobject-Standard-Parameter-and-Value-Types] for details
 
-The B<GValue> structure is basically a variable container that consists of a type identifier and a specific value of that type. The type identifier within a B<GValue> structure always determines the type of the associated value. To create a undefined B<GValue> structure, simply create a zero-filled B<GValue> structure. To initialize the B<GValue>, use the C<g_value_init()> function. A B<GValue> cannot be used until it is initialized. The basic type operations (such as freeing and copying) are determined by the B<GTypeValueTable> associated with the type ID stored in the B<GValue>. Other B<GValue> operations (such as converting values between types) are provided by this interface.
+The B<N-GValue> structure is basically a variable container that consists of a type identifier and a specific value of that type. The type identifier within a B<N-GValue> structure always determines the type of the associated value. To create an undefined B<N-GValue> structure, simply create a zero-filled B<N-GValue> structure. To initialize the B<N-GValue>, use the C<g_value_init()> function. A B<N-GValue> cannot be used until it is initialized. The basic type operations (such as freeing and copying) are determined by the B<GTypeValueTable> associated with the type ID stored in the B<N-GValue>. Other B<N-GValue> operations (such as converting values between types) are provided by this interface.
 
 =begin comment
-The code in the example program below demonstrates B<GValue>'s features.
+The code in the example program below demonstrates B<N-GValue>'s features.
 
 |[<!-- language="C" -->
 B<include> <glib-object.h>
@@ -107,6 +107,17 @@ unit class Gnome::GObject::Value:auth<github:MARTIMM>;
 also is Gnome::GObject::Boxed;
 
 #-------------------------------------------------------------------------------
+=head1 Types
+
+=begin pod
+=head2 N-GValue
+
+A structure to hold a type and a value. Its type is readable from the structure as a 32 bit integer and holds type values like C<G_TYPE_UCHAR> and C<G_TYPE_LONG>. These names are defined in B<Gnome::GObject::Type>.
+
+  my Gnome::GObject::Value $v .= new( :type(G_TYPE_ULONG), :value(765237654));
+  say $v.get-native-object.g-type;  # 36
+
+=end pod
 #TS:1:N-GValue:
 class N-GValue is repr('CStruct') is export {
   has uint64 $.g-type;
@@ -121,6 +132,46 @@ class N-GValue is repr('CStruct') is export {
     $!g-data = 0;
   }
 }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 N-GEnumValue
+
+A structure to hold enumeration information.
+The structure has the following entries;
+
+=item Int	$.value; the enum value
+=item Str $.value_name; the name of the value
+=item Str $.value_nick; the nickname of the value
+
+=end pod
+#TS:0::N-GEnumValue
+class N-GEnumValue is repr('CStruct') is export {
+
+  has int32	$.value;
+  has Str $.value_name;
+  has Str $.value_nick;
+};
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 N-GFlagsValue
+
+A structure to hold flag information.
+The structure has the following entries;
+
+=item UInt $.value; the flags value
+=item Str $.value_name; the name of the value
+=item Str $.value_nick; the nickname of the value
+
+=end pod
+#TS:0::N-GFlagsValue
+class N-GFlagsValue is repr('CStruct') is export {
+
+  has uint32 $.value;
+  has Str $.value_name;
+  has Str $.value_nick;
+};
 
 #-------------------------------------------------------------------------------
 #TODO add $!value-is-valid flag
@@ -152,14 +203,14 @@ submethod BUILD ( *%options ) {
   return unless self.^name eq 'Gnome::GObject::Value';
 
   if ? %options<init> {
-    self.native-gboxed(g_value_init( N-GValue.new, %options<init>));
+    self.set-native-object(g_value_init( N-GValue.new, %options<init>));
   }
 
   elsif %options<type>.defined and %options<value>.defined {
     my $type = %options<type>;
-    self.native-gboxed(g_value_init( N-GValue.new, $type));
+    self.set-native-object(g_value_init( N-GValue.new, $type));
 
-    my $nv = self.get-native-gboxed;
+    my $nv = self.get-native-object;
     my $value = %options<value>;
 
     given $type {
@@ -185,11 +236,11 @@ submethod BUILD ( *%options ) {
       when G_TYPE_VARIANT {note "Type variant for $value not yet available";}# { g_value_set_( $nv, $value); }
     }
 
-    self.native-gboxed($nv);
+    self.set-native-object($nv);
   }
 
   elsif %options<gvalue> ~~ N-GValue {
-    self.native-gboxed(%options<gvalue>);
+    self.set-native-object(%options<gvalue>);
   }
 
   elsif %options.keys.elems {
@@ -228,17 +279,23 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 Initializes I<$value> with the default value of I<$g_type>.
 
-Returns: (transfer none): the B<GValue> structure that has been passed in
+Returns: (transfer none): the B<N-GValue> structure that has been passed in
 
   method g_value_init ( UInt $g_type --> N-GValue  )
 
-=item uInt $g_type; Type the B<GValue> should hold values of.
+=item uInt $g_type; Type the B<N-GValue> should hold values of.
 
 =end pod
 
-sub g_value_init ( N-GValue $value, uint64 $g_type )
+sub g_value_init ( N-GValue $value, uint64 $g_type is copy --> N-GValue ) {
+  $g_type = G_TYPE_INT if $g_type ~~ any(G_TYPE_ENUM|G_TYPE_FLAGS);
+  _g_value_init( $value, $g_type)
+}
+
+sub _g_value_init ( N-GValue $value, uint64 $g_type )
   returns N-GValue
   is native(&gobject-lib)
+  is symbol('g_value_init')
   { * }
 
 #`{{
@@ -275,7 +332,7 @@ sub _g_value_copy ( N-GValue $src_value, N-GValue $dest_value is rw )
 
 Clears the current value in this object and resets it to the default value (as if the value had just been initialized).
 
-Returns: the B<GValue> structure that has been passed in
+Returns: the B<N-GValue> structure that has been passed in
 
   method g_value_reset ( --> N-GValue  )
 
@@ -292,7 +349,7 @@ sub g_value_reset ( N-GValue $value )
 =begin pod
 =head2 [g_] value_unset
 
-Clears the current value in I<value> (if any) and "unsets" the type, this releases all resources associated with this GValue. An unset value is the same as an uninitialized (zero-filled) B<GValue> structure.
+Clears the current value in I<value> (if any) and "unsets" the type, this releases all resources associated with this GValue. An unset value is the same as an uninitialized (zero-filled) B<N-GValue> structure.
 
   method g_value_unset ( )
 
@@ -390,8 +447,8 @@ sub g_value_peek_pointer ( N-GValue $value )
 =begin pod
 =head2 [[g_] value_] type_compatible
 
-Returns whether a B<GValue> of type I<src_type> can be copied into
-a B<GValue> of type I<dest_type>.
+Returns whether a B<N-GValue> of type I<src_type> can be copied into
+a B<N-GValue> of type I<dest_type>.
 
 Returns: C<1> if C<g_value_copy()> is possible with I<src_type> and I<dest_type>.
 
@@ -489,7 +546,7 @@ sub g_value_register_transform_func ( uint64 $src_type, uint64 $dest_type, GValu
 =begin pod
 =head2 [g_] value_set_schar
 
-Set the contents of a C<G_TYPE_CHAR> B<GValue> to I<v_char>.
+Set the contents of a C<G_TYPE_CHAR> B<N-GValue> to I<v_char>.
 
 Since: 2.32
 
@@ -508,7 +565,7 @@ sub g_value_set_schar ( N-GValue $value, int8 $v_char )
 =begin pod
 =head2 [g_] value_get_schar
 
-Get the contents of a C<G_TYPE_CHAR> B<GValue>.
+Get the contents of a C<G_TYPE_CHAR> B<N-GValue>.
 
 Returns: signed 8 bit integer contents of I<value>
 Since: 2.32
@@ -527,7 +584,7 @@ sub g_value_get_schar ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_uchar
 
-Set the contents of a C<G_TYPE_UCHAR> B<GValue> to I<v_uchar>.
+Set the contents of a C<G_TYPE_UCHAR> B<N-GValue> to I<v_uchar>.
 
   method g_value_set_uchar ( UInt $v_uchar )
 
@@ -535,7 +592,7 @@ Set the contents of a C<G_TYPE_UCHAR> B<GValue> to I<v_uchar>.
 
 =end pod
 
-sub g_value_set_uchar ( N-GValue $value, byte $v_uchar )
+sub g_value_set_uchar ( N-GValue $value, uint8 $v_uchar )
   is native(&gobject-lib)
   { * }
 
@@ -544,7 +601,7 @@ sub g_value_set_uchar ( N-GValue $value, byte $v_uchar )
 =begin pod
 =head2 [g_] value_get_uchar
 
-Get the contents of a C<G_TYPE_UCHAR> B<GValue>.
+Get the contents of a C<G_TYPE_UCHAR> B<N-GValue>.
 
 Returns: unsigned character contents of I<value>
 
@@ -554,7 +611,7 @@ Returns: unsigned character contents of I<value>
 =end pod
 
 sub g_value_get_uchar ( N-GValue $value )
-  returns byte
+  returns uint8
   is native(&gobject-lib)
   { * }
 
@@ -563,7 +620,7 @@ sub g_value_get_uchar ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_boolean
 
-Set the contents of a C<G_TYPE_BOOLEAN> B<GValue> to I<v_boolean>.
+Set the contents of a C<G_TYPE_BOOLEAN> B<N-GValue> to I<v_boolean>.
 
   method g_value_set_boolean ( Int $v_boolean )
 
@@ -580,7 +637,7 @@ sub g_value_set_boolean ( N-GValue $value, int32 $v_boolean )
 =begin pod
 =head2 [g_] value_get_boolean
 
-Get the contents of a C<G_TYPE_BOOLEAN> B<GValue>.
+Get the contents of a C<G_TYPE_BOOLEAN> B<N-GValue>.
 
 Returns: boolean contents of I<value>
 
@@ -598,7 +655,7 @@ sub g_value_get_boolean ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_int
 
-Set the contents of a C<G_TYPE_INT> B<GValue> to I<v_int>.
+Set the contents of a C<G_TYPE_INT> B<N-GValue> to I<v_int>.
 
   method g_value_set_int ( Int $v_int )
 
@@ -615,7 +672,7 @@ sub g_value_set_int ( N-GValue $value, int32 $v_int )
 =begin pod
 =head2 [g_] value_get_int
 
-Get the contents of a C<G_TYPE_INT> B<GValue>.
+Get the contents of a C<G_TYPE_INT> B<N-GValue>.
 
 Returns: integer contents of I<value>
 
@@ -633,7 +690,7 @@ sub g_value_get_int ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_uint
 
-Set the contents of a C<G_TYPE_UINT> B<GValue> to I<v_uint>.
+Set the contents of a C<G_TYPE_UINT> B<N-GValue> to I<v_uint>.
 
   method g_value_set_uint ( guInt $v_uint )
 
@@ -650,7 +707,7 @@ sub g_value_set_uint ( N-GValue $value, uint32 $v_uint )
 =begin pod
 =head2 [g_] value_get_uint
 
-Get the contents of a C<G_TYPE_UINT> B<GValue>.
+Get the contents of a C<G_TYPE_UINT> B<N-GValue>.
 
 Returns: unsigned integer contents of I<value>
 
@@ -668,7 +725,7 @@ sub g_value_get_uint ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_long
 
-Set the contents of a C<G_TYPE_LONG> B<GValue> to I<v_long>.
+Set the contents of a C<G_TYPE_LONG> B<N-GValue> to I<v_long>.
 
   method g_value_set_long ( Int $v_long )
 
@@ -685,7 +742,7 @@ sub g_value_set_long ( N-GValue $value, int64 $v_long )
 =begin pod
 =head2 [g_] value_get_long
 
-Get the contents of a C<G_TYPE_LONG> B<GValue>.
+Get the contents of a C<G_TYPE_LONG> B<N-GValue>.
 
 Returns: long integer contents of I<value>
 
@@ -703,7 +760,7 @@ sub g_value_get_long ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_ulong
 
-Set the contents of a C<G_TYPE_ULONG> B<GValue> to I<v_ulong>.
+Set the contents of a C<G_TYPE_ULONG> B<N-GValue> to I<v_ulong>.
 
   method g_value_set_ulong ( UInt $v_ulong )
 
@@ -720,7 +777,7 @@ sub g_value_set_ulong ( N-GValue $value, uint64 $v_ulong )
 =begin pod
 =head2 [g_] value_get_ulong
 
-Get the contents of a C<G_TYPE_ULONG> B<GValue>.
+Get the contents of a C<G_TYPE_ULONG> B<N-GValue>.
 
 Returns: unsigned long integer contents of I<value>
 
@@ -738,7 +795,7 @@ sub g_value_get_ulong ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_int64
 
-Set the contents of a C<G_TYPE_INT64> B<GValue> to I<v_int64>.
+Set the contents of a C<G_TYPE_INT64> B<N-GValue> to I<v_int64>.
 
   method g_value_set_int64 ( Int $v_int64 )
 
@@ -755,7 +812,7 @@ sub g_value_set_int64 ( N-GValue $value, int64 $v_int64 )
 =begin pod
 =head2 [g_] value_get_int64
 
-Get the contents of a C<G_TYPE_INT64> B<GValue>.
+Get the contents of a C<G_TYPE_INT64> B<N-GValue>.
 
 Returns: 64bit integer contents of I<value>
 
@@ -773,9 +830,9 @@ sub g_value_get_int64 ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_uint64
 
-Set the contents of a C<G_TYPE_UINT64> B<GValue> to I<v_uint64>.
+Set the contents of a C<G_TYPE_UINT64> B<N-GValue> to I<v_uint64>.
 
-  method g_value_set_uint64 ( guInt $v_uint64 )
+  method g_value_set_uint64 ( UInt $v_uint64 )
 
 =item guInt $v_uint64; unsigned 64bit integer value to be set
 
@@ -790,7 +847,7 @@ sub g_value_set_uint64 ( N-GValue $value, uint64 $v_uint64 )
 =begin pod
 =head2 [g_] value_get_uint64
 
-Get the contents of a C<G_TYPE_UINT64> B<GValue>.
+Get the contents of a C<G_TYPE_UINT64> B<N-GValue>.
 
 Returns: unsigned 64bit integer contents of I<value>
 
@@ -808,7 +865,7 @@ sub g_value_get_uint64 ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_float
 
-Set the contents of a C<G_TYPE_FLOAT> B<GValue> to I<v_float>.
+Set the contents of a C<G_TYPE_FLOAT> B<N-GValue> to I<v_float>.
 
   method g_value_set_float ( Num $v_float )
 
@@ -825,7 +882,7 @@ sub g_value_set_float ( N-GValue $value, num32 $v_float )
 =begin pod
 =head2 [g_] value_get_float
 
-Get the contents of a C<G_TYPE_FLOAT> B<GValue>.
+Get the contents of a C<G_TYPE_FLOAT> B<N-GValue>.
 
 Returns: float contents of I<value>
 
@@ -843,7 +900,7 @@ sub g_value_get_float ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_double
 
-Set the contents of a C<G_TYPE_DOUBLE> B<GValue> to I<v_double>.
+Set the contents of a C<G_TYPE_DOUBLE> B<N-GValue> to I<v_double>.
 
   method g_value_set_double ( Num $v_double )
 
@@ -860,7 +917,7 @@ sub g_value_set_double ( N-GValue $value, num64 $v_double )
 =begin pod
 =head2 [g_] value_get_double
 
-Get the contents of a C<G_TYPE_DOUBLE> B<GValue>.
+Get the contents of a C<G_TYPE_DOUBLE> B<N-GValue>.
 
 Returns: double contents of I<value>
 
@@ -904,11 +961,11 @@ sub g_value_get_flags ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_string
 
-Set the contents of a C<G_TYPE_STRING> B<GValue> to I<v_string>.
+Set the contents of a C<G_TYPE_STRING> B<N-GValue> to I<v_string>.
 
   method g_value_set_string ( Str $v_string )
 
-=item Str $v_string; (nullable): caller-owned string to be duplicated for the B<GValue>
+=item Str $v_string; (nullable): caller-owned string to be duplicated for the B<N-GValue>
 
 =end pod
 
@@ -921,9 +978,9 @@ sub g_value_set_string ( N-GValue $value, Str $v_string )
 =begin pod
 =head2 [g_] value_set_static_string
 
-Set the contents of a C<G_TYPE_STRING> B<GValue> to I<v_string>.
+Set the contents of a C<G_TYPE_STRING> B<N-GValue> to I<v_string>.
 The string is assumed to be static, and is thus not duplicated
-when setting the B<GValue>.
+when setting the B<N-GValue>.
 
   method g_value_set_static_string ( Str $v_string )
 
@@ -940,7 +997,7 @@ sub g_value_set_static_string ( N-GValue $value, Str $v_string )
 =begin pod
 =head2 [g_] value_get_string
 
-Get the contents of a C<G_TYPE_STRING> B<GValue>.
+Get the contents of a C<G_TYPE_STRING> B<N-GValue>.
 
 Returns: string content of I<$value>
 
@@ -958,7 +1015,7 @@ sub g_value_get_string ( N-GValue $value )
 =begin pod
 =head2 [g_] value_dup_string
 
-Get a copy the contents of a C<G_TYPE_STRING> B<GValue>.
+Get a copy the contents of a C<G_TYPE_STRING> B<N-GValue>.
 
 Returns: a newly allocated copy of the string content of I<value>
 
@@ -976,7 +1033,7 @@ sub g_value_dup_string ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_pointer
 
-Set the contents of a pointer B<GValue> to I<v_pointer>.
+Set the contents of a pointer B<N-GValue> to I<v_pointer>.
 
   method g_value_set_pointer ( Pointer $v_pointer )
 
@@ -993,7 +1050,7 @@ sub g_value_set_pointer ( N-GValue $value, Pointer $v_pointer )
 =begin pod
 =head2 [g_] value_get_pointer
 
-Get the contents of a pointer B<GValue>.
+Get the contents of a pointer B<N-GValue>.
 
 Returns: (transfer none): pointer contents of I<value>
 
@@ -1028,7 +1085,7 @@ sub g_gtype_get_type (  )
 =begin pod
 =head2 [g_] value_set_gtype
 
-Set the contents of a C<G_TYPE_GTYPE> B<GValue> to I<v_gtype>.
+Set the contents of a C<G_TYPE_GTYPE> B<N-GValue> to I<v_gtype>.
 
 Since: 2.12
 
@@ -1047,7 +1104,7 @@ sub g_value_set_gtype ( N-GValue $value, uint64 $v_gtype )
 =begin pod
 =head2 [g_] value_get_gtype
 
-Get the contents of a C<G_TYPE_GTYPE> B<GValue>.
+Get the contents of a C<G_TYPE_GTYPE> B<N-GValue>.
 
 Since: 2.12
 
@@ -1067,7 +1124,7 @@ sub g_value_get_gtype ( N-GValue $value )
 =begin pod
 =head2 [g_] value_set_variant
 
-Set the contents of a variant B<GValue> to I<variant>.
+Set the contents of a variant B<N-GValue> to I<variant>.
 If the variant is floating, it is consumed.
 
 Since: 2.26
@@ -1087,7 +1144,7 @@ sub g_value_set_variant ( N-GValue $value, N-GValue $variant )
 =begin pod
 =head2 [g_] value_take_variant
 
-Set the contents of a variant B<GValue> to I<variant>, and takes over
+Set the contents of a variant B<N-GValue> to I<variant>, and takes over
 the ownership of the caller's reference to I<variant>;
 the caller doesn't have to unref it any more (i.e. the reference
 count of the variant is not increased).
@@ -1095,7 +1152,7 @@ count of the variant is not increased).
 If I<variant> was floating then its floating reference is converted to
 a hard reference.
 
-If you want the B<GValue> to hold its own reference to I<variant>, use
+If you want the B<N-GValue> to hold its own reference to I<variant>, use
 C<g_value_set_variant()> instead.
 
 This is an internal function introduced mainly for C marshallers.
@@ -1117,7 +1174,7 @@ sub g_value_take_variant ( N-GValue $value, N-GValue $variant )
 =begin pod
 =head2 [g_] value_get_variant
 
-Get the contents of a variant B<GValue>.
+Get the contents of a variant B<N-GValue>.
 
 Returns: (transfer none) (nullable): variant contents of I<value> (may be C<Any>)
 
@@ -1137,7 +1194,7 @@ sub g_value_get_variant ( N-GValue $value )
 =begin pod
 =head2 [g_] value_dup_variant
 
-Get the contents of a variant B<GValue>, increasing its refcount. The returned
+Get the contents of a variant B<N-GValue>, increasing its refcount. The returned
 B<GVariant> is never floating.
 
 Returns: (transfer full) (nullable): variant contents of I<value> (may be C<Any>);
@@ -1181,7 +1238,7 @@ sub g_pointer_type_register_static ( Str $name )
 =head2 [g_] strdup_value_contents
 
 Return a newly allocated string, which describes the contents of a
-B<GValue>.  The main purpose of this function is to describe B<GValue>
+B<N-GValue>.  The main purpose of this function is to describe B<N-GValue>
 contents for debugging output, the way in which the contents are
 described may change between different GLib versions.
 
@@ -1201,7 +1258,7 @@ sub g_strdup_value_contents ( N-GValue $value )
 =begin pod
 =head2 [g_] value_take_string
 
-Sets the contents of a C<G_TYPE_STRING> B<GValue> to I<v_string>.
+Sets the contents of a C<G_TYPE_STRING> B<N-GValue> to I<v_string>.
 
 Since: 2.4
 
