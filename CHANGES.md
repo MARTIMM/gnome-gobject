@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-01-10 0.15.0.1:
+  * Repo renaming. Perl6 to Raku.
+
 * 2020-01-09 0.15.8:
   * Bugfixes in Gnome::GObject::Value, improved doc and more tests
 
