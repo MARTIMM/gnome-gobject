@@ -14,15 +14,21 @@ my Gnome::GObject::Value $v .= new(:init(G_TYPE_STRING));
 subtest 'ISA test', {
   $v .= new(:init(G_TYPE_STRING));
   isa-ok $v, Gnome::GObject::Value, '.new(:init)';
+  ok $v.is-valid, '.is-valid() True after :init';
 
-  $v .= new(:init(G_TYPE_STRING), :value('new value'));
-  is $v.get-string, 'new value', '.new( :init, :value)';
+  $v .= new( :type(G_TYPE_STRING), :value('new value'));
+  is $v.get-string, 'new value', '.new( :type, :value)';
+  ok $v.is-valid, '.is-valid() True after :type and :value';
 
   $v.g_value_reset;
   nok ?$v.get-string, '.g_value_reset()';
+  is $v.get-native-object.g-type, G_TYPE_STRING,
+      'native object type still string';
+  ok $v.is-valid, '.is-valid() True after reset';
 
   $v.g_value_unset;
-  nok ?$v.get-native-object.g-type, '.g_value_unset()';
+  ok $v.get-native-object.g-type == G_TYPE_INVALID, '.g_value_unset()';
+  nok $v.is-valid, '.is-valid() False after unset';
 }
 
 #-------------------------------------------------------------------------------
@@ -100,21 +106,38 @@ subtest 'Manipulations', {
   is $v.get-string, 'other value', '.set-string()';
   $v.g_value_unset;
 
+#`{{
+Gnome::N::debug(:on);
   enum SomeType ( :Tset1(0x1), :Tset2(0x2), :Tset3(0x4), :Tset4(0x8) );
-  $v .= new( :type(G_TYPE_ENUM), :value(Tset2));
-  is SomeType($v.get-enum), Tset2, '.new( :type, :value) / .get-enum()';
-  $v.set-enum(Tset4);
-  is $v.get-enum, Tset4, '.set-enum()';
-  $v.g_value_unset;
+  my N-GEnumValue $ev .= new(
+    :value(Tset2), :value_name('Tset2'), :value_nick('ts2')
+  );
+  $v .= new(:init(G_TYPE_ENUM));
+#  is $v.get-gtype, G_TYPE_ENUM, '.new(:init(G_TYPE_ENUM))';
+  $v.set-enum($ev);
+  is SomeType($v.get-enum.value), Tset2, '.set-enum() / .get-enum()';
+}}
 
+#`{{
+  enum SomeType ( :Tset1(0x1), :Tset2(0x2), :Tset3(0x4), :Tset4(0x8) );
+  my N-GEnumValue $ev .= new(
+    :value(Tset2), :value_name('Tset2'), :value_nick('ts2')
+  );
+  $v .= new( :type(G_TYPE_ENUM), :value($ev));
+
+#  is SomeType($v.get-enum), Tset2, '.new( :type, :value) / .get-enum()';
+#  $v.set-enum(Tset4);
+#  is $v.get-enum, Tset4, '.set-enum()';
+  $v.g_value_unset;
+}}
+
+#`{{
   $v .= new( :type(G_TYPE_FLAGS), :value(Tset2 +| Tset4));
   is $v.get-flags, 0xa, '.new( :type, :value) / .get-flags()';
   $v.set-flags(Tset3 +| Tset1);
   is $v.get-flags, 0x5, '.set-flags()';
   $v.g_value_unset;
-
-  $v.g_value_unset;
-  nok ?$v.get-native-object.g-type, '.g_value_unset()';
+}}
 }
 
 #-------------------------------------------------------------------------------
