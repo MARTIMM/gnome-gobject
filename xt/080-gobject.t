@@ -1,5 +1,5 @@
 use v6;
-use lib 'lib', '../perl6-gnome-glib/lib';
+#use lib 'lib', '../perl6-gnome-glib/lib';
 
 use NativeCall;
 use Test;
@@ -12,10 +12,14 @@ use Gnome::Gtk3::Label;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
+my Gnome::GObject::Type $gt;
+my Gnome::GObject::Value $gv;
+
+#-------------------------------------------------------------------------------
 subtest 'properties of label', {
 
-  my Gnome::GObject::Type $gt .= new;
-  my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
+  $gt .= new;
+  $gv .= new(:init(G_TYPE_STRING));
 #  is $gt.g-type-check-value($gv), 1, 'value initialized';
 
   my Gnome::Gtk3::Label $label1 .= new(:text('abc def'));
@@ -37,6 +41,14 @@ subtest 'properties of label', {
 
   $gv.g-value-unset;
 }
+
+#`{{
+#-------------------------------------------------------------------------------
+subtest 'properties of screen', {
+
+
+}
+}}
 
 #-------------------------------------------------------------------------------
 done-testing;
