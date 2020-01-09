@@ -14,7 +14,7 @@ unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
 has Any $!g-boxed;
 
 # Wrapped object is not valid
-has Bool $!is-valid = False;
+has Bool $.is-valid = False;
 
 has Int $!gboxed-class-gtype;
 has Str $!gboxed-class-name;
@@ -141,11 +141,13 @@ method get-native-gboxed ( --> Any ) is DEPRECATED('get-native-object') {
 }
 
 #-------------------------------------------------------------------------------
-#TODO destroy when overwritten?
-method set-native-object ( Any:D $g-boxed --> Any ) {
+# Boxed class has no knoledge of wrapped abjects. Destroy must take place there
+method set-native-object ( Any:D $g-boxed ) {
 
-  $!g-boxed = $g-boxed;
-  $!g-boxed
+  if $g-boxed.defined {
+    $!g-boxed = $g-boxed;
+    $!is-valid = True;
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -165,6 +167,12 @@ Returns True if native boxed object is valid, otherwise C<False>.
   method is-valid ( --> Bool )
 
 =end pod
+
+#-------------------------------------------------------------------------------
+# no info to the user!
+method set-valid ( Bool $v = False ) {
+  $!is-valid = $v;
+}
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
