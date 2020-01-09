@@ -1757,6 +1757,8 @@ sub g_type_check_class_is_a ( int32 $g_class, int32 $is_a_type )
 =begin pod
 =head2 [[g_] type_] check_value
 
+Checks if value has been initialized to hold values of type g_type.
+
   method g_type_check_value ( N-GObject $value --> Int  )
 
 =item N-GObject $value;

@@ -1173,17 +1173,18 @@ In general, a copy is made of the property contents and the caller is responsibl
 
 =end pod
 
+#`{{
 # Following methods work properly, save it as an example for elsewhere
 # get-property() calls methods
 # get_property(), g-object-get-property() and g_object_get_property() calls subs
-#TM:2:get-property(N-GObject,Prop,Gnome::GObject::Value):xt/Object.t
+# TM:2:get-property(N-GObject,Prop,Gnome::GObject::Value):xt/Object.t
 multi method get-property (
   Str $property_name, Gnome::GObject::Value $v
 ) {
   _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
 }
 
-#TM:2:get-property(N-GObject,Prop,Int):xt/Object.t
+# TM:2:get-property(N-GObject,Prop,Int):xt/Object.t
 multi method get-property (
   Str $property_name, Int $type
   --> Gnome::GObject::Value
@@ -1195,16 +1196,22 @@ multi method get-property (
 
   $v
 }
+}}
 
-#`{{
-#TM:2:g_object_get_property(N-GObject,N-GValue):xt/Object.t
-multi sub g_object_get_property (
-  N-GObject $object, Str $property_name, Gnome::GObject::Value $v
+#TM:2:g_object_get_property(N-GObject,Str,N-GValue):xt/Object.t
+sub g_object_get_property (
+  N-GObject $object, Str $property_name, N-GValue $v
+  --> Gnome::GObject::Value
 ) {
-  _g_object_get_property( $object, $property_name, $v.get-native-gboxed);
+  my Gnome::GObject::Value $nv .= new(:init($v.g-type));
+  _g_object_get_property( $object, $property_name, $v);
+  $nv.set-native-object($nv);
+
+  $nv
 }
 
-#TM:2:g_object_get_property(N-GObject,Int):xt/Object.t
+#`{{
+#TM:2:g_object_get_property(N-GObject,Str,Int):xt/Object.t
 multi sub g_object_get_property (
   N-GObject $object, Str $property_name, Int $type
   --> Gnome::GObject::Value

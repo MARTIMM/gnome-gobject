@@ -1,9 +1,12 @@
 ## Release notes
+* 2020-01-09 0.15.8:
+  * Bugfixes in Gnome::GObject::Value, improved doc and more tests
+
 * 2019-12-13 0.15.7:
-  * Bugfixes in Object
+  * Bugfixes in Gnome::GObject::Object
 
 * 2019-12-13 0.15.6:
-  * Bugfixes in Object and Type
+  * Bugfixes in Gnome::GObject::Object and Gnome::GObject::Type
 
 * 2019-12-03 0.15.5:
   * Documentation changes
