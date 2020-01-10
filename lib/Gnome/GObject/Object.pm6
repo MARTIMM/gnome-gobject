@@ -143,7 +143,7 @@ Create an empty object
 
 =head3 multi method new ( :$widget! )
 
-Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GObject or a Perl6 widget like C< Gnome::Gtk3::Button>.
+Create a Raku widget object using a native widget from elsewhere. $widget can be a N-GObject or a Raku widget like C< Gnome::Gtk3::Button>.
 
   # Some set of radio buttons grouped together
   my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
@@ -175,7 +175,7 @@ Another example is a difficult way to get a button.
 
 =head3 multi method new ( Str :$build-id! )
 
-Create a Perl6 widget object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
+Create a Raku widget object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
 
   my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
   my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
@@ -190,7 +190,7 @@ submethod BUILD ( *%options ) {
 
   # check GTK+ init
   if not $gui-initialized {
-    # must setup gtk otherwise perl6 will crash
+    # must setup gtk otherwise Raku will crash
     my $argc = CArray[int32].new;
     $argc[0] = 1 + @*ARGS.elems;
 
@@ -773,7 +773,7 @@ multi method register-signal (
 
 #`{{
 #-------------------------------------------------------------------------------
-#TODO create p6 objects from the native objects
+#TODO create Raku objects from the native objects
 method !check-args( *@args --> List ) {
 
   my @new-args = ();
