@@ -1,9 +1,9 @@
 {
-  "description": "Perl6 Gnome gobject api, Please install Gnome::Gtk3",
+  "description": "Raku - Gnome GObject Interface, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.15.8",
+  "version": "0.15.9",
   "authors": [ "Marcel Timmerman"],
-  "tags": [ "gnome", "glib", "gobject", "GTK"],
+  "tags": [ "gnome", "glib", "gobject"],
 
   "perl": "6",
   "license": "Artistic-2.0",
@@ -19,7 +19,7 @@
     "Gnome::GObject::Value": "lib/Gnome/GObject/Value.pm6"
   },
 
-  "source-url": "git://github.com/MARTIMM/perl6-gnome-gobject.git",
+  "source-url": "git://github.com/MARTIMM/gnome-gobject.git",
 
   "depends": [ "Gnome::N", "Gnome::Glib"],
   "test-depends": [ ],

@@ -37,14 +37,14 @@ Github account name: **MARTIMM**
 There are always some problems! If you find one please help by filing an issue at [my Gnome::Gtk3 github project][issues].
 
 # Attribution
-* The inventors of Perl6 of course and the writers of the documentation which help me out every time again and again.
+* The inventors of Raku, formerly known as Perl 6, of course and the writers of the documentation which helped me out every time again and again.
 * The builders of the GTK+ library and the documentation.
 * Other helpful modules for their insight and use.
 
 [//]: # (---- [refs] ----------------------------------------------------------)
-[changes]: https://github.com/MARTIMM/perl6-gnome-gobject/blob/master/CHANGES.md
-[logo]: https://martimm.github.io/perl6-gnome-gtk3/content-docs/images/gtk-perl6.png
-[issues]: https://github.com/MARTIMM/perl6-gnome-gtk3/issues
+[changes]: https://github.com/MARTIMM/gnome-gobject/blob/master/CHANGES.md
+[logo]: https://martimm.github.io/gnome-gtk3/content-docs/images/gtk-raku.png
+[issues]: https://github.com/MARTIMM/gnome-gtk3/issues
 
 [InitiallyUnowned]: https://developer.gnome.org/gtk3/stable/ch02.html
 [Interface]: https://developer.gnome.org/gobject/stable/GTypeModule.html
@@ -56,9 +56,9 @@ There are always some problems! If you find one please help by filing an issue a
 [Value2]: https://developer.gnome.org/gobject/stable/gobject-Standard-Parameter-and-Value-Types.html
 
 [//]: # (Pod documentation rendered with)
-[//]: # (pod-render.pl6 --pdf --g=MARTIMM/perl6-gnome-gobject lib)
+[//]: # (pod-render.pl6 --pdf --g=MARTIMM/gnome-gobject lib)
 
-[Gnome::GObject::Object html]: https://nbviewer.jupyter.org/github/MARTIMM/perl6-gnome-gobject/blob/master/doc/Object.html
-[Gnome::GObject::Object pdf]: https://nbviewer.jupyter.org/github/MARTIMM/perl6-gnome-gobject/blob/master/doc/Object.pdf
-[Gnome::GObject::Signal html]: https://nbviewer.jupyter.org/github/MARTIMM/perl6-gnome-gobject/blob/master/doc/Signal.html
-[Gnome::GObject::Signal pdf]: https://nbviewer.jupyter.org/github/MARTIMM/perl6-gnome-gobject/blob/master/doc/Signal.pdf
+[Gnome::GObject::Object html]: https://nbviewer.jupyter.org/github/MARTIMM/gnome-gobject/blob/master/doc/Object.html
+[Gnome::GObject::Object pdf]: https://nbviewer.jupyter.org/github/MARTIMM/gnome-gobject/blob/master/doc/Object.pdf
+[Gnome::GObject::Signal html]: https://nbviewer.jupyter.org/github/MARTIMM/gnome-gobject/blob/master/doc/Signal.html
+[Gnome::GObject::Signal pdf]: https://nbviewer.jupyter.org/github/MARTIMM/gnome-gobject/blob/master/doc/Signal.pdf
