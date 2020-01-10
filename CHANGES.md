@@ -1,5 +1,8 @@
 ## Release notes
-* 2020-01-10 0.15.8.1:
+* 2020-01-10 0.15.9:
+  Bugfixed; There was still use of another `g_object_get_property()` from **Gnome::Gtk3**. This api was inhibited because I failed to see that a `proto () {}` was needed.
+
+* 2020-01-09 0.15.8.1:
   * Repo renaming. Perl6 to Raku.
 
 * 2020-01-09 0.15.8:
