@@ -143,7 +143,7 @@ Create an empty object
 
 =head3 multi method new ( :$widget! )
 
-Create a Perl6 widget object using a native widget from elsewhere. $widget can be a N-GObject or a Perl6 widget like C< Gnome::Gtk3::Button>.
+Create a Raku widget object using a native widget from elsewhere. $widget can be a N-GObject or a Raku widget like C< Gnome::Gtk3::Button>.
 
   # Some set of radio buttons grouped together
   my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
@@ -175,7 +175,7 @@ Another example is a difficult way to get a button.
 
 =head3 multi method new ( Str :$build-id! )
 
-Create a Perl6 widget object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
+Create a Raku widget object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
 
   my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
   my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
@@ -190,7 +190,7 @@ submethod BUILD ( *%options ) {
 
   # check GTK+ init
   if not $gui-initialized {
-    # must setup gtk otherwise perl6 will crash
+    # must setup gtk otherwise Raku will crash
     my $argc = CArray[int32].new;
     $argc[0] = 1 + @*ARGS.elems;
 
@@ -425,16 +425,19 @@ method FALLBACK ( $native-sub is copy, |c ) {
   my Array $params = [];
   my Int $pcount = 0;
   for c.list -> $p {
-    note "Substitution of parameter \[{$pcount++}]: ", $p.^name if $Gnome::N::x-debug;
+    $*ERR.printf( "Substitution of parameter \[%d]: %s", $pcount++, $p.^name)
+      if $Gnome::N::x-debug;
 
     if $p.^name ~~
           m/^ 'Gnome::' [ Gtk || Gdk || Glib || Gio || GObject ] \d? '::' / {
 
       $params.push($p());
+      $*ERR.printf( " --> %s\n", $p().^name) if $Gnome::N::x-debug;
     }
 
     else {
       $params.push($p);
+      $*ERR.printf(": No conversion\n") if $Gnome::N::x-debug;
     }
   }
 
@@ -479,7 +482,7 @@ method _fallback ( $native-sub --> Callable ) {
   }
 
   self.set-class-name-of-sub('GObject');
-  $s = callsame unless ?$s;
+#  $s = callsame unless ?$s;
 
   $s
 }
@@ -773,7 +776,7 @@ multi method register-signal (
 
 #`{{
 #-------------------------------------------------------------------------------
-#TODO create p6 objects from the native objects
+#TODO create Raku objects from the native objects
 method !check-args( *@args --> List ) {
 
   my @new-args = ();
@@ -1136,9 +1139,9 @@ sub g_object_get_valist ( N-GObject $object, Str $first_property_name, CArray[N-
 
 Sets a property on an object.
 
-method g_object_set_property (
-  Str $property_name, Gnome::GObject::Value $value
-)
+  method g_object_set_property (
+    Str $property_name, Gnome::GObject::Value $value
+  )
 
 =item Str $property_name; the name of the property to set
 =item N-GObject $value; the value
@@ -1155,59 +1158,64 @@ sub g_object_set_property (
 =begin pod
 =head2 [[g_] object_] get_property
 
-Gets a property of an object. value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed) using g_value_init().
+Gets a property of an object. The value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed).
 
 In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
+
+Next signature is used when no B<Gnome::GObject::Value> is available. The routine will create the Value using C<$gtype>.
 
   method g_object_get_property (
     Str $property_name, Int $gtype
     --> Gnome::GObject::Value
   )
 
+The following is used when a Value object is available.
+
   method g_object_get_property (
     Str $property_name, Gnome::GObject::Value $value
+    --> Gnome::GObject::Value
   )
 
 =item $property_name; the name of the property to get.
+=item $gtype; the type of the value, e.g. G_TYPE_INT.
 =item $value; the property value. The value is stored in the Value object. Use any of the getter methods of Value to get the data. Also setters are available to modify data.
+
+The methods always return a B<Gnome::GObject::Value> with the result.
+
+  my Gnome::Gtk3::Label $label .= new(:empty);
+  my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
+  $label.g-object-get-property( 'label', $gv);
+  $gv.g-value-set-string('my text label');
 
 =end pod
 
-#`{{
-# Following methods work properly, save it as an example for elsewhere
-# get-property() calls methods
-# get_property(), g-object-get-property() and g_object_get_property() calls subs
-# TM:2:get-property(N-GObject,Prop,Gnome::GObject::Value):xt/Object.t
-multi method get-property (
-  Str $property_name, Gnome::GObject::Value $v
-) {
-  _g_object_get_property( $!g-object, $property_name, $v.get-native-gboxed);
-}
+proto sub g_object_get_property (
+  N-GObject $object, Str $property_name, |
+) { * }
 
-# TM:2:get-property(N-GObject,Prop,Int):xt/Object.t
-multi method get-property (
-  Str $property_name, Int $type
+#TM:2:g_object_get-property(N-GObject,Prop,Int):xt/Object.t
+multi sub g_object_get_property (
+  $object, $property_name, Int $type
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-gboxed;
-  _g_object_get_property( $!g-object, $property_name, $nv);
-  $v.native-gboxed($nv);
+  my N-GValue $nv = $v.get-native-object;
+  _g_object_get_property( $object, $property_name, $nv);
+#  $v.set-native-object($nv);
 
   $v
 }
-}}
 
 #TM:2:g_object_get_property(N-GObject,Str,N-GValue):xt/Object.t
-sub g_object_get_property (
-  N-GObject $object, Str $property_name, N-GValue $v
+multi sub g_object_get_property (
+  $object, $property_name, N-GValue $nv
   --> Gnome::GObject::Value
 ) {
-  my Gnome::GObject::Value $nv .= new(:init($v.g-type));
-  _g_object_get_property( $object, $property_name, $v);
-  $nv.set-native-object($nv);
+  my Gnome::GObject::Value $v .= new(:init($nv.g-type));
+  _g_object_get_property( $object, $property_name, $nv);
+  $v.set-native-object($nv);
 
-  $nv
+  $v
 }
 
 #`{{
