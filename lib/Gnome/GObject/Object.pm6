@@ -579,6 +579,7 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
         $signal-types{$module-name}{$signal-name} = $signal-type;
       }
 
+      # TODO cleanup deprecated and not supported
       elsif $signal-type ~~ any(<deprecated>) {
         note "  $signal-name is deprecated" if $Gnome::N::x-debug;
       }
@@ -742,6 +743,7 @@ multi method register-signal (
         );
       }
 
+      # TODO cleanup deprecated and not supported
       when 'notsupported' {
         my Str $message = "Signal $signal-name used on $module-name" ~
           " is explicitly not supported by GTK or this package";
