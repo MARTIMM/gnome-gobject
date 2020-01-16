@@ -142,7 +142,7 @@ method get-native-gboxed ( --> Any ) is DEPRECATED('get-native-object') {
 
 #-------------------------------------------------------------------------------
 # Boxed class has no knoledge of wrapped abjects. Destroy must take place there
-method set-native-object ( Any:D $g-boxed ) {
+method set-native-object ( Any $g-boxed ) {
 
   if $g-boxed.defined {
     $!g-boxed = $g-boxed;
