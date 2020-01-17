@@ -118,6 +118,7 @@ has Str $!gtk-class-name-of-sub;
 my Array $builders = [];
 my Bool $gui-initialized = False;
 
+# TODO rename into $.is-valid
 has Bool $.gobject-is-valid = False;
 
 #-------------------------------------------------------------------------------
@@ -260,10 +261,14 @@ submethod BUILD ( *%options ) {
 }}
 
   #elsif ? %options<widget> {
-  if ? %options<widget> {
-    note "gobject widget: ", %options<widget> if $Gnome::N::x-debug;
+  if ? %options<widget> or ? %options<native-object> {
+    Gnome::N::depreate(
+      '.new(:widget)', '.new(:native-object)', '0.15.10', '0.18.0'
+    ) if %options<widget>.defined;
 
-    my $w = %options<widget>;
+    my $w = %options<widget> // %options<native-object>;
+    note "Native object: ", $w if $Gnome::N::x-debug;
+
     if $w ~~ Gnome::GObject::Object {
       $w = $w();
       note "gobject widget converted: ", $w if $Gnome::N::x-debug;
@@ -335,6 +340,7 @@ submethod BUILD ( *%options ) {
     }
   }
 
+#`{{
   # TODO remove next test when no options will mean :empty
   else {
     if %options.keys.elems == 0 {
@@ -349,6 +355,7 @@ submethod BUILD ( *%options ) {
       );
     }
   }
+}}
 
   #TODO if %options<id> add id, %options<name> add name
   #cannot add id,seems to be a builder thing.
@@ -534,6 +541,10 @@ method get-class-name ( --> Str ) {
 #TODO destroy when overwritten?
 method native-gobject ( N-GObject:D $widget --> N-GObject ) {
 
+  Gnome::N::deprecate(
+    '.native-gobject()', '.set-native-object()', '0.15.10', '0.18.0'
+  );
+
   #TODO self.g_object_unref() if ?$!g-object;
   $!g-object = $widget;
   $!gobject-is-valid = True;
@@ -547,6 +558,34 @@ method native-gobject ( N-GObject:D $widget --> N-GObject ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method get-native-gobject ( --> N-GObject ) {
+
+  Gnome::N::deprecate(
+    '.get-native-gobject()', '.get-native-object()', '0.15.10', '0.18.0'
+  );
+
+  $!g-object
+}
+
+#-------------------------------------------------------------------------------
+# Boxed class has no knoledge of wrapped abjects. Destroy must take place there
+method set-native-object ( N-GObject $g-object ) {
+
+  if $g-object.defined {
+    #TODO self.g_object_unref() if ?$!g-object;
+    $!g-object = $g-object;
+    $!gobject-is-valid = True;
+    #TODO self.g_object_ref();
+
+    # when object is set, create signal object too
+    $!g-signal .= new(:$!g-object);
+  }
+
+  # TODO, do we need: elsif ( $!is-valid ) { clear no; $!is-valid = False; } ???
+}
+
+#-------------------------------------------------------------------------------
+method get-native-object ( --> N-GObject ) {
+
   $!g-object
 }
 
