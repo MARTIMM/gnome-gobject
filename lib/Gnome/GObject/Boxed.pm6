@@ -129,14 +129,22 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
-method native-gboxed ( Any:D $g-boxed --> Any ) is DEPRECATED('set-native-object') {
+method native-gboxed ( Any:D $g-boxed --> Any ) {
+
+  Gnome::N::deprecate(
+    '.native-gboxed()', '.set-native-object()', '0.15.10', '0.18.0'
+  );
 
   $!g-boxed = $g-boxed;
   $!g-boxed
 }
 
 #-------------------------------------------------------------------------------
-method get-native-gboxed ( --> Any ) is DEPRECATED('get-native-object') {
+method get-native-gboxed ( --> Any ) {
+
+  Gnome::N::deprecate(
+    '.get-native-gboxed()', '.get-native-object()', '0.15.10', '0.18.0'
+  );
 
   $!g-boxed
 }
