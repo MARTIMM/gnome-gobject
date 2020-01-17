@@ -21,8 +21,8 @@ has Str $!gboxed-class-name;
 has Str $!gboxed-class-name-of-sub;
 
 #-------------------------------------------------------------------------------
+#`{{
 submethod BUILD (*%options ) {
-
   if %options.keys.elems == 0 {
     note 'No options used to create or set the native widget'
       if $Gnome::N::x-debug;
@@ -31,6 +31,7 @@ submethod BUILD (*%options ) {
     );
   }
 }
+}}
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
@@ -128,21 +129,29 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
-method native-gboxed ( Any:D $g-boxed --> Any ) is DEPRECATED('set-native-object') {
+method native-gboxed ( Any:D $g-boxed --> Any ) {
+
+  Gnome::N::deprecate(
+    '.native-gboxed()', '.set-native-object()', '0.15.10', '0.18.0'
+  );
 
   $!g-boxed = $g-boxed;
   $!g-boxed
 }
 
 #-------------------------------------------------------------------------------
-method get-native-gboxed ( --> Any ) is DEPRECATED('get-native-object') {
+method get-native-gboxed ( --> Any ) {
+
+  Gnome::N::deprecate(
+    '.get-native-gboxed()', '.get-native-object()', '0.15.10', '0.18.0'
+  );
 
   $!g-boxed
 }
 
 #-------------------------------------------------------------------------------
 # Boxed class has no knoledge of wrapped abjects. Destroy must take place there
-method set-native-object ( Any:D $g-boxed ) {
+method set-native-object ( Any $g-boxed ) {
 
   if $g-boxed.defined {
     $!g-boxed = $g-boxed;

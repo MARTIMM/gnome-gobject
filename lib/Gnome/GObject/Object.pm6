@@ -335,6 +335,7 @@ submethod BUILD ( *%options ) {
     }
   }
 
+  # TODO remove next test when no options will mean :empty
   else {
     if %options.keys.elems == 0 {
       note 'No options used to create or set the native widget'
@@ -579,6 +580,7 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
         $signal-types{$module-name}{$signal-name} = $signal-type;
       }
 
+      # TODO cleanup deprecated and not supported
       elsif $signal-type ~~ any(<deprecated>) {
         note "  $signal-name is deprecated" if $Gnome::N::x-debug;
       }
@@ -742,6 +744,7 @@ multi method register-signal (
         );
       }
 
+      # TODO cleanup deprecated and not supported
       when 'notsupported' {
         my Str $message = "Signal $signal-name used on $module-name" ~
           " is explicitly not supported by GTK or this package";

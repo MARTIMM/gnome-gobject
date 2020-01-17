@@ -1,6 +1,10 @@
 ## Release notes
+* 2020-01-16 0.15.10:
+  * Remove `:D` on type in call to `set-native-object()` to prevent program to crash. If statement in code added to prevent saving undefined objects.
+  * Remove test in Boxed.BUILD to accept empty options hash as being `:empty`.
+
 * 2020-01-10 0.15.9:
-  Bugfixed; There was still use of another `g_object_get_property()` from **Gnome::Gtk3**. This api was inhibited because I failed to see that a `proto () {}` was needed.
+  * Bugfixed; There was still use of another `g_object_get_property()` from **Gnome::Gtk3**. This api was inhibited because I failed to see that a `proto () {}` was needed.
 
 * 2020-01-09 0.15.8.1:
   * Repo renaming. Perl6 to Raku.
