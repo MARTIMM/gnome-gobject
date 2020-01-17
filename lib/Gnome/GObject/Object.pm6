@@ -335,6 +335,7 @@ submethod BUILD ( *%options ) {
     }
   }
 
+  # TODO remove next test when no options will mean :empty
   else {
     if %options.keys.elems == 0 {
       note 'No options used to create or set the native widget'
