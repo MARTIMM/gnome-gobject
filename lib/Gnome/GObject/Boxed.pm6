@@ -21,8 +21,8 @@ has Str $!gboxed-class-name;
 has Str $!gboxed-class-name-of-sub;
 
 #-------------------------------------------------------------------------------
+#`{{
 submethod BUILD (*%options ) {
-
   if %options.keys.elems == 0 {
     note 'No options used to create or set the native widget'
       if $Gnome::N::x-debug;
@@ -31,6 +31,7 @@ submethod BUILD (*%options ) {
     );
   }
 }
+}}
 
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
