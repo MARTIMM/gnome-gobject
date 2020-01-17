@@ -260,10 +260,14 @@ submethod BUILD ( *%options ) {
 }}
 
   #elsif ? %options<widget> {
-  if ? %options<widget> {
-    note "gobject widget: ", %options<widget> if $Gnome::N::x-debug;
+  if ? %options<widget> or ? %options<native-object> {
+    Gnome::N::depreate(
+      '.new(:widget)', '.new(:native-object)', '0.15.10', '0.18.0'
+    ) if %options<widget>.defined;
 
-    my $w = %options<widget>;
+    my $w = %options<widget> // %options<native-object>;
+    note "Native object: ", $w if $Gnome::N::x-debug;
+
     if $w ~~ Gnome::GObject::Object {
       $w = $w();
       note "gobject widget converted: ", $w if $Gnome::N::x-debug;
