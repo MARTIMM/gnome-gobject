@@ -568,15 +568,17 @@ method get-native-gobject ( --> N-GObject ) {
 # Boxed class has no knoledge of wrapped abjects. Destroy must take place there
 method set-native-object ( N-GObject $g-object ) {
 
-  #TODO self.g_object_unref() if ?$!g-object;
-  $!g-object = $widget;
-  $!gobject-is-valid = True;
-  #TODO self.g_object_ref();
-
   if $g-object.defined {
-    $!g-object = $g-boxed;
+    #TODO self.g_object_unref() if ?$!g-object;
+    $!g-object = $g-object;
     $!gobject-is-valid = True;
+    #TODO self.g_object_ref();
+
+    # when object is set, create signal object too
+    $!g-signal .= new(:$!g-object);
   }
+
+  # TODO, do we need: elsif ( $!is-valid ) { clear no; $!is-valid = False; } ???
 }
 
 #-------------------------------------------------------------------------------
