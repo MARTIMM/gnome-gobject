@@ -118,6 +118,7 @@ has Str $!gtk-class-name-of-sub;
 my Array $builders = [];
 my Bool $gui-initialized = False;
 
+# TODO rename into $.is-valid
 has Bool $.gobject-is-valid = False;
 
 #-------------------------------------------------------------------------------
@@ -538,6 +539,10 @@ method get-class-name ( --> Str ) {
 #TODO destroy when overwritten?
 method native-gobject ( N-GObject:D $widget --> N-GObject ) {
 
+  Gnome::N::deprecate(
+    '.native-gobject()', '.set-native-object()', '0.15.10', '0.18.0'
+  );
+
   #TODO self.g_object_unref() if ?$!g-object;
   $!g-object = $widget;
   $!gobject-is-valid = True;
@@ -551,6 +556,32 @@ method native-gobject ( N-GObject:D $widget --> N-GObject ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method get-native-gobject ( --> N-GObject ) {
+
+  Gnome::N::deprecate(
+    '.get-native-gobject()', '.get-native-object()', '0.15.10', '0.18.0'
+  );
+
+  $!g-object
+}
+
+#-------------------------------------------------------------------------------
+# Boxed class has no knoledge of wrapped abjects. Destroy must take place there
+method set-native-object ( N-GObject $g-object ) {
+
+  #TODO self.g_object_unref() if ?$!g-object;
+  $!g-object = $widget;
+  $!gobject-is-valid = True;
+  #TODO self.g_object_ref();
+
+  if $g-object.defined {
+    $!g-object = $g-boxed;
+    $!gobject-is-valid = True;
+  }
+}
+
+#-------------------------------------------------------------------------------
+method get-native-object ( --> N-GObject ) {
+
   $!g-object
 }
 
