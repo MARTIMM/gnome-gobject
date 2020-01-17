@@ -340,6 +340,7 @@ submethod BUILD ( *%options ) {
     }
   }
 
+#`{{
   # TODO remove next test when no options will mean :empty
   else {
     if %options.keys.elems == 0 {
@@ -354,6 +355,7 @@ submethod BUILD ( *%options ) {
       );
     }
   }
+}}
 
   #TODO if %options<id> add id, %options<name> add name
   #cannot add id,seems to be a builder thing.
