@@ -155,7 +155,7 @@ submethod BUILD ( *%options ) {
 
   # process all named arguments
   if ? %options<empty> {
-    # self.native-gobject(g_enums_new());
+    # self.set-native-object(g_enums_new());
   }
 
   elsif ? %options<widget> || %options<build-id> {

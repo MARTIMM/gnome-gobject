@@ -1,4 +1,9 @@
 ## Release notes
+* 2020-01-18 0.15.11:
+  * renaming calls to `*native-gobject()` and `*native-gboxed()`.
+  * rename `:widget` to `:native-object`.
+  * remove `:empty` and use empty options hash instead
+
 * 2020-01-16 0.15.10:
   * Remove `:D` on type in call to `set-native-object()` to prevent program to crash. If statement in code added to prevent saving undefined objects.
   * Remove test in Boxed.BUILD to accept empty options hash as being `:empty`.

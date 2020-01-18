@@ -230,7 +230,7 @@ submethod BUILD ( *%options ) {
         $v[$i] = ($vi ~~ Gnome::GObject::Value) ?? $vi.get-native-gboxed !! $vi;
       }
 
-      self.native-gobject(
+      self.set-native-object(
         g_object_new_with_properties(
           %options<type>, %options<names>.elems, $n, $v
         )
@@ -262,9 +262,12 @@ submethod BUILD ( *%options ) {
 
   #elsif ? %options<widget> {
   if ? %options<widget> or ? %options<native-object> {
-    Gnome::N::depreate(
-      '.new(:widget)', '.new(:native-object)', '0.15.10', '0.18.0'
-    ) if %options<widget>.defined;
+
+    if ?%options<widget> {
+      Gnome::N::deprecate(
+        '.new(:widget)', '.new(:native-object)', '0.15.10', '0.18.0'
+      );
+    }
 
     my $w = %options<widget> // %options<native-object>;
     note "Native object: ", $w if $Gnome::N::x-debug;
@@ -279,7 +282,7 @@ submethod BUILD ( *%options ) {
         #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
-      self.native-gobject($w);
+      self.set-native-object($w);
       $!gobject-is-valid = True;
       note "gobject widget stored" if $Gnome::N::x-debug;
     }
@@ -289,7 +292,7 @@ submethod BUILD ( *%options ) {
         #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
-      self.native-gobject(nativecast( N-GObject, $w));
+      self.set-native-object(nativecast( N-GObject, $w));
       $!gobject-is-valid = True;
       note "gobject widget cast to GObject" if $Gnome::N::x-debug;
     }
@@ -310,7 +313,7 @@ submethod BUILD ( *%options ) {
     my Array $builders = self.get-builders;
     for @$builders -> $builder {
 
-#note "B0b where: ", $builder.get-native-gobject.WHERE;
+#note "B0b where: ", $builder.get-native-object.WHERE;
       # this action does not increase object refcount, do it here.
       $widget = $builder.get-object(%options<build-id>) // N-GObject;
       #TODO self.g_object_ref();
@@ -320,7 +323,7 @@ submethod BUILD ( *%options ) {
     if ? $widget {
       note "store gobject widget: ", self.^name, ', ', $widget
         if $Gnome::N::x-debug;
-      self.native-gobject($widget);
+      self.set-native-object($widget);
     }
 
     else {
@@ -1092,7 +1095,7 @@ method g-object-setv ( Array $names, Array $values ) {
     $v[$i] = $values[$i];
   }
 
-  _g_object_setv( self.get-native-gobject, $l, $n, $v)
+  _g_object_setv( self.get-native-object, $l, $n, $v)
 }
 
 sub _g_object_setv (
