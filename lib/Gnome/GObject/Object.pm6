@@ -262,9 +262,12 @@ submethod BUILD ( *%options ) {
 
   #elsif ? %options<widget> {
   if ? %options<widget> or ? %options<native-object> {
-    Gnome::N::deprecate(
-      '.new(:widget)', '.new(:native-object)', '0.15.10', '0.18.0'
-    ) if %options<widget>.defined;
+
+    if ?%options<widget> {
+      Gnome::N::deprecate(
+        '.new(:widget)', '.new(:native-object)', '0.15.10', '0.18.0'
+      );
+    }
 
     my $w = %options<widget> // %options<native-object>;
     note "Native object: ", $w if $Gnome::N::x-debug;
