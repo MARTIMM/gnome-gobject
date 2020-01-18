@@ -227,7 +227,7 @@ submethod BUILD ( *%options ) {
       loop ( my Int $i = 0; $i < ^ %options<names>.elems; $i++ ) {
         $n[$i] = %options<names>[$i];
         my $vi = %options<values>[$i];
-        $v[$i] = ($vi ~~ Gnome::GObject::Value) ?? $vi.get-native-gboxed !! $vi;
+        $v[$i] = ($vi ~~ Gnome::GObject::Value) ?? $vi.get-native-gobject !! $vi;
       }
 
       self.set-native-object(
@@ -1270,9 +1270,9 @@ multi sub g_object_get_property (
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-gboxed;
+  my N-GValue $nv = $v.get-native-object;
   _g_object_get_property( $object, $property_name, $nv);
-  $v.native-gboxed($nv);
+  $v.set-native-object($nv);
 
   $v
 }

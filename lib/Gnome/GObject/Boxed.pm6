@@ -82,7 +82,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
     if $p.^name ~~
        m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::'/ {
 
-      $params.push($p.get-native-gboxed);
+      $params.push($p.get-native-object);
     }
 
     else {
