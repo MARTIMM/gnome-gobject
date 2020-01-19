@@ -133,7 +133,7 @@ Create a new plain object.
 
 Create an object using a native object from elsewhere. See also B<Gnome::GObject::Object>.
 
-  multi method new ( N-GObject :$widget! )
+  multi method new ( N-GObject :$native-object! )
 
 Create an object using a native object from a builder. See also B<Gnome::GObject::Object>.
 
@@ -143,12 +143,10 @@ Create an object using a native object from a builder. See also B<Gnome::GObject
 
 #TM:0:new():inheriting
 #TM:0:new(:empty):
-#TM:0:new(:widget):
+#TM:0:new(:native-object):
 #TM:0:new(:build-id):
 
 submethod BUILD ( *%options ) {
-
-
 
   # prevent creating wrong widgets
   return unless self.^name eq 'Gnome::GObject::Enums';
@@ -158,7 +156,7 @@ submethod BUILD ( *%options ) {
     # self.set-native-object(g_enums_new());
   }
 
-  elsif ? %options<widget> || %options<build-id> {
+  elsif ? %options<native-object> || %options<build-id> {
     # provided in Gnome::GObject::Object
   }
 

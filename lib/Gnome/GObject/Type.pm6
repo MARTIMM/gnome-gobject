@@ -347,7 +347,7 @@ submethod BUILD ( *%options ) {
     );
   }
 
-  # only after creating the widget, the gtype is known
+  # only after creating the native-object, the gtype is known
   #self.set-class-info('GType');
 }
 
@@ -1874,7 +1874,7 @@ GType    gtk_menu_shell_get_type       (void) G_GNUC_CONST;
 ===> my Gnome::Gtk3::Menu $menu .= new;
 ===> my $type.check-instance-cast( $menu(), $gtype)
 ===> my Gnome::Gtk3::MenuShell $menu-shell .= new(
-       :widget($type.check-instance-cast( $menu(), $gtype))
+       :native-object($type.check-instance-cast( $menu(), $gtype))
      );
 
 ===> $menu-shell.gtk_menu_shell_append($menu_item);

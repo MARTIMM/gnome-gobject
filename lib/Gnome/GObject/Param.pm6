@@ -192,6 +192,7 @@ submethod BUILD ( *%options ) {
 
   # process all named arguments
   if ? %options<empty> {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.11', '0.18.0');
     $!g-param-spec .= new;
   }
 
@@ -208,16 +209,10 @@ submethod BUILD ( *%options ) {
   }
 
   else {
-    if %options.keys.elems == 0 {
-      note 'No options used to create or set the native widget'
-        if $Gnome::N::x-debug;
-      die X::Gnome.new(
-        :message('No options used to create or set the native widget')
-      );
-    }
+    $!g-param-spec .= new;
   }
 
-  # only after creating the widget, the gtype is known
+  # only after creating the native-object, the gtype is known
 #  self.set-class-info('GParam');
 }
 
@@ -280,13 +275,10 @@ method FALLBACK ( $native-sub is copy, |c ) {
   my Array $params = [];
   for c.list -> $p {
 
-    # must handle RGBA differently because it's a structure, not a widget
-    # with a native object
-    if $p.^name ~~ m/^ 'Gnome::Gdk3::RGBA' / {
-      $params.push($p);
-    }
-
-    elsif $p.^name ~~ m/^ 'Gnome::' [ Gtk3 || Gdk3 || Glib || GObject ] '::' / {
+    if $p.^name ~~
+          m/^ 'Gnome::' [
+                Gtk3 || Gdk3 || Glib || Gio || GObject || Pango
+              ] '::' / {
       $params.push($p());
     }
 
