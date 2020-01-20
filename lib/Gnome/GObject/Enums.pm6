@@ -129,7 +129,7 @@ class N-GFlagsClass is export is repr('CStruct') {
 
 Create a new plain object.
 
-  multi method new ( Bool :empty! )
+  multi method new ( )
 
 =begin comment
 Create an object using a native object from elsewhere. See also B<Gnome::GObject::Object>.
@@ -144,7 +144,7 @@ Create an object using a native object from a builder. See also B<Gnome::GObject
 =end pod
 
 #TM:0:new():inheriting
-#TM:0:new(:empty):
+#TM:0:new():
 #TM:0:new(:native-object):
 # TM:0:new(:build-id):
 
@@ -155,6 +155,7 @@ submethod BUILD ( *%options ) {
 
   # process all named arguments
   if ? %options<empty> {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.11', '0.18.0');
     # self.set-native-object(g_enums_new());
   }
 
@@ -170,6 +171,10 @@ submethod BUILD ( *%options ) {
                ': ' ~ %options.keys.join(', ')
               )
     );
+  }
+
+  else {#if ? %options<empty> {
+    # self.set-native-object(g_enums_new());
   }
 
   # only after creating the widget, the gtype is known

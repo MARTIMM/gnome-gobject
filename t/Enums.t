@@ -13,8 +13,8 @@ my Gnome::GObject::Enums $e;
 #-------------------------------------------------------------------------------
 #`{{
 subtest 'ISA test', {
-$e .= new(:empty);
-isa-ok $e, Gnome::GObject::Enums, '.new(:empty)';
+$e .= new;
+isa-ok $e, Gnome::GObject::Enums, '.new';
 }
 
 #-------------------------------------------------------------------------------

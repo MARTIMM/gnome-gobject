@@ -81,7 +81,7 @@ This object is almost never used directly. Most of the classes inherit from this
 
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
 
-  my Gnome::Gtk3::Button $b .= new(:empty);
+  my Gnome::Gtk3::Button $b .= new;
   $gv.g-value-set-string('Open file');
   $b.g-object-set-property( 'label', $gv);
 
@@ -139,7 +139,7 @@ sub _initialize_gtk ( CArray[int32] $argc, CArray[CArray[Str]] $argv )
 Please note that this class is mostly not instantiated directly but is used indirectly when child classes are instantiated.
 
 =begin comment
-=head3 multi method new ( :empty! )
+=head3 multi method new ( )
 
 Create an empty object
 
@@ -1216,7 +1216,7 @@ The following is used when a Value object is available.
 
 The methods always return a B<Gnome::GObject::Value> with the result.
 
-  my Gnome::Gtk3::Label $label .= new(:empty);
+  my Gnome::Gtk3::Label $label .= new;
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
   $label.g-object-get-property( 'label', $gv);
   $gv.g-value-set-string('my text label');
