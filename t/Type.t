@@ -42,11 +42,6 @@ _initialize_gtk( $argc, $argv);
 
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  throws-like(
-    { my Gnome::GObject::Type $t .= new(:empty); },
-    X::Gnome, 'can not have named attributes',
-    :message(/:s cannot have any arguments/)
-  );
   my Gnome::GObject::Type $t .= new;
   isa-ok $t, Gnome::GObject::Type;
 }

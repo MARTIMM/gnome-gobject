@@ -81,7 +81,7 @@ This object is almost never used directly. Most of the classes inherit from this
 
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
 
-  my Gnome::Gtk3::Button $b .= new(:empty);
+  my Gnome::Gtk3::Button $b .= new;
   $gv.g-value-set-string('Open file');
   $b.g-object-set-property( 'label', $gv);
 
@@ -135,16 +135,19 @@ sub _initialize_gtk ( CArray[int32] $argc, CArray[CArray[Str]] $argv )
 =begin pod
 =head1 Methods
 =head2 new
+
 Please note that this class is mostly not instantiated directly but is used indirectly when child classes are instantiated.
 
 =begin comment
-=head3 multi method new ( :empty! )
+=head3 multi method new ( )
+
 Create an empty object
+
 =end comment
 
-=head3 multi method new ( :$widget! )
+=head3 multi method new ( :$native-object! )
 
-Create a Raku widget object using a native widget from elsewhere. $widget can be a N-GObject or a Raku widget like C< Gnome::Gtk3::Button>.
+Create a Raku object using a native object from elsewhere. $native-object can be a N-GObject or a Raku object like C< Gnome::Gtk3::Button>.
 
   # Some set of radio buttons grouped together
   my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
@@ -157,7 +160,7 @@ Create a Raku widget object using a native widget from elsewhere. $widget can be
   loop ( Int $i = 0; $i < $rb-list.g_slist_length; $i++ ) {
     # Get button from the list
     my Gnome::Gtk3::RadioButton $rb .= new(
-      :widget($rb-list.nth-data-gobject($i))
+      :native-object($rb-list.nth-data-gobject($i))
     );
 
     # If radio button is selected (=active) ...
@@ -171,12 +174,12 @@ Create a Raku widget object using a native widget from elsewhere. $widget can be
 Another example is a difficult way to get a button.
 
   my Gnome::Gtk3::Button $start-button .= new(
-    :widget(Gnome::Gtk3::Button.gtk_button_new_with_label('Start'))
+    :native-object(Gnome::Gtk3::Button.gtk_button_new_with_label('Start'))
   );
 
 =head3 multi method new ( Str :$build-id! )
 
-Create a Raku widget object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
+Create a Raku object object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
 
   my Gnome::Gtk3::Builder $builder .= new(:filename<my-gui.glade>);
   my Gnome::Gtk3::Button $button .= new(:build-id<my-gui-button>);
@@ -184,7 +187,7 @@ Create a Raku widget object using a B<Gnome::Gtk3::Builder>. The builder object 
 =end pod
 
 #TM:1:new():inheriting
-#TM:2:new(:widget):*
+#TM:2:new(:native-object):*
 #TM:2:new(:build-id):*
 
 submethod BUILD ( *%options ) {
@@ -227,7 +230,7 @@ submethod BUILD ( *%options ) {
       loop ( my Int $i = 0; $i < ^ %options<names>.elems; $i++ ) {
         $n[$i] = %options<names>[$i];
         my $vi = %options<values>[$i];
-        $v[$i] = ($vi ~~ Gnome::GObject::Value) ?? $vi.get-native-gboxed !! $vi;
+        $v[$i] = ($vi ~~ Gnome::GObject::Value) ?? $vi.get-native-gobject !! $vi;
       }
 
       self.set-native-object(
@@ -274,7 +277,8 @@ submethod BUILD ( *%options ) {
 
     if $w ~~ Gnome::GObject::Object {
       $w = $w();
-      note "gobject widget converted: ", $w if $Gnome::N::x-debug;
+      note "Raku object converted to a native object: ", $w
+        if $Gnome::N::x-debug;
     }
 
     if ?$w and $w ~~ N-GObject {
@@ -284,7 +288,7 @@ submethod BUILD ( *%options ) {
       }
       self.set-native-object($w);
       $!gobject-is-valid = True;
-      note "gobject widget stored" if $Gnome::N::x-debug;
+      note "native object stored" if $Gnome::N::x-debug;
     }
 
     elsif ?$w and $w ~~ NativeCall::Types::Pointer {
@@ -294,36 +298,36 @@ submethod BUILD ( *%options ) {
       }
       self.set-native-object(nativecast( N-GObject, $w));
       $!gobject-is-valid = True;
-      note "gobject widget cast to GObject" if $Gnome::N::x-debug;
+      note "native object cast to N-GObject" if $Gnome::N::x-debug;
     }
 
     else {
-      note "wrong type or undefined widget" if $Gnome::N::x-debug;
+      note "wrong type or undefined native object" if $Gnome::N::x-debug;
       if $!gobject-is-valid {
         #TODO g_object_unref($!g-object);
         $!gobject-is-valid = False;
       }
-      die X::Gnome.new(:message('Wrong type or undefined widget'));
+      die X::Gnome.new(:message('Wrong type or undefined native object'));
     }
   }
 
   elsif ? %options<build-id> {
-    my N-GObject $widget;
+    my N-GObject $native-object;
     note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
     my Array $builders = self.get-builders;
     for @$builders -> $builder {
 
 #note "B0b where: ", $builder.get-native-object.WHERE;
       # this action does not increase object refcount, do it here.
-      $widget = $builder.get-object(%options<build-id>) // N-GObject;
+      $native-object = $builder.get-object(%options<build-id>) // N-GObject;
       #TODO self.g_object_ref();
-      last if ?$widget;
+      last if ?$native-object;
     }
 
-    if ? $widget {
-      note "store gobject widget: ", self.^name, ', ', $widget
+    if ? $native-object {
+      note "store native object: ", self.^name, ', ', $native-object
         if $Gnome::N::x-debug;
-      self.set-native-object($widget);
+      self.set-native-object($native-object);
     }
 
     else {
@@ -343,23 +347,6 @@ submethod BUILD ( *%options ) {
     }
   }
 
-#`{{
-  # TODO remove next test when no options will mean :empty
-  else {
-    if %options.keys.elems == 0 {
-      note 'No options used to create or set the native widget'
-        if $Gnome::N::x-debug;
-      if $!gobject-is-valid {
-        g_object_unref($!g-object);
-        $!gobject-is-valid = False;
-      }
-      die X::Gnome.new(
-        :message('No options used to create or set the native widget')
-      );
-    }
-  }
-}}
-
   #TODO if %options<id> add id, %options<name> add name
   #cannot add id,seems to be a builder thing.
 }
@@ -367,14 +354,14 @@ submethod BUILD ( *%options ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten? g_object_unref?
-method CALL-ME ( N-GObject $widget? --> N-GObject ) {
+method CALL-ME ( N-GObject $native-object? --> N-GObject ) {
 
-  if ?$widget {
+  if ?$native-object {
     # if native object exists it will be overwritten. unref object first.
     if ?$!g-object {
       #TODO self.g_object_unref();
     }
-    $!g-object = $widget;
+    $!g-object = $native-object;
     #TODO self.g_object_ref();
   }
 
@@ -440,7 +427,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
       if $Gnome::N::x-debug;
 
     if $p.^name ~~
-          m/^ 'Gnome::' [ Gtk || Gdk || Glib || Gio || GObject ] \d? '::' / {
+          m/^ 'Gnome::' [
+                 Gtk3 || Gdk3 || Glib || Gio || GObject || Pango
+               ] '::' / {
 
       $params.push($p());
       $*ERR.printf( " --> %s\n", $p().^name) if $Gnome::N::x-debug;
@@ -542,14 +531,14 @@ method get-class-name ( --> Str ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
-method native-gobject ( N-GObject:D $widget --> N-GObject ) {
+method native-gobject ( N-GObject:D $native-object --> N-GObject ) {
 
   Gnome::N::deprecate(
     '.native-gobject()', '.set-native-object()', '0.15.10', '0.18.0'
   );
 
   #TODO self.g_object_unref() if ?$!g-object;
-  $!g-object = $widget;
+  $!g-object = $native-object;
   $!gobject-is-valid = True;
   #TODO self.g_object_ref();
 
@@ -1227,7 +1216,7 @@ The following is used when a Value object is available.
 
 The methods always return a B<Gnome::GObject::Value> with the result.
 
-  my Gnome::Gtk3::Label $label .= new(:empty);
+  my Gnome::Gtk3::Label $label .= new;
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
   $label.g-object-get-property( 'label', $gv);
   $gv.g-value-set-string('my text label');
@@ -1270,9 +1259,9 @@ multi sub g_object_get_property (
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-gboxed;
+  my N-GValue $nv = $v.get-native-object;
   _g_object_get_property( $object, $property_name, $nv);
-  $v.native-gboxed($nv);
+  $v.set-native-object($nv);
 
   $v
 }

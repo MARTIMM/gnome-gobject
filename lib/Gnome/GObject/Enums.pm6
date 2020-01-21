@@ -129,38 +129,41 @@ class N-GFlagsClass is export is repr('CStruct') {
 
 Create a new plain object.
 
-  multi method new ( Bool :empty! )
+  multi method new ( )
 
+=begin comment
 Create an object using a native object from elsewhere. See also B<Gnome::GObject::Object>.
 
-  multi method new ( N-GObject :$widget! )
+  multi method new ( N-GObject :$native-object! )
 
 Create an object using a native object from a builder. See also B<Gnome::GObject::Object>.
 
   multi method new ( Str :$build-id! )
+=end comment
 
 =end pod
 
 #TM:0:new():inheriting
-#TM:0:new(:empty):
-#TM:0:new(:widget):
-#TM:0:new(:build-id):
+#TM:0:new():
+#TM:0:new(:native-object):
+# TM:0:new(:build-id):
 
 submethod BUILD ( *%options ) {
-
-
 
   # prevent creating wrong widgets
   return unless self.^name eq 'Gnome::GObject::Enums';
 
   # process all named arguments
   if ? %options<empty> {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.11', '0.18.0');
     # self.set-native-object(g_enums_new());
   }
 
-  elsif ? %options<widget> || %options<build-id> {
+#`{{
+  elsif ? %options<native-object> || ? %options<widget> || %options<build-id> {
     # provided in Gnome::GObject::Object
   }
+}}
 
   elsif %options.keys.elems {
     die X::Gnome.new(
@@ -170,12 +173,16 @@ submethod BUILD ( *%options ) {
     );
   }
 
+  else {#if ? %options<empty> {
+    # self.set-native-object(g_enums_new());
+  }
+
   # only after creating the widget, the gtype is known
   self.set-class-info('GEnums');
 }
 
 #-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
+#TODO no FALBACK ?? test subs below! # no pod. user does not have to know about it.
 method _fallback ( $native-sub is copy --> Callable ) {
 
   my Callable $s;
@@ -188,7 +195,6 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
   $s;
 }
-
 
 #-------------------------------------------------------------------------------
 #TM:0:g_enum_get_value:
