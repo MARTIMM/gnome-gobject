@@ -3,6 +3,7 @@
   * renaming calls to `*native-gobject()` and `*native-gboxed()`.
   * rename `:widget` to `:native-object`.
   * remove `:empty` and use empty options hash instead
+  * rename `:gvalue` to `:native-object`. and add `clear-object()` and `DESTROY()`.
 
 * 2020-01-16 0.15.10:
   * Remove `:D` on type in call to `set-native-object()` to prevent program to crash. If statement in code added to prevent saving undefined objects.

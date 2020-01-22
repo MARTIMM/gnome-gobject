@@ -249,7 +249,16 @@ submethod BUILD ( *%options ) {
   }
 
   elsif %options<gvalue> ~~ N-GValue {
+    Gnome::N::deprecate(
+      '.new(:gvalue)', '.new(:native-object)', '0.15.11', '0.18.0'
+    );
+
     $new-object = %options<gvalue>;
+  }
+
+  elsif ?%options<native-object> {
+    $new-object = %options<native-object>;
+    $new-object .= get-native-object if $new-object ~~ Gnome::GObject::Value;
   }
 
   elsif %options.keys.elems {
@@ -292,6 +301,29 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s = callsame unless ?$s;
 
   $s;
+}
+
+#-------------------------------------------------------------------------------
+submethod DESTROY {
+  g_value_unset(self.get-native-object) if self.is-valid;
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:clear-object
+=begin pod
+=head2 clear-object
+
+Clear and invalidate Value object
+
+  method clear-object
+
+=end pod
+
+method clear-object ( ) {
+  if self.is-valid {
+    g_value_unset(self.get-native-object);
+    self.set-valid(False);
+  }
 }
 
 #-------------------------------------------------------------------------------
