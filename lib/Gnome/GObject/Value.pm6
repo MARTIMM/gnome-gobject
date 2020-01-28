@@ -205,7 +205,7 @@ Create an object using a native object from elsewhere.
 
 #TM:1:new(:init):
 #TM:1:new(:type,:value):
-#TM:1:new(:gvalue):
+#TM:1:new(:native-object):
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -365,7 +365,7 @@ sub g_value_copy ( N-GValue $src_value --> Gnome::GObject::Value ) {
 note "type: ", $src_value.g-type;
   my N-GValue $nv .= new(:init($src_value.g-type));
   _g_value_copy( $src_value, $nv);
-  Gnome::GObject::Value.new(:gvalue($nv))
+  Gnome::GObject::Value.new(:native-object($nv))
 }
 
 sub _g_value_copy ( N-GValue $src_value, N-GValue $dest_value is rw )

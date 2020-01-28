@@ -139,15 +139,18 @@ sub _initialize_gtk ( CArray[int32] $argc, CArray[CArray[Str]] $argv )
 Please note that this class is mostly not instantiated directly but is used indirectly when child classes are instantiated.
 
 =begin comment
-=head3 multi method new ( )
 
 Create an empty object
 
+  multi method new ( )
+
 =end comment
 
-=head3 multi method new ( :$native-object! )
+Create a Raku object using a native object from elsewhere. C<$native-object> can be an C<N-GObject> or a Raku object like C< Gnome::Gtk3::Button>. In some cases methods can return a C<Pointer>. When this C<Pointer> represents an C<N-GObject> it can be used too.
 
-Create a Raku object using a native object from elsewhere. $native-object can be a N-GObject or a Raku object like C< Gnome::Gtk3::Button>.
+  multi method new ( :$native-object! )
+
+An example where a C<Pointer> is returned from the C<.nth-data()> method in the singly linked list C<$rb-list>.
 
   # Some set of radio buttons grouped together
   my Gnome::Gtk3::RadioButton $rb1 .= new(:label('Download everything'));
@@ -160,7 +163,7 @@ Create a Raku object using a native object from elsewhere. $native-object can be
   loop ( Int $i = 0; $i < $rb-list.g_slist_length; $i++ ) {
     # Get button from the list
     my Gnome::Gtk3::RadioButton $rb .= new(
-      :native-object($rb-list.nth-data-gobject($i))
+      :native-object($rb-list.nth-data($i))
     );
 
     # If radio button is selected (=active) ...
@@ -171,11 +174,6 @@ Create a Raku object using a native object from elsewhere. $native-object can be
     }
   }
 
-Another example is a difficult way to get a button.
-
-  my Gnome::Gtk3::Button $start-button .= new(
-    :native-object(Gnome::Gtk3::Button.gtk_button_new_with_label('Start'))
-  );
 
 =head3 multi method new ( Str :$build-id! )
 
