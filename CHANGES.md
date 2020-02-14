@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-02-14 0.15.12:
+  Add possibility to use named arguments on functions to native calls. A native call does not handle named arguments but a native sub is sometimes wrapped in another sub. The wrapper sub can handle those arguments to do special work. An example of this is `gtk_container_foreach()` where a user provided callback routine is called. This routine can get those named arguments as extra info.
+
 * 2020-01-18 0.15.11:
   * renaming calls to `*native-gobject()` and `*native-gboxed()`.
   * rename `:widget` to `:native-object`.
