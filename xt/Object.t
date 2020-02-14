@@ -1,10 +1,12 @@
 use v6;
+use lib '../gnome-gtk3/lib';
 use NativeCall;
 use Test;
 
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
 use Gnome::Gtk3::Button;
+use Gnome::Gtk3::Label;
 
 use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -45,5 +47,22 @@ subtest 'properties', {
   is @pv[0].bool, 1, '.g-object-get() boolean';
 }}
 }
+
+#-------------------------------------------------------------------------------
+class X {
+  method cb ( $nw, :$test = '???' ) {
+    my Gnome::Gtk3::Widget $w .= new(:native-object($nw));
+    is $w.widget-get-name(), 'GtkLabel', 'the one and only widget in a button';
+
+    my Gnome::Gtk3::Label $l .= new(:native-object($nw));
+    is $l.get-text, $test, 'label is ok';
+  }
+}
+
+subtest 'container', {
+  my Gnome::Gtk3::Button $b .= new(:label<Start>);
+  $b.container-foreach( X.new, 'cb', :test<Start>, :test2<x>, :test3<y>);
+}
+
 #-------------------------------------------------------------------------------
 done-testing;
