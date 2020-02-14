@@ -1,5 +1,5 @@
 use v6;
-use lib '../gnome-gtk3/lib';
+#use lib '../gnome-gtk3/lib';
 use NativeCall;
 use Test;
 
