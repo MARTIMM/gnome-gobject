@@ -378,7 +378,7 @@ method CALL-ME ( N-GObject $native-object? --> N-GObject ) {
 # like '$label.gtk_label_get_text()' or '$label.get_text()'. As an extra
 # feature dashes can be used instead of underscores, so '$label.get-text()'
 # works too.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   state Hash $cache = %();
 
@@ -418,23 +418,20 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or other *SomeThing object.
-  my Array $params = [];
-  my Int $pcount = 0;
-  for c.list -> $p {
-    $*ERR.printf( "Substitution of parameter \[%d]: %s", $pcount++, $p.^name)
+  loop ( my Int $i = 0; $i < @params.elems; $i++ ) {
+    $*ERR.printf( "Substitution of parameter \[%d]: %s", $i, @params[$i].^name)
       if $Gnome::N::x-debug;
 
-    if $p.^name ~~
+    if @params[$i].^name ~~
           m/^ 'Gnome::' [
                  Gtk3 || Gdk3 || Glib || Gio || GObject || Pango
                ] '::' / {
 
-      $params.push($p());
-      $*ERR.printf( " --> %s\n", $p().^name) if $Gnome::N::x-debug;
+      @params[$i] = @params[$i].get-native-object;
+      $*ERR.printf( " --> %s\n", @params[$i].^name) if $Gnome::N::x-debug;
     }
 
     else {
-      $params.push($p);
       $*ERR.printf(": No conversion\n") if $Gnome::N::x-debug;
     }
   }
@@ -445,7 +442,6 @@ method FALLBACK ( $native-sub is copy, |c ) {
   # belongs to Gnome::Gtk::Widget.
   my $g-object-cast;
 
-#note "type class: $!gtk-class-gtype, $!gtk-class-name, $!gtk-class-name-of-sub";
   #TODO Not all classes have $!gtk-class-* defined so we need to test it
   if ?$!gtk-class-gtype and ?$!gtk-class-name and ?$!gtk-class-name-of-sub and
      $!gtk-class-name ne $!gtk-class-name-of-sub {
@@ -458,7 +454,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
     );
   }
 
-  test-call( $s, $g-object-cast // $!g-object, |$params)
+  test-call( $s, $g-object-cast // $!g-object, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
