@@ -214,6 +214,7 @@ method _convert_g_signal_connect_object (
 
   my Callable $f = nativecast( $signature, $ptr);
 
+  # always return something
   $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
 }
 

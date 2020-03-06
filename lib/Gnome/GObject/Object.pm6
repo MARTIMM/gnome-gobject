@@ -418,23 +418,7 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or other *SomeThing object.
-  loop ( my Int $i = 0; $i < @params.elems; $i++ ) {
-    $*ERR.printf( "Substitution of parameter \[%d]: %s", $i, @params[$i].^name)
-      if $Gnome::N::x-debug;
-
-    if @params[$i].^name ~~
-          m/^ 'Gnome::' [
-                 Gtk3 || Gdk3 || Glib || Gio || GObject || Pango
-               ] '::' / {
-
-      @params[$i] = @params[$i].get-native-object;
-      $*ERR.printf( " --> %s\n", @params[$i].^name) if $Gnome::N::x-debug;
-    }
-
-    else {
-      $*ERR.printf(": No conversion\n") if $Gnome::N::x-debug;
-    }
-  }
+  convert-to-natives(@params);
 
   # cast to other gtk object type if the found subroutine is from another
   # gtk object type than the native object stored at $!g-object. This happens
@@ -721,13 +705,25 @@ multi method register-signal (
     %named-args<widget> = $current-object;
 
     sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
-      $handler-object."$handler-name"(|%named-args);
+      if $sh.signature.returns ~~ Mu {
+        $handler-object."$handler-name"(|%named-args) // 1
+      }
+
+      else {
+        $handler-object."$handler-name"(|%named-args)
+      }
     }
 
     sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
 #      my List @converted-args = self!check-args($h0);
 #      $handler-object."$handler-name"( |@converted-args, |%named-args);
-      $handler-object."$handler-name"( $h0, |%named-args);
+      if $sh.signature.returns ~~ Mu {
+        $handler-object."$handler-name"( $h0, |%named-args) // 1
+      }
+
+      else {
+        $handler-object."$handler-name"( $h0, |%named-args)
+      }
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
