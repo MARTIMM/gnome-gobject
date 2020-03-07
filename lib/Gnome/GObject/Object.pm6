@@ -351,6 +351,7 @@ submethod BUILD ( *%options ) {
   #cannot add id,seems to be a builder thing.
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten? g_object_unref?
@@ -367,6 +368,7 @@ method CALL-ME ( N-GObject $native-object? --> N-GObject ) {
 
   $!g-object
 }
+}}
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.

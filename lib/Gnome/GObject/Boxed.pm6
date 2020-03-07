@@ -33,6 +33,7 @@ submethod BUILD (*%options ) {
 }
 }}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TODO destroy when overwritten?
 method CALL-ME ( $g-boxed? --> Any ) {
@@ -43,9 +44,9 @@ method CALL-ME ( $g-boxed? --> Any ) {
 
   $!g-boxed
 }
-
+}}
 #-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
@@ -73,6 +74,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 #    return;
 #  }
 
+#`{{
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or GlibSomeThing object
   my Array $params = [];
@@ -89,6 +91,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
       $params.push($p);
     }
   }
+}}
 
   # cast to other g object type if the found subroutine is from another
   # gtk object type than the native object stored at $!g-boxed. This happens
@@ -111,7 +114,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
     );
   }
 
-  test-call( $s, $!g-boxed, |$params)
+  convert-to-natives(@params);
+  test-call( $s, $!g-boxed, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
