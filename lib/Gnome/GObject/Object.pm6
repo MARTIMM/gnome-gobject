@@ -274,7 +274,7 @@ submethod BUILD ( *%options ) {
     note "Native object: ", $w if $Gnome::N::x-debug;
 
     if $w ~~ Gnome::GObject::Object {
-      $w = $w();
+      $w .= get-native-object;
       note "Raku object converted to a native object: ", $w
         if $Gnome::N::x-debug;
     }
@@ -347,23 +347,6 @@ submethod BUILD ( *%options ) {
 
   #TODO if %options<id> add id, %options<name> add name
   #cannot add id,seems to be a builder thing.
-}
-
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-#TODO destroy when overwritten? g_object_unref?
-method CALL-ME ( N-GObject $native-object? --> N-GObject ) {
-
-  if ?$native-object {
-    # if native object exists it will be overwritten. unref object first.
-    if ?$!g-object {
-      #TODO self.g_object_unref();
-    }
-    $!g-object = $native-object;
-    #TODO self.g_object_ref();
-  }
-
-  $!g-object
 }
 
 #-------------------------------------------------------------------------------
@@ -460,7 +443,6 @@ method _fallback ( $native-sub --> Callable ) {
   }
 
   self.set-class-name-of-sub('GObject');
-#  $s = callsame unless ?$s;
 
   $s
 }

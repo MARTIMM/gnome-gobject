@@ -174,6 +174,8 @@ class GParamSpecTypeInfo is export is repr('CStruct') {
 #-------------------------------------------------------------------------------
 has N-GParamSpec $!g-param-spec;
 
+has Bool $.is-valid = False;
+
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
@@ -194,10 +196,18 @@ submethod BUILD ( *%options ) {
   if ? %options<empty> {
     Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.11', '0.18.0');
     $!g-param-spec .= new;
+    $!is-valid = ?$!g-param-spec;
   }
 
   elsif ? %options<gparam> {
+    Gnome::N::deprecate( '.new(:gparam)', '.new(:native-object)', '0.15.14.1', '0.18.0');
     $!g-param-spec = %options<gparam>;
+    $!is-valid = ?$!g-param-spec;
+  }
+
+  elsif ? %options<native-object> {
+    $!g-param-spec = %options<native-object>;
+    $!is-valid = ?$!g-param-spec;
   }
 
   elsif %options.keys.elems {
@@ -210,27 +220,11 @@ submethod BUILD ( *%options ) {
 
   else {
     $!g-param-spec .= new;
+    $!is-valid = ?$!g-param-spec;
   }
 
   # only after creating the native-object, the gtype is known
 #  self.set-class-info('GParam');
-}
-
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-#TODO destroy when overwritten? g_object_unref?
-method CALL-ME ( N-GObject $gparam? --> N-GParamSpec ) {
-
-  if ?$gparam {
-    # if native object exists it will be overwritten. unref object first.
-    if !$!g-param-spec {
-      #TODO self.g_object_unref();
-    }
-    $!g-param-spec = $gparam;
-    #TODO self.g_object_ref();
-  }
-
-  $!g-param-spec
 }
 
 #-------------------------------------------------------------------------------
@@ -245,20 +239,13 @@ method CALL-ME ( N-GObject $gparam? --> N-GParamSpec ) {
 # like '$label.gtk_label_get_text()' or '$label.get_text()'. As an extra
 # feature dashes can be used instead of underscores, so '$label.get-text()'
 # works too.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
   # convert all dashes to underscores if there are any. then check if
   # name is not too short.
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
-#`{{
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short." ~
-      " Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') // -1 >= 0;
-}}
 
   # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
@@ -269,23 +256,6 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   die X::Gnome.new(:message("Native sub '$native-sub' not found"))
       unless $s.defined;
-
-  # User convenience substitutions to get a native object instead of
-  # a GtkSomeThing or other *SomeThing object.
-  my Array $params = [];
-  for c.list -> $p {
-
-    if $p.^name ~~
-          m/^ 'Gnome::' [
-                Gtk3 || Gdk3 || Glib || Gio || GObject || Pango
-              ] '::' / {
-      $params.push($p());
-    }
-
-    else {
-      $params.push($p);
-    }
-  }
 
   # cast to other gtk object type if the found subroutine is from another
   # gtk object type than the native object stored at $!g-object. This happens
@@ -308,7 +278,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   test-call( $s, $g-object-cast // $!g-object, |$params)
 }}
-  test-call( $s, $!g-param-spec, |$params)
+  convert-to-natives(@params);
+  test-call( $s, $!g-param-spec, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
@@ -326,9 +297,50 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#-------------------------------------------------------------------------------
+method get-native-object ( --> N-GParamSpec ) {
+
+  $!g-param-spec
+}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_param_spec_ref:
+method set-native-object ( N-GParamSpec $g-param-spec ) {
+
+  if $g-param-spec.defined {
+    _g_param_spec_unref($!g-param-spec) if $!g-param-spec.defined;
+    $!g-param-spec = $g-param-spec;
+    $!is-valid = True;
+  }
+}
+
+#-------------------------------------------------------------------------------
+#TM:0:clear-object
+=begin pod
+=head2 clear-object
+
+Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
+
+  method clear-object ()
+
+=end pod
+
+method clear-object ( ) {
+
+  if $!is-valid {
+    _g_param_spec_unref($!g-param-spec);
+    $!is-valid = False;
+    $!g-param-spec = N-GParamSpec;
+  }
+}
+
+#-------------------------------------------------------------------------------
+submethod DESTROY ( ) {
+  _g_param_spec_unref($!g-param-spec) if $!is-valid;
+}
+
+#-------------------------------------------------------------------------------
+#TM:0:_g_param_spec_ref:
+#`{{
 =begin pod
 =head2 [[g_] param_] spec_ref
 
@@ -341,14 +353,17 @@ Returns: the I<N-GParamSpec> that was passed into this function
 =item N-GParamSpec $pspec; a valid I<N-GParamSpec>
 
 =end pod
+}}
 
-sub g_param_spec_ref ( N-GParamSpec $pspec )
+sub _g_param_spec_ref ( N-GParamSpec $pspec )
   returns N-GParamSpec
   is native(&gobject-lib)
+  is symbol('g_param_spec_ref')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_param_spec_unref:
+#TM:0:_g_param_spec_unref:
+#`{{
 =begin pod
 =head2 [[g_] param_] spec_unref
 
@@ -359,9 +374,11 @@ Decrements the reference count of a I<pspec>.
 =item N-GParamSpec $pspec; a valid I<N-GParamSpec>
 
 =end pod
+}}
 
-sub g_param_spec_unref ( N-GParamSpec $pspec )
+sub _g_param_spec_unref ( N-GParamSpec $pspec )
   is native(&gobject-lib)
+  is symbol('g_param_spec_unref')
   { * }
 
 #-------------------------------------------------------------------------------
