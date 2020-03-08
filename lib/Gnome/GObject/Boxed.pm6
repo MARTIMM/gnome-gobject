@@ -33,18 +33,6 @@ submethod BUILD (*%options ) {
 }
 }}
 
-#`{{
-#-------------------------------------------------------------------------------
-#TODO destroy when overwritten?
-method CALL-ME ( $g-boxed? --> Any ) {
-
-  if ?$g-boxed {
-    $!g-boxed = $g-boxed;
-  }
-
-  $!g-boxed
-}
-}}
 #-------------------------------------------------------------------------------
 method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
@@ -53,12 +41,6 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
   # convert all dashes to underscores if there are any. then check if
   # name is not too short.
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
-#`{{
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') >= 0;
-}}
 
   # check if there are underscores in the name. then the name is not too short.
   my Callable $s;
@@ -69,29 +51,6 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   die X::Gnome.new(:message("Native sub '$native-sub' not found"))
       unless $s.defined;
-#  unless $s.defined {
-#    note "Native sub '$native-sub' not found";
-#    return;
-#  }
-
-#`{{
-  # User convenience substitutions to get a native object instead of
-  # a GtkSomeThing or GlibSomeThing object
-  my Array $params = [];
-  for c.list -> $p {
-    note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
-
-    if $p.^name ~~
-       m/^ 'Gnome::' [ Gtk || Gdk || Glib || GObject ] \d? '::'/ {
-
-      $params.push($p.get-native-object);
-    }
-
-    else {
-      $params.push($p);
-    }
-  }
-}}
 
   # cast to other g object type if the found subroutine is from another
   # gtk object type than the native object stored at $!g-boxed. This happens
@@ -156,6 +115,11 @@ method get-native-gboxed ( --> Any ) {
 #-------------------------------------------------------------------------------
 # Boxed class has no knoledge of wrapped abjects. Destroy must take place there
 method set-native-object ( Any $g-boxed ) {
+
+#TODO destroy when overwritten?
+#TODO clear-object call into child methods? something like an abstract method
+#TODO method clear-object ( ) { !!! }.
+#TODO This removes the need to set/clear is-valid using calls to methods
 
   if $g-boxed.defined {
     $!g-boxed = $g-boxed;

@@ -351,25 +351,6 @@ submethod BUILD ( *%options ) {
   #cannot add id,seems to be a builder thing.
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-#TODO destroy when overwritten? g_object_unref?
-method CALL-ME ( N-GObject $native-object? --> N-GObject ) {
-
-  if ?$native-object {
-    # if native object exists it will be overwritten. unref object first.
-    if ?$!g-object {
-      #TODO self.g_object_unref();
-    }
-    $!g-object = $native-object;
-    #TODO self.g_object_ref();
-  }
-
-  $!g-object
-}
-}}
-
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #
@@ -464,7 +445,6 @@ method _fallback ( $native-sub --> Callable ) {
   }
 
   self.set-class-name-of-sub('GObject');
-#  $s = callsame unless ?$s;
 
   $s
 }
