@@ -276,7 +276,7 @@ submethod BUILD ( *%options ) {
     note "Native object: ", $w if $Gnome::N::x-debug;
 
     if $w ~~ Gnome::GObject::Object {
-      $w = $w();
+      $w .= get-native-object;
       note "Raku object converted to a native object: ", $w
         if $Gnome::N::x-debug;
     }
