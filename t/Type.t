@@ -57,22 +57,24 @@ subtest 'Manipulations', {
 #    :instance_size(), :n_preallocs(0),
 #  );
 
-Gnome::N::debug(:on);
+#Gnome::N::debug(:on);
   my Gnome::GObject::Type $t .= new;
 #  $t.register-static( );
   my Int $gtype = $t.from-name('GtkButton');
-  is $t.g-type-name($gtype), 'GtkButton', "gtype $gtype is a GtkButton type";
+  is $t.g-type-name($gtype), 'GtkButton',
+     "gtype 0x$gtype.base(16) is a GtkButton type";
 
   my Int $x-gtype = $t.g-type-parent($gtype);
-  is $t.g-type-name($x-gtype), 'GtkBin', "gtype $x-gtype is a GtkBin type";
+  is $t.g-type-name($x-gtype), 'GtkBin',
+     "gtype 0x$x-gtype.base(16) is a GtkBin type";
 
   $x-gtype = $t.g-type-parent($x-gtype);
   is $t.g-type-name($x-gtype), 'GtkContainer',
-     "gtype $x-gtype is a GtkContainer type";
+     "gtype 0x$x-gtype.base(16) is a GtkContainer type";
 
   $x-gtype = $t.g-type-parent($x-gtype);
   is $t.g-type-name($x-gtype), 'GtkWidget',
-     "gtype $x-gtype is a GtkWidget type";
+     "gtype 0x$x-gtype.base(16) is a GtkWidget type";
 
   is $t.g-type-depth($gtype), 6, 'GtkButton typedepth is 6';
   is $t.g-type-depth($x-gtype), 3, 'GtkWidget typedepth is 3';

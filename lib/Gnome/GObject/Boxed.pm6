@@ -81,8 +81,8 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 method _fallback ( $native-sub is copy --> Callable ) {
 
 #  my Callable $s;
-#  try { $s = &::($native-sub); }
-#  try { $s = &::("g_type_module_$native-sub"); } unless ?$s;
+#  try { $s = &::("g_$native-sub"); }
+#  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
 #  $s = callsame unless ?$s;
 
