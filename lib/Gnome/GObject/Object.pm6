@@ -119,7 +119,7 @@ my Array $builders = [];
 my Bool $gui-initialized = False;
 
 # TODO rename into $.is-valid
-has Bool $.gobject-is-valid = False;
+has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
@@ -238,14 +238,14 @@ submethod BUILD ( *%options ) {
           %options<type>, %options<names>.elems, $n, $v
         )
       );
-      $!gobject-is-valid = $!g-object.defined
+      $!is-valid = $!g-object.defined
     }
 
     else {
 
-      if $!gobject-is-valid {
+      if $!is-valid {
         #TODO g_object_unref($!g-object);
-        $!gobject-is-valid = False;
+        $!is-valid = False;
       }
 
       note 'names array wrong type'
@@ -282,30 +282,30 @@ submethod BUILD ( *%options ) {
     }
 
     if ?$w and $w ~~ N-GObject {
-      if $!gobject-is-valid {
+      if $!is-valid {
         #TODO g_object_unref($!g-object);
-        $!gobject-is-valid = False;
+        $!is-valid = False;
       }
       self.set-native-object($w);
-      $!gobject-is-valid = True;
+      $!is-valid = True;
       note "native object stored" if $Gnome::N::x-debug;
     }
 
     elsif ?$w and $w ~~ NativeCall::Types::Pointer {
-      if $!gobject-is-valid {
+      if $!is-valid {
         #TODO g_object_unref($!g-object);
-        $!gobject-is-valid = False;
+        $!is-valid = False;
       }
       self.set-native-object(nativecast( N-GObject, $w));
-      $!gobject-is-valid = True;
+      $!is-valid = True;
       note "native object cast to N-GObject" if $Gnome::N::x-debug;
     }
 
     else {
       note "wrong type or undefined native object" if $Gnome::N::x-debug;
-      if $!gobject-is-valid {
+      if $!is-valid {
         #TODO g_object_unref($!g-object);
-        $!gobject-is-valid = False;
+        $!is-valid = False;
       }
       die X::Gnome.new(:message('Wrong type or undefined native object'));
     }
@@ -334,9 +334,9 @@ submethod BUILD ( *%options ) {
       note "builder id '%options<build-id>' not found in any of the builders"
         if $Gnome::N::x-debug;
 
-      if $!gobject-is-valid {
+      if $!is-valid {
         g_object_unref($!g-object);
-        $!gobject-is-valid = False;
+        $!is-valid = False;
       }
 
       die X::Gnome.new(
@@ -501,7 +501,7 @@ method native-gobject ( N-GObject:D $native-object --> N-GObject ) {
 
   #TODO self.g_object_unref() if ?$!g-object;
   $!g-object = $native-object;
-  $!gobject-is-valid = True;
+  $!is-valid = True;
   #TODO self.g_object_ref();
 
   # when object is set, create signal object too
@@ -527,7 +527,7 @@ method set-native-object ( N-GObject $g-object ) {
   if $g-object.defined {
     #TODO self.g_object_unref() if ?$!g-object;
     $!g-object = $g-object;
-    $!gobject-is-valid = True;
+    $!is-valid = True;
     #TODO self.g_object_ref();
 
     # when object is set, create signal object too
