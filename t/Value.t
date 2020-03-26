@@ -28,7 +28,9 @@ subtest 'ISA test', {
 
   $v.g_value_unset;
   ok $v.get-native-object.g-type == G_TYPE_INVALID, '.g_value_unset()';
-  nok $v.is-valid, '.is-valid() False after unset';
+
+  $v.clear-object;
+  nok $v.is-valid, '.clear-object()';
 }
 
 #-------------------------------------------------------------------------------

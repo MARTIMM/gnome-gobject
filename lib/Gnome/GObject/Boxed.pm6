@@ -2,23 +2,26 @@ use v6;
 use NativeCall;
 
 use Gnome::N::X;
+use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
+use Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gboxed.h
 # https://developer.gnome.org/gobject/stable/gobject-Boxed-Types.html
 unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 # No type specified. GBoxed is a wrapper for any structure
-has Any $!g-boxed;
+#has Any $!g-boxed;
 
 # Wrapped object is not valid
-has Bool $.is-valid = False;
+#has Bool $.is-valid = False;
 
-has Int $!gboxed-class-gtype;
-has Str $!gboxed-class-name;
-has Str $!gboxed-class-name-of-sub;
+#has Int $!gboxed-class-gtype;
+#has Str $!gboxed-class-name;
+#has Str $!gboxed-class-name-of-sub;
 
 #-------------------------------------------------------------------------------
 #`{{
@@ -33,6 +36,7 @@ submethod BUILD (*%options ) {
 }
 }}
 
+#`{{
 #-------------------------------------------------------------------------------
 method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
@@ -76,6 +80,7 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
   convert-to-natives(@params);
   test-call( $s, $!g-boxed, |@params, |%named-params)
 }
+}}
 
 #-------------------------------------------------------------------------------
 method _fallback ( $native-sub is copy --> Callable ) {
@@ -98,8 +103,11 @@ method native-gboxed ( Any:D $g-boxed --> Any ) {
     '.native-gboxed()', '.set-native-object()', '0.15.10', '0.18.0'
   );
 
-  $!g-boxed = $g-boxed;
-  $!g-boxed
+  self.set-native-object($g-boxed) if ? $g-boxed;
+  self.get-native-object
+
+#  $!g-boxed = $g-boxed;
+#  $!g-boxed
 }
 
 #-------------------------------------------------------------------------------
@@ -109,9 +117,11 @@ method get-native-gboxed ( --> Any ) {
     '.get-native-gboxed()', '.get-native-object()', '0.15.10', '0.18.0'
   );
 
-  $!g-boxed
+  self.get-native-object
+#  $!g-boxed
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 # Boxed class has no knoledge of wrapped abjects. Destroy must take place there
 method set-native-object ( Any $g-boxed ) {
@@ -144,13 +154,15 @@ Returns True if native boxed object is valid, otherwise C<False>.
   method is-valid ( --> Bool )
 
 =end pod
+}}
 
 #-------------------------------------------------------------------------------
 # no info to the user!
-method set-valid ( Bool $v = False ) {
-  $!is-valid = $v;
-}
+#method set-valid ( Bool $v = False ) {
+#  $!is-valid = $v;
+#}
 
+#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method set-class-info ( Str:D $!gboxed-class-name ) {
@@ -195,3 +207,17 @@ sub _g_type_from_name ( Str $name )
   is native(&gobject-lib)
   is symbol('g_type_from_name')
   { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+# ? no ref/unref for a all boxed types must be
+method native-object-ref ( $n-native-object --> Any ) {
+  $n-native-object
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $n-native-object ) {
+#  _g_..._free($n-native-object)
+}
+}}
