@@ -785,7 +785,7 @@ multi method register-signal (
           $no, $signal-name, $sh, %shkeys{$signal-type}
         );
       }
-
+#`{{
       # TODO cleanup deprecated and not supported
       when 'notsupported' {
         my Str $message = "Signal $signal-name used on $module-name" ~
@@ -809,6 +809,7 @@ multi method register-signal (
         note $message;
         return False;
       }
+}}
     }
 
     True
