@@ -213,7 +213,10 @@ submethod BUILD ( *%options ) {
 
   my Any $new-object;
 
-  if ? %options<init> {
+  if self.is-valid { }
+
+
+  elsif ? %options<init> {
     $new-object = g_value_init( N-GValue.new, %options<init>);
   }
 
@@ -255,7 +258,7 @@ submethod BUILD ( *%options ) {
 
     $new-object = %options<gvalue>;
   }
-
+#`{{
   elsif ?%options<native-object> {
     $new-object = %options<native-object>;
     $new-object .= get-native-object if $new-object ~~ Gnome::GObject::Value;
@@ -268,6 +271,7 @@ submethod BUILD ( *%options ) {
               )
     );
   }
+}}
 
   if $new-object.defined {
 #`{{
@@ -294,9 +298,9 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
   # when g_value_unset() is called, the native object is invalid after
   # the call, so invalidate beforehand.
-  if ?$s and $native-sub ~~ m/ 'g_'? 'value_'? 'unset' / {
+#  if ?$s and $native-sub ~~ m/ 'g_'? 'value_'? 'unset' / {
 #    self.set-valid(False);
-  }
+#  }
 
   self.set-class-name-of-sub('GValue');
   $s = callsame unless ?$s;
