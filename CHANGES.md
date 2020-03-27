@@ -1,4 +1,10 @@
 ## Release notes
+* 2020-03-25 0.16.0:
+  * Object and Boxed are now inheriting from **Gnome::N::TopLevelClassSupport**.
+
+* 2020-03-21 0.15.15:
+  * In preparation to use TopLevelClassSupport, $!gobject-is-valid is renamed to $!is-valid. This makes it possible to change child class BUILDs, such that these can become inheritable.
+
 * 2020-03-07 0.15.14:
   * Removed CALL-ME() methods.
   * Improved FALLBACK methods.

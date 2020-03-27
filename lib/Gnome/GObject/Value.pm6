@@ -213,7 +213,10 @@ submethod BUILD ( *%options ) {
 
   my Any $new-object;
 
-  if ? %options<init> {
+  if self.is-valid { }
+
+
+  elsif ? %options<init> {
     $new-object = g_value_init( N-GValue.new, %options<init>);
   }
 
@@ -255,7 +258,7 @@ submethod BUILD ( *%options ) {
 
     $new-object = %options<gvalue>;
   }
-
+#`{{
   elsif ?%options<native-object> {
     $new-object = %options<native-object>;
     $new-object .= get-native-object if $new-object ~~ Gnome::GObject::Value;
@@ -268,13 +271,15 @@ submethod BUILD ( *%options ) {
               )
     );
   }
+}}
 
   if $new-object.defined {
+#`{{
     if self.is-valid {
       g_value_unset(self.get-native-object);
-      self.set-valid(False);
+#      self.set-valid(False);
     }
-
+}}
     self.set-native-object($new-object);
   }
 
@@ -293,9 +298,9 @@ method _fallback ( $native-sub is copy --> Callable ) {
 
   # when g_value_unset() is called, the native object is invalid after
   # the call, so invalidate beforehand.
-  if ?$s and $native-sub ~~ m/ 'g_'? 'value_'? 'unset' / {
-    self.set-valid(False);
-  }
+#  if ?$s and $native-sub ~~ m/ 'g_'? 'value_'? 'unset' / {
+#    self.set-valid(False);
+#  }
 
   self.set-class-name-of-sub('GValue');
   $s = callsame unless ?$s;
@@ -303,11 +308,25 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 submethod DESTROY {
   g_value_unset(self.get-native-object) if self.is-valid;
 }
+}}
 
+#-------------------------------------------------------------------------------
+# no ref/unref
+method native-object-ref ( $n-native-object --> Any ) {
+  $n-native-object
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $n-native-object ) {
+  g_value_unset($n-native-object)
+}
+
+#`{{
 #-------------------------------------------------------------------------------
 #TM:1:clear-object
 =begin pod
@@ -322,9 +341,10 @@ Clear and invalidate Value object
 method clear-object ( ) {
   if self.is-valid {
     g_value_unset(self.get-native-object);
-    self.set-valid(False);
+#    self.set-valid(False);
   }
 }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:2:g_value_init:new(:init)
