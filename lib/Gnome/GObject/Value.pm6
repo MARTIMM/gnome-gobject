@@ -47,7 +47,7 @@ main (int   argc,
   g_assert (!G_VALUE_HOLDS_STRING (&a));
 
   // Put a string in it
-  g_value_init (&a, G_TYPE_STRING);
+  g_value_init (&a,#notePE_STRING);
   g_assert (G_VALUE_HOLDS_STRING (&a));
   g_value_set_static_string (&a, "Hello, world!");
   g_printf ("C<s>\n", g_value_get_string (&a));
@@ -119,6 +119,13 @@ A structure to hold a type and a value. Its type is readable from the structure 
 
 =end pod
 #TS:1:N-GValue:
+#`{{
+class N-GValue
+  is repr('CPointer')
+  is export
+  { }
+}}
+
 class N-GValue is repr('CStruct') is export {
   has uint64 $.g-type;
 
@@ -132,6 +139,7 @@ class N-GValue is repr('CStruct') is export {
     $!g-data = 0;
   }
 }
+
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -154,7 +162,7 @@ class N-GEnumValue is repr('CStruct') is export {
   has Str $.value_nick;
 
   submethod BUILD ( int32 :$value, Str :$value_name, Str :$value_nick) {
-note "B: $value, $value_name, $value_nick";
+#note"B: $value, $value_name, $value_nick";
     $!value = $value;
     $!value_name := $value_name;
     $!value_nick := $value_nick;
@@ -211,7 +219,7 @@ submethod BUILD ( *%options ) {
   # prevent creating wrong widgets
   return unless self.^name eq 'Gnome::GObject::Value';
 
-  my Any $new-object;
+  my N-GValue $new-object;
 
   if self.is-valid { }
 
@@ -283,6 +291,8 @@ submethod BUILD ( *%options ) {
     self.set-native-object($new-object);
   }
 
+#note"Value: ", self.get-native-object.perl(), ', ', self.is-valid;
+
   # only after creating the native-object, the gtype is known
   self.set-class-info('GValue');
 }
@@ -323,7 +333,8 @@ method native-object-ref ( $n-native-object --> Any ) {
 
 #-------------------------------------------------------------------------------
 method native-object-unref ( $n-native-object ) {
-  g_value_unset($n-native-object)
+#note'value cleared';
+  _g_value_unset($n-native-object)
 }
 
 #`{{
@@ -382,7 +393,7 @@ Returns a copy of this object.
 =end pod
 
 sub g_value_copy ( N-GValue $src_value --> Gnome::GObject::Value ) {
-note "type: ", $src_value.g-type;
+#note"type: ", $src_value.g-type;
   my N-GValue $nv .= new(:init($src_value.g-type));
   _g_value_copy( $src_value, $nv);
   Gnome::GObject::Value.new(:native-object($nv))
@@ -417,14 +428,23 @@ sub g_value_reset ( N-GValue $value )
 =begin pod
 =head2 [g_] value_unset
 
-Clears the current value in I<value> (if any) and "unsets" the type, this releases all resources associated with this GValue. An unset value is the same as an uninitialized (zero-filled) B<N-GValue> structure.
+Clears the current value (if any) and "unsets" the type, this releases all resources associated with this GValue. An unset value is the same as an uninitialized (zero-filled) B<N-GValue> structure. The method C<.is-valid()> will return False after the call.
 
   method g_value_unset ( )
 
 =end pod
 
-sub g_value_unset ( N-GValue $value )
+sub g_value_unset ( N-GValue $value ) {
+  Gnome::N::deprecate(
+    '.g_value_unset', '.clear-object', '0.16.0', '0.18.0'
+  );
+
+  _g_value_unset($value);
+}
+
+sub _g_value_unset ( N-GValue $value )
   is native(&gobject-lib)
+  is symbol('g_value_unset')
   { * }
 
 #-------------------------------------------------------------------------------
