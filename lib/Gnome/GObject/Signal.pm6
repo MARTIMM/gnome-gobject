@@ -139,8 +139,8 @@ sub g_signal_connect_object (
 }
 
 #-------------------------------------------------------------------------------
-# sub with conversion of user callback. user-handler is used to get the types
-# from, while the provided-handler is an intermediate between native and user.
+# sub with conversion of user callback. $user-handler is used to get the types
+# from, while the $provided-handler is an intermediate between native and user.
 method _convert_g_signal_connect_object (
   N-GObject $instance, Str $detailed-signal,
   Callable $user-handler, Callable $provided-handler
@@ -214,7 +214,7 @@ method _convert_g_signal_connect_object (
 
   my Callable $f = nativecast( $signature, $ptr);
 
-  # always return something
+  # returns the signal id
   $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
 }
 
