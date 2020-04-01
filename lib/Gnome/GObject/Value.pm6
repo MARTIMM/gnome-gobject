@@ -223,6 +223,8 @@ submethod BUILD ( *%options ) {
 
   if self.is-valid { }
 
+  elsif %options<native-object>:exists or %options<widget>:exists  { }
+
 
   elsif ? %options<init> {
     $new-object = g_value_init( N-GValue.new, %options<init>);
@@ -271,6 +273,7 @@ submethod BUILD ( *%options ) {
     $new-object = %options<native-object>;
     $new-object .= get-native-object if $new-object ~~ Gnome::GObject::Value;
   }
+}}
 
   elsif %options.keys.elems {
     die X::Gnome.new(
@@ -279,7 +282,6 @@ submethod BUILD ( *%options ) {
               )
     );
   }
-}}
 
   if $new-object.defined {
 #`{{
