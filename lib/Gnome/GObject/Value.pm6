@@ -221,9 +221,13 @@ submethod BUILD ( *%options ) {
 
   my N-GValue $new-object;
 
+  # check if native object is set by a parent class
   if self.is-valid { }
 
-  elsif %options<native-object>:exists or %options<widget>:exists  { }
+  # process all options
+
+  # check if common options are handled by some parent
+  elsif %options<native-object>:exists { }
 
 
   elsif ? %options<init> {
