@@ -17,26 +17,26 @@ subtest 'properties', {
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
   my Gnome::GObject::Value $v = $b.get-property( 'label', G_TYPE_STRING);
   is $v.get-string, 'Start', '.get-property( Str, GType)';
-  $v.g_value_unset;
+  $v.clear-object;
 
   $v .= new(:init(G_TYPE_BOOLEAN));
   $b.get-property( 'use-underline', $v);
   is $v.get-boolean, 0, '.get-property( Str, Gnome::GObject::Value)';
-  $v.g_value_unset;
+  $v.clear-object;
 #`{{
   $v = $b.g-object-get-property( 'always-show-image', G_TYPE_BOOLEAN);
   is $v.get-boolean, 1, '.g-object-get-property( Str, GType)';
-  $v.g_value_unset;
+  $v.clear-object;
 
   $v .= new(:init(G_TYPE_BOOLEAN));
   $b.g-object-get-property( 'label', $v);
   is $v.get-string, 'Start', '.g-object-get-property( Str, GValue)';
-  $v.g_value_unset;
+  $v.clear-object;
 }}
 
   $v .= new( :type(G_TYPE_STRING), :value<stop>);
   $b.set-property( 'label', $v);
-  $v.g_value_unset;
+  $v.clear-object;
   $v .= new(:init(G_TYPE_STRING));
   $b.get-property( 'label', $v);
   is $v.get-string, 'stop', '.set-property( Str, Gnome::GObject::Value)';

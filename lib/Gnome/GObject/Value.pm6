@@ -221,7 +221,13 @@ submethod BUILD ( *%options ) {
 
   my N-GValue $new-object;
 
+  # check if native object is set by a parent class
   if self.is-valid { }
+
+  # process all options
+
+  # check if common options are handled by some parent
+  elsif %options<native-object>:exists { }
 
 
   elsif ? %options<init> {
@@ -271,6 +277,7 @@ submethod BUILD ( *%options ) {
     $new-object = %options<native-object>;
     $new-object .= get-native-object if $new-object ~~ Gnome::GObject::Value;
   }
+}}
 
   elsif %options.keys.elems {
     die X::Gnome.new(
@@ -279,7 +286,6 @@ submethod BUILD ( *%options ) {
               )
     );
   }
-}}
 
   if $new-object.defined {
 #`{{
