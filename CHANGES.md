@@ -1,4 +1,9 @@
 ## Release notes
+* 2020-04-01 0.16.1:
+  * Many bugfizes. The biggest mistake was the use of DESTROY to clear a native object.
+  * Remove of the Param class for the time being. There was no use of it at the present moment.
+  * Add check in `g_object_unref()` for floating objects when unreferencing an object.
+
 * 2020-03-25 0.16.0:
   * Object and Boxed are now inheriting from **Gnome::N::TopLevelClassSupport**.
 

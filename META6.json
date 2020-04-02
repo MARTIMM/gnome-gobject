@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gnome GObject Interface, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib", "gobject"],
 
@@ -13,7 +13,6 @@
     "Gnome::GObject::Enums": "lib/Gnome/GObject/Enums.pm6",
     "Gnome::GObject::InitiallyUnowned": "lib/Gnome/GObject/InitiallyUnowned.pm6",
     "Gnome::GObject::Object": "lib/Gnome/GObject/Object.pm6",
-    "Gnome::GObject::Param": "lib/Gnome/GObject/Param.pm6",
     "Gnome::GObject::Signal": "lib/Gnome/GObject/Signal.pm6",
     "Gnome::GObject::Type": "lib/Gnome/GObject/Type.pm6",
     "Gnome::GObject::Value": "lib/Gnome/GObject/Value.pm6"
