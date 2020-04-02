@@ -100,7 +100,7 @@ use Gnome::Glib::Main;
 use Gnome::GObject::Signal;
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
-use Gnome::GObject::Param;
+#use Gnome::GObject::Param;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
@@ -137,9 +137,11 @@ An example
 submethod BUILD ( *%options ) {
 
   # add signal types
-  unless $signals-added {
-    $signals-added = self.add-signal-types( $?CLASS.^name, :N-GParamSpec<notify>);
-  }
+#  unless $signals-added {
+#    $signals-added = self.add-signal-types(
+#      $?CLASS.^name, :N-GParamSpec<notify>
+#    );
+#  }
 
   # test if native object has been set
   if self.is-valid { }
@@ -874,7 +876,7 @@ sub g_object_set_property (
 
 Gets a property of an object. The value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed).
 
-In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling g_value_unset().
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling C<clear-object()>.
 
 Next signature is used when no B<Gnome::GObject::Value> is available. The routine will create the Value using C<$gtype>.
 
@@ -978,7 +980,6 @@ sub g_object_ref ( N-GObject $object )
   is native(&gobject-lib)
   { * }
 
-
 #-------------------------------------------------------------------------------
 #TM:0:g_object_unref:
 =begin pod
@@ -996,10 +997,65 @@ If the pointer to the native object may be reused in future (for example, if it 
 
 =end pod
 
-sub g_object_unref ( N-GObject $object )
+sub g_object_unref ( N-GObject $object is copy --> N-GObject ) {
+note 'object unref';
+
+  $object = g_object_ref_sink($object) if g_object_is_floating($object);
+  _g_object_unref($object)
+}
+
+sub _g_object_unref ( N-GObject $object )
+  is native(&gobject-lib)
+  is symbol('g_object_unref')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_is_floating:
+=begin pod
+=head2 [[g_] object_] is_floating
+
+Checks whether I<object> has a [floating][floating-ref] reference.
+
+Since: 2.10
+
+Returns: C<1> if I<object> has a floating reference
+
+  method g_object_is_floating ( Pointer $object --> Int  )
+
+=item Pointer $object; (type GObject.Object): a I<GObject>
+
+=end pod
+
+sub g_object_is_floating ( N-GObject $object --> int32 )
   is native(&gobject-lib)
   { * }
 
+#-------------------------------------------------------------------------------
+#TM:0:g_object_ref_sink:
+=begin pod
+=head2 [[g_] object_] ref_sink
+
+Increase the reference count of I<object>, and possibly remove the
+[floating][floating-ref] reference, if I<object> has a floating reference.
+
+In other words, if the object is floating, then this call "assumes
+ownership" of the floating reference, converting it to a normal
+reference by clearing the floating flag while leaving the reference
+count unchanged.  If the object is not floating, then this call
+adds a new normal reference increasing the reference count by one.
+
+Since GLib 2.56, the type of I<object> will be propagated to the return type
+under the same conditions as for C<g_object_ref()>.
+
+Returns: N-GObject
+
+  method g_object_ref_sink ( --> N-GObject )
+
+=end pod
+
+sub g_object_ref_sink ( N-GObject $object --> N-GObject )
+  is native(&gobject-lib)
+  { * }
 
 
 
@@ -1586,62 +1642,7 @@ It is an error to call this function when the freeze count is zero.
 sub g_object_thaw_notify ( N-GObject $object )
   is native(&gobject-lib)
   { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_is_floating:
-=begin pod
-=head2 [[g_] object_] is_floating
-
-Checks whether I<object> has a [floating][floating-ref] reference.
-
-Since: 2.10
-
-Returns: C<1> if I<object> has a floating reference
-
-  method g_object_is_floating ( Pointer $object --> Int  )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-
-=end pod
-
-sub g_object_is_floating ( Pointer $object )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_ref_sink:
-=begin pod
-=head2 [[g_] object_] ref_sink
-
-Increase the reference count of I<object>, and possibly remove the
-[floating][floating-ref] reference, if I<object> has a floating reference.
-
-In other words, if the object is floating, then this call "assumes
-ownership" of the floating reference, converting it to a normal
-reference by clearing the floating flag while leaving the reference
-count unchanged.  If the object is not floating, then this call
-adds a new normal reference increasing the reference count by one.
-
-Since GLib 2.56, the type of I<object> will be propagated to the return type
-under the same conditions as for C<g_object_ref()>.
-
-Since: 2.10
-
-Returns: (type GObject.Object) (transfer none): I<object>
-
-  method g_object_ref_sink ( Pointer $object --> Pointer  )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-
-=end pod
-
-sub g_object_ref_sink ( Pointer $object )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
 }}
-
 
 #`{{
 #-------------------------------------------------------------------------------
