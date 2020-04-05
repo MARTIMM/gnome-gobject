@@ -354,7 +354,8 @@ submethod BUILD ( *%options ) {
 #-------------------------------------------------------------------------------
 method FALLBACK ( $native-sub is copy, |c ) {
 
-  CATCH { test-catch-exception( $_, $native-sub); }
+#  CATCH { test-catch-exception( $_, $native-sub); }
+  CATCH { .note; die; }
 
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
   die X::Gnome.new(:message(
