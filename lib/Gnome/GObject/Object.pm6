@@ -997,8 +997,7 @@ If the pointer to the native object may be reused in future (for example, if it 
 
 =end pod
 
-sub g_object_unref ( N-GObject $object is copy --> N-GObject ) {
-note 'object unref';
+sub g_object_unref ( N-GObject $object is copy ) {
 
   $object = g_object_ref_sink($object) if g_object_is_floating($object);
   _g_object_unref($object)
