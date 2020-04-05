@@ -324,13 +324,6 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-submethod DESTROY {
-  g_value_unset(self.get-native-object) if self.is-valid;
-}
-}}
-
 #-------------------------------------------------------------------------------
 # no ref/unref
 method native-object-ref ( $n-native-object --> Any ) {

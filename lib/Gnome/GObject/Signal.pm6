@@ -82,7 +82,8 @@ submethod BUILD ( N-GObject:D :$!g-object ) { }
 # no pod. user does not have to know about it.
 method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
 
-  CATCH { test-catch-exception( $_, $native-sub); }
+#  CATCH { test-catch-exception( $_, $native-sub); }
+  CATCH { .note; die; }
 
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
 #`{{
