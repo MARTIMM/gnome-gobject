@@ -52,6 +52,7 @@ use Gnome::N::N-GObject;
 # https://developer.gnome.org/glib/stable/glib-Basic-Types.html
 unit class Gnome::GObject::Type:auth<github:MARTIMM>;
 
+#TODO not yet implemented in Raku (2020-04-08) subset N-GType of uint64;
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GTypeInstance
@@ -489,12 +490,11 @@ sub g_type_from_name ( Str $name )
 =begin pod
 =head2 [g_] type_parent
 
-Return the direct parent type of the passed in type. If the passed
-in type has no parent, i.e. is a fundamental type, 0 is returned.
+Return the direct parent type of the passed in type. If the passed in type has no parent, i.e. is a fundamental type, 0 is returned.
 
 Returns: the parent type
 
-  method g_type_parent ( UInt --> UInt )
+  method g_type_parent ( UInt $parent-type --> UInt )
 
 =end pod
 
@@ -508,12 +508,11 @@ sub g_type_parent ( uint64 $type )
 =begin pod
 =head2 [g_] type_depth
 
-Returns the length of the ancestry of the passed in type. This
-includes the type itself, so that e.g. a fundamental type has depth 1.
+Returns the length of the ancestry of the passed in type. This includes the type itself, so that e.g. a fundamental type has depth 1.
 
-Returns: the depth of I<type>
+Returns: the depth of I<$type>
 
-  method g_type_depth ( --> UInt  )
+  method g_type_depth ( UInt $type --> UInt  )
 
 
 =end pod
@@ -523,33 +522,25 @@ sub g_type_depth ( uint64 $type )
   is native(&gobject-lib)
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_type_next_base:
 =begin pod
 =head2 [[g_] type_] next_base
 
-Given a I<leaf_type> and a I<root_type> which is contained in its
-anchestry, return the type that I<root_type> is the immediate parent
-of. In other words, this function determines the type that is
-derived directly from I<root_type> which is also a base class of
-I<leaf_type>.  Given a root type and a leaf type, this function can
-be used to determine the types and order in which the leaf type is
-descended from the root type.
+Given a I<$leaf_type> and a I<$root_type> which is contained in its anchestry, return the type that I<$root_type> is the immediate parent of. In other words, this function determines the type that is derived directly from I<$root_type> which is also a base class of I<$leaf_type>. Given a root type and a leaf type, this function can be used to determine the types and order in which the leaf type is descended from the root type.
 
-Returns: immediate child of I<root_type> and anchestor of I<leaf_type>
+Returns: immediate child of I<$root_type> and anchestor of I<$leaf_type>
 
-  method g_type_next_base ( int32 $root_type --> int32  )
+  method g_type_next_base ( Int $root_type --> Int )
 
 =item int32 $root_type; immediate parent of the returned type
 
 =end pod
 
-sub g_type_next_base ( int32 $leaf_type, int32 $root_type )
-  returns int32
+sub g_type_next_base ( uint64 $leaf_type, uint64 $root_type )
+  returns int64
   is native(&gobject-lib)
   { * }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:1:g_type_is_a:
@@ -1790,25 +1781,28 @@ sub g_type_check_value_holds ( N-GObject $value, int32 $type )
   returns int32
   is native(&gobject-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_name_from_instance:
+#TM:4:g_type_name_from_instance:Gnome::Gtk3::Builder
 =begin pod
 =head2 [[g_] type_] name_from_instance
 
-
+Get name of type from the instance.
 
   method g_type_name_from_instance ( int32 $instance --> Str  )
 
 =item int32 $instance;
 
+Returns the name of the instance.
+
 =end pod
 
-sub g_type_name_from_instance ( int32 $instance )
-  returns Str
+sub g_type_name_from_instance ( int32 $instance --> Str )
   is native(&gobject-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_type_name_from_class:
 =begin pod
@@ -1980,3 +1974,13 @@ type_name##_get_type_once (void) \
     }					\
   return g_define_type_id; \
 } /* closes type_name##_get_type_once() */
+
+
+
+
+#========
+#define G_TYPE_FROM_INSTANCE(instance)                          (G_TYPE_FROM_CLASS (((GTypeInstance*) (instance))->g_class))
+
+#define G_TYPE_FROM_CLASS(g_class)                              (((GTypeClass*) (g_class))->g_type)
+
+GTypeClass

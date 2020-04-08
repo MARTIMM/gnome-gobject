@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-04-05 0.16.3
+  * Added method g_type_name_from_instance() to the Type module
+
 * 2020-04-05 0.16.2
   * Removed a level of exception catching.
 
