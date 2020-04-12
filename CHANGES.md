@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-04-12 0.16.4
+  * Improved `.emit_by_name()` in Signal. Also improved a message in `.register-signal()` in Object.
+
 * 2020-04-05 0.16.3
   * Added method g_type_name_from_instance() to the Type module
 
