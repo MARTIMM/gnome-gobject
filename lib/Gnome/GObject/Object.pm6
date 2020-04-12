@@ -360,7 +360,7 @@ on which the signal was registered. The name 'widget' is therefore reserved.
 
 =end pod
 
-multi method register-signal (
+method register-signal (
   $handler-object, Str:D $handler-name, Str:D $signal-name, *%user-options
   --> Bool
 ) {
@@ -486,6 +486,9 @@ multi method register-signal (
   }
 
   else {
+    note "\nCannot register $handler-object, $handler-name, options: ",
+      %user-options, ', method, not found' if $Gnome::N::x-debug;
+
     False
   }
 }

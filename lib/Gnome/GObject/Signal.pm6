@@ -360,11 +360,42 @@ Note that C<g_signal_emit_by_name()> resets the return value to the default if n
 =end pod
 
 sub g_signal_emit_by_name (
-  N-GObject $instance, Str $detailed_signal, N-GObject $widget
-) is inlinable {
-  _g_signal_emit_by_name( $instance, $detailed_signal, $widget, OpaquePointer);
+  N-GObject $instance, Str $detailed_signal, *@handler-arguments
+) {
+
+  # create parameter list and start with inserting fixed arguments
+  my @parameterList = (
+    Parameter.new(type => N-GObject),   # $instance
+    Parameter.new(type => Str),         # $signal name
+  );
+
+  # Rest of the arguments
+  my @new-args .= new;
+  for @handler-arguments -> $arg {
+    my $a = $arg;
+    $a .= get-native-object-no-reffing
+        if $a.^can('get-native-object-no-reffing');
+    @parameterList.push(Parameter.new(type => $a.WHAT));
+    @new-args.push($a);
+  }
+
+  # create signature
+  my Signature $signature .= new(
+    :params(|@parameterList),
+    :returns(int32)
+  );
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gobject-lib, 'g_signal_emit_by_name', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+  $f( $instance, $detailed_signal, |@new-args)
+
+#  _g_signal_emit_by_name( $instance, $detailed_signal, $widget, OpaquePointer);
 }
 
+#`{{
 sub _g_signal_emit_by_name (
   # first two are obligatory by definition
   N-GObject $instance, Str $detailed_signal,
@@ -374,6 +405,7 @@ sub _g_signal_emit_by_name (
 ) is native(&gobject-lib)
   is symbol('g_signal_emit_by_name')
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_signal_handler_disconnect:
