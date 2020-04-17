@@ -395,6 +395,7 @@ method register-signal (
     %named-args<widget> = $current-object;
 
     sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
       if $sh.signature.returns ~~ Mu {
         $handler-object."$handler-name"(|%named-args) // 1
       }
@@ -405,6 +406,7 @@ method register-signal (
     }
 
     sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args($h0);
 #      $handler-object."$handler-name"( |@converted-args, |%named-args);
       if $sh.signature.returns ~~ Mu {
@@ -414,38 +416,32 @@ method register-signal (
       else {
         $handler-object."$handler-name"( $h0, |%named-args)
       }
-
-      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1);
       $handler-object."$handler-name"( $h0, $h1, |%named-args);
-
-      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
       $handler-object."$handler-name"( $h0, $h1, $h2, |%named-args);
-
-      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
       $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
-
-      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w5(
       N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
     ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
       $handler-object."$handler-name"( $h0, $h1, $h2, $h3, $h4, |%named-args);
-
-      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     given $signal-type {
