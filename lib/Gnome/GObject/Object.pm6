@@ -414,21 +414,29 @@ method register-signal (
       else {
         $handler-object."$handler-name"( $h0, |%named-args)
       }
+
+      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
 #      my List @converted-args = self!check-args( $h0, $h1);
       $handler-object."$handler-name"( $h0, $h1, |%named-args);
+
+      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
       $handler-object."$handler-name"( $h0, $h1, $h2, |%named-args);
+
+      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
       $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
+
+      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     sub w5(
@@ -436,6 +444,8 @@ method register-signal (
     ) is export {
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
       $handler-object."$handler-name"( $h0, $h1, $h2, $h3, $h4, |%named-args);
+
+      CATCH { default { .message.note; .backtrace.concise.note } }
     }
 
     given $signal-type {
