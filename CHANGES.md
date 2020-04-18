@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-04-12 0.16.5
+  * Improved `register-signal()` in Object such that an exception can be caught and and a stack can be shown. See also [issue here](https://github.com/rakudo/rakudo/issues/3592) for information. Raku gets improved in later versions that it can show a stackdump all by itself but will always terminate.
+
 * 2020-04-12 0.16.4
   * Improved `.emit_by_name()` in Signal. Also improved a message in `.register-signal()` in Object.
 
