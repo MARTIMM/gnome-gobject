@@ -546,7 +546,7 @@ method !check-args( *@args --> List ) {
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:start-thread:
+#TM:4:start-thread:Gtk3 stress tests
 =begin pod
 =head2 start-thread
 
@@ -554,7 +554,7 @@ Start a thread in such a way that the function can modify the user interface in 
 
   method start-thread (
     $handler-object, Str:D $handler-name, Int $priority = G_PRIORITY_DEFAULT,
-    Bool :$new-context = False, *%user-options
+    Bool :$new-context = False, Num :$start-time, *%user-options
     --> Promise
   )
 
@@ -562,7 +562,8 @@ Start a thread in such a way that the function can modify the user interface in 
 =item $handler-name is name of the method.
 =item $priority; The priority to which the handler is started. The default is G_PRIORITY_DEFAULT. These are constants defined in B<Gnome::GObject::GMain>.
 =item $new-context; Whether to run the handler in a new context or to run it in the context of the main loop. Default is to run in the main loop.
-=item *%user-options; Any name not used above is provided to the handler
+=item $start-time. Start time of thread. Default is now + 1 sec. Most of the time a thread starts too fast when some widget are not ready yet. All depends of course what the thread has to do.
+=item *%user-options; Any name but :start-time and :new-context is provided to the handler.
 
 Returns a C<Promise> object. If the call fails, the object is undefined.
 
@@ -572,7 +573,7 @@ The handlers signature is at least C<:$widget> of the object on which the call w
 
 method start-thread (
   $handler-object, Str:D $handler-name, Int $priority = G_PRIORITY_DEFAULT,
-  Bool :$new-context = False, *%user-options
+  Bool :$new-context = False, Instant :$start-time = now + 1, *%user-options
   --> Promise
 ) {
 
@@ -582,41 +583,42 @@ method start-thread (
     :message("Method '$handler-name' not available in object")
   ) unless ? $sh;
 
-  my Promise $p = start {
+  my Promise $p = Promise.at($start-time).then( {
 
-    my Gnome::Glib::Main $gmain .= new;
+      my Gnome::Glib::Main $gmain .= new;
 
-    # This part is important that it happens in the thread where the
-    # function is invoked in that context!
-    my $gmain-context;
-    if $new-context {
-      $gmain-context = $gmain.context-new;
-      $gmain.context-push-thread-default($gmain-context);
+      # This part is important that it happens in the thread where the
+      # function is invoked in that context!
+      my $gmain-context;
+      if $new-context {
+        $gmain-context = $gmain.context-new;
+        $gmain.context-push-thread-default($gmain-context);
+      }
+
+      else {
+        $gmain-context = $gmain.context-get-thread-default;
+      }
+
+      my $return-value;
+      $gmain.context-invoke-full(
+        $gmain-context, $priority,
+        -> OpaquePointer $d {
+          $return-value = $handler-object."$handler-name"(
+            :widget(self), |%user-options
+          );
+
+          G_SOURCE_REMOVE
+        },
+        OpaquePointer, OpaquePointer
+      );
+
+      if $new-context {
+        $gmain.context-pop-thread-default($gmain-context);
+      }
+
+      $return-value
     }
-
-    else {
-      $gmain-context = $gmain.context-get-thread-default;
-    }
-
-    my $return-value;
-    $gmain.context-invoke-full(
-      $gmain-context, $priority,
-      -> OpaquePointer $d {
-        $return-value = $handler-object."$handler-name"(
-          :widget(self), |%user-options
-        );
-
-        G_SOURCE_REMOVE
-      },
-      OpaquePointer, OpaquePointer
-    );
-
-    if $new-context {
-      $gmain.context-pop-thread-default($gmain-context);
-    }
-
-    $return-value
-  }
+  );
 
   $p
 }
