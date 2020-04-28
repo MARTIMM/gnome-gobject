@@ -104,10 +104,18 @@ method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
   $return-sub-only ?? $s !! $s( $!g-object, |c)
 }
 
-
 #-------------------------------------------------------------------------------
 #TM:2:g_signal_connect_object:
-# original strait forward sub
+=begin pod
+Connects a callback function to a signal for a particular object.
+
+  method g_signal_connect_object (
+    N-GObject $instance, Str $detailed-signal, Callable $handler
+    --> Int
+  ) {
+
+=end pod
+
 sub g_signal_connect_object (
   N-GObject $instance, Str $detailed-signal, Callable $handler
   --> Int
@@ -136,6 +144,7 @@ sub g_signal_connect_object (
   state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
+  # returns the signal id
   $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
 }
 
@@ -407,20 +416,37 @@ sub _g_signal_emit_by_name (
   { * }
 }}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_signal_handler_disconnect:
+method _unregister ( $instance, $detailed-signal, $user-handler ) {
+
+  # stored like;
+  # $handler-ids{$handler-id} = [ $instance, $detailed-signal, $user-handler];
+  for $handler-ids.kv -> Str $k, Array $v {
+    if $v[0] ~~ $instance and $v[1] ~~ $detailed-signal and
+       $v[2] ~~ $user-handler {
+
+      g_signal_handler_disconnect( $instance, $k.Int);
+      last;
+    }
+  }
+}
+}}
+
+#-------------------------------------------------------------------------------
+#TM:4:g_signal_handler_disconnect:Gnome::Gtk3 ex-signal.pl6
 =begin pod
 =head2 [[g_] signal_] handler_disconnect
 
 Disconnects a handler from an instance so it will not be called during any future or currently ongoing emissions of the signal it has been connected to. The handler_id becomes invalid and may be reused.
 
-The handler_id has to be a valid signal handler id, connected to a signal of instance .
+The handler_id has to be a valid signal handler id, connected to a signal of instance.
 
-  g_signal_handler_disconnect( int32 $handler_id )
+  g_signal_handler_disconnect( Int $handler_id )
 
 =item $handler_id; Handler id of the handler to be disconnected.
 =end pod
 
-sub g_signal_handler_disconnect( N-GObject $widget, int32 $handler_id )
+sub g_signal_handler_disconnect( N-GObject $widget, uint64 $handler_id )
   is native(&gobject-lib)
   { * }
