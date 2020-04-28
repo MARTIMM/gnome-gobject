@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-04-28 0.16.6
+  * Method register-signal() now returns an integer instead of a boolean. This integer is a handler-id which can be used to disconnect the signal using g_signal_handler_disconnect(). When handler is 0, the registration failed. The other method to connect a signal is g_signal_connect_object() which will also return a handler id.
+
 * 2020-04-12 0.16.5
   * Improved `register-signal()` in Object such that an exception can be caught and and a stack can be shown. See also [issue here](https://github.com/rakudo/rakudo/issues/3592) for information. Raku gets improved in later versions that it can show a stackdump all by itself but will always terminate.
   * Improved `start-thread()` in Object

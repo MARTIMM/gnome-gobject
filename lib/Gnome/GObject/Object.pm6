@@ -362,14 +362,15 @@ on which the signal was registered. The name 'widget' is therefore reserved.
 
 method register-signal (
   $handler-object, Str:D $handler-name, Str:D $signal-name, *%user-options
-  --> Bool
+  --> Int
 ) {
+
+  my Int $handler-id = 0;
 
   # don't register if handler is not available
   my Method $sh = $handler-object.^lookup($handler-name) // Method;
   if ? $sh {
-    note "\nregister $handler-object, $handler-name, options: ", %user-options
-       if $Gnome::N::x-debug;
+    note "\nregister $handler-object\.$handler-name\() for signal $signal-name, options are ", %user-options if $Gnome::N::x-debug;
 
     # search for signal name defined by this class as well as its parent classes
     my Str $signal-type;
@@ -457,46 +458,19 @@ method register-signal (
              ( $no.perl, $sh.perl, %shkeys{$signal-type}.perl
              ).join(', '), ')' if $Gnome::N::x-debug;
 
-        $!g-signal._convert_g_signal_connect_object(
+        $handler-id = $!g-signal._convert_g_signal_connect_object(
           $no, $signal-name, $sh, %shkeys{$signal-type}
         );
       }
-#`{{
-      # TODO cleanup deprecated and not supported
-      when 'notsupported' {
-        my Str $message = "Signal $signal-name used on $module-name" ~
-          " is explicitly not supported by GTK or this package";
-        note $message;
-#        die X::Gnome::V3.new(:$message);
-        return False;
-      }
-
-      when 'deprecated' {
-        my Str $message = "Signal $signal-name used on $module-name" ~
-          " is explicitly deprecated by GTK";
-        note $message;
-#        die X::Gnome::V3.new(:$message);
-        return False;
-      }
-
-      default {
-        my Str $message = "Signal $signal-name used on $module-name" ~
-          " is not (yet) implemented";
-        note $message;
-        return False;
-      }
-}}
     }
-
-    True
   }
 
   else {
     note "\nCannot register $handler-object, $handler-name, options: ",
       %user-options, ', method, not found' if $Gnome::N::x-debug;
-
-    False
   }
+
+  $handler-id
 }
 
 #`{{
