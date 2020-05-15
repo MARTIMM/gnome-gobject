@@ -577,6 +577,8 @@ method start-thread (
       $gmain.context-invoke-full(
         $gmain-context, $priority,
         -> OpaquePointer $d {
+          CATCH { default { .message.note; .backtrace.concise.note } }
+
           $return-value = $handler-object."$handler-name"(
             :widget(self), |%user-options
           );
@@ -945,18 +947,9 @@ sub _g_object_get_property (
 =begin pod
 =head2 [g_] object_ref
 
-Increases the reference count of I<object>.
+Increases the reference count of this object and returns the same object.
 
-Since GLib 2.56, if `GLIB_VERSION_MAX_ALLOWED` is 2.56 or greater, the type
-of I<object> will be propagated to the return type (using the GCC C<typeof()>
-extension), so any casting the caller needs to do on the return type must be
-explicit.
-
-Returns: the same I<object>
-
-  method g_object_ref ( N-GObject $object --> N-GObject  )
-
-=item N-GObject $object; a I<GObject>
+  method g_object_ref ( --> N-GObject  )
 
 =end pod
 
@@ -972,11 +965,13 @@ sub g_object_ref ( N-GObject $object )
 
 Decreases the reference count of the native object. When its reference count drops to 0, the object is finalized (i.e. its memory is freed).
 
+When the object has a floating reference because it is not added to a container or it is not a toplevel window, the reference is first sunk followed by C<g_object_unref()>.
+
 =begin comment
 If the pointer to the native object may be reused in future (for example, if it is an instance variable of another object), it is recommended to clear the pointer to C<Any> rather than retain a dangling pointer to a potentially invalid I<GObject> instance. Use C<g_clear_object()> for this.
 =end comment
 
-  method g_object_unref ( N-GObject $object )
+  method g_object_unref ( )
 
 =item N-GObject $object; a I<GObject>
 
