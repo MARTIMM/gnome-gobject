@@ -171,12 +171,23 @@ method _convert_g_signal_connect_object (
     next if $p.named;             # named argument
 
     my $ha-type = $p.type;
-    $ha-type = uint32 if $ha-type ~~ UInt;
-    $ha-type = int32 if $ha-type ~~ Int;
-    $ha-type = num32 if $ha-type ~~ Num;
-    @sub-parameter-list.push(     # next signal arguments
-      Parameter.new(type => $ha-type),
-    );
+    given $ha-type {
+      when UInt {
+        @sub-parameter-list.push(Parameter.new(type => uint32));
+      }
+
+      when Int {
+        @sub-parameter-list.push(Parameter.new(type => int32));
+      }
+
+      when Num {
+        @sub-parameter-list.push(Parameter.new(type => num32));
+      }
+
+      default {
+        @sub-parameter-list.push(Parameter.new(type => $ha-type));
+      }
+    }
   }
 
   # finish with data pointer argument
@@ -338,10 +349,25 @@ sub g_signal_connect_swapped (
 }
 }}
 
-#-------------------------------------------------------------------------------
 #`{{
+#-------------------------------------------------------------------------------
 # a GQuark is a guint32, $detail is a quark
 # See https://developer.gnome.org/glib/stable/glib-Quarks.html
+#TM:0:g_signal_emit:
+=begin pod
+=head2 [[g_] signal_] emit
+
+Emits a signal.
+
+Note that C<g_signal_emit()> resets the return value to the default if no handlers are connected.
+
+  g_signal_emit ( Str $signal, N-GObject $widget )
+
+=item $signal; a string of the form "signal-name::detail".
+=item $widget; widget to pass to the handler.
+
+=end pod
+
 sub g_signal_emit (
   N-GObject $instance, uint32 $signal_id, uint32 $detail,
   N-GObject $widget, Str $data, Str $return-value is rw
@@ -353,23 +379,54 @@ sub g_signal_emit (
 # Handlers above provided to the signal connect calls are having 2 arguments
 # a widget and data. So the provided extra arguments are then those 2
 # plus a return value
-#TM:0:emit_by_name:
+#TM:2:g_signal_emit_by_name:*.t
 =begin pod
 =head2 [[g_] signal_] emit_by_name
 
-Emits a signal.
+Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to the default if no handlers are connected.
 
-Note that C<g_signal_emit_by_name()> resets the return value to the default if no handlers are connected.
+  g_signal_emit_by_name (
+    Str $detailed-signal, *@handler-arguments, *%options
+  )
 
-  g_signal_emit_by_name ( Str $signal, N-GObject $widget )
+=item $signal; a string of the form "signal-name::detail". '::detail' part is mostly not defined such as a button click signal called 'clicked'.
+=item *@handler-arguments; a series of arguments needed for the signal handler.
+=item *%options; needed to modify argument types and return value;
+=item2 :parameters([type, ...]); a series of types, one for each argument. Most of the time the types are correctly interpreted but for e.g. int64 or num64 this option must be provided. All types for all arguments must be specified if used.
+=item2 :return-type(type); specifies the type of the return value. When there is no return value, you can omit this. An error is be thrown by GTK+ when a return value type is not specified while the signal handler does return something.
 
-=item $signal; a string of the form "signal-name::detail".
-=item $widget; widget to pass to the handler.
+  (Window.t:46695): GLib-GObject-WARNING **: 15:04:59.689: ../gobject/gsignal.c:3417: value location for 'gboolean' passed as NULL
+
+=head3 An example
+
+=begin code
+  # The extra argument here is $toggle
+  method enable-debugging-handler (
+    int32 $toggle, Gnome::Gtk3::Window :$widget
+    --> int32
+  ) {
+    ...
+    1
+  }
+
+  $w.register-signal( self, 'enable-debugging-handler', 'enable-debugging');
+
+  ... loop started ...
+  ... in another thread ...
+  my Gnome::Gtk3::Main $main .= new;
+  while $main.gtk-events-pending() { $main.iteration-do(False); }
+  $widget.emit-by-name(
+    'enable-debugging', 1, :return-type(int32), :parameters([int32,])
+  );
+
+  ...
+=end code
 
 =end pod
 
 sub g_signal_emit_by_name (
-  N-GObject $instance, Str $detailed_signal, *@handler-arguments
+  N-GObject $instance, Str $detailed_signal, *@handler-arguments, *%options
+  --> Any
 ) {
 
   # create parameter list and start with inserting fixed arguments
@@ -378,14 +435,27 @@ sub g_signal_emit_by_name (
     Parameter.new(type => Str),         # $signal name
   );
 
-  # Rest of the arguments
+  # rest of the arguments can be converted to natives if any
   my @new-args .= new;
   for @handler-arguments -> $arg {
     my $a = $arg;
     $a .= get-native-object-no-reffing
         if $a.^can('get-native-object-no-reffing');
-    @parameterList.push(Parameter.new(type => $a.WHAT));
+
+    my $t = %options<parameters>:exists
+            ?? shift %options<parameters>
+            !! $a.WHAT;
+    @parameterList.push(Parameter.new(type => $t));
     @new-args.push($a);
+  }
+
+  # add a location for a return value if needed
+  my $rv;
+  if %options<return-type>:exists {
+    $rv = CArray[%options<return-type>].new;
+    #$rv[0] = %options<return-type>;
+    @parameterList.push(Parameter.new(type => CArray));
+    @new-args.push($rv);
   }
 
   # create signature
@@ -399,39 +469,10 @@ sub g_signal_emit_by_name (
   state $ptr = cglobal( &gobject-lib, 'g_signal_emit_by_name', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-  $f( $instance, $detailed_signal, |@new-args)
-
-#  _g_signal_emit_by_name( $instance, $detailed_signal, $widget, OpaquePointer);
+note 'new args: ', @new-args.perl;
+  $f( $instance, $detailed_signal, |@new-args);
+  $rv[0]
 }
-
-#`{{
-sub _g_signal_emit_by_name (
-  # first two are obligatory by definition
-  N-GObject $instance, Str $detailed_signal,
-  # The rest depends on the handler defined when connecting
-  # There is no return value from the handler
-  N-GObject $widget, OpaquePointer
-) is native(&gobject-lib)
-  is symbol('g_signal_emit_by_name')
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-method _unregister ( $instance, $detailed-signal, $user-handler ) {
-
-  # stored like;
-  # $handler-ids{$handler-id} = [ $instance, $detailed-signal, $user-handler];
-  for $handler-ids.kv -> Str $k, Array $v {
-    if $v[0] ~~ $instance and $v[1] ~~ $detailed-signal and
-       $v[2] ~~ $user-handler {
-
-      g_signal_handler_disconnect( $instance, $k.Int);
-      last;
-    }
-  }
-}
-}}
 
 #-------------------------------------------------------------------------------
 #TM:4:g_signal_handler_disconnect:Gnome::Gtk3 ex-signal.pl6

@@ -1,4 +1,8 @@
 ## Release notes
+* 2020-05-15 0.16.7
+  * Add catch block to `.start-thread()` just before calling user code in **Object**.
+  * Improve and bugfixing `.emit_by_name()`. Also improved pod doc.
+
 * 2020-04-28 0.16.6
   * Method register-signal() now returns an integer instead of a boolean. This integer is a handler-id which can be used to disconnect the signal using g_signal_handler_disconnect(). When handler is 0, the registration failed. The other method to connect a signal is g_signal_connect_object() which will also return a handler id.
 
