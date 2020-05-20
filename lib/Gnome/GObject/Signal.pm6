@@ -469,7 +469,6 @@ sub g_signal_emit_by_name (
   state $ptr = cglobal( &gobject-lib, 'g_signal_emit_by_name', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-note 'new args: ', @new-args.perl;
   $f( $instance, $detailed_signal, |@new-args);
   $rv[0]
 }

@@ -121,7 +121,7 @@ my Array $builders = [];
 =head1 Methods
 =head2 new
 
-Create a Raku object object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
+Create a Raku object using a B<Gnome::Gtk3::Builder>. The builder object will provide its object (self) to B<Gnome::GObject::Object> when the Builder is created. The Builder object is asked to search for id's defined in the GUI glade design.
 
   multi method new ( Str :$build-id! )
 
@@ -307,44 +307,76 @@ Register a handler to process a signal or an event. There are several types of c
   method register-signal (
     $handler-object, Str:D $handler-name,
     Str:D $signal-name, *%user-options
-    --> Bool
+    --> Int
   )
 
-=begin item
-$handler-object; The object wherein the handler is defined.
-=end item
-
-=begin item
-$handler-name; The name of the method. Commonly used signatures for those handlers are;
-=end item
-
-Simple handlers e.g. click event handler have only named arguments and are optional. The more elaborate handlers also have positional arguments and MUST be typed. Most of the time the handlers must return a value. This can be an Int to let other layers also handle the signal(0) or not(1). Any user options are provided from the call to register-signal().
-
-Some examples
-
-  method click-button ( :$widget, *%user-options --> Int )
-
-  method focus-handle ( Int $direction, :$widget, *%user-options --> Int )
-
-  method keyboard-event ( GdkEvent $event, :$widget, *%user-options --> Int )
-
+=item $handler-object; The object wherein the handler is defined.
+=item $handler-name; The name of the method.
 =begin item
 $signal-name; The name of the event to be handled. Each gtk object has its own series of signals.
 =end item
 
 =begin item
-%user-options; Any other user data in whatever type. These arguments are
-provided to the user handler when an event for the handler is fired. There
-will always be one named argument C<:$widget> which holds the class object
-on which the signal was registered. The name 'widget' is therefore reserved.
+%user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired.
+
+There will always be one named argument C<:$widget> which holds the class object on which the signal was registered. The name 'widget' is therefore reserved.
+
+The named attribute C<:$widget> will be deprecated in the future. The name will be changed into C<:$_widget> to give the user a free hand in user provided named arguments. The names starting with '_' will then be reserved to provide special info to the user.
+
+The following named arguments can be used
+
+  =item C<:$_widget>; The instance which registered the signal.
+  =item C<:$_handler-id>; The handler id which is returned from the registration.
 =end item
 
+The method returns a handler id which can be used for example to disconnect the callback later.
 
-=begin code
-  # create a class holding a handler method to process a click event
-  # of a button.
+=head3 Callback handlers
+
+=begin item
+Simple handlers; e.g. a click event handler has only named arguments and are optional.
+=end item
+
+=begin item
+Complex handlers (only a bit) also have positional arguments and B<MUST> be typed because they are checked, after which a new signature is created for the call to a native subroutine.
+=end item
+
+=begin item
+Some handlers must return a value and is used by the calling process to, for example, call another handler.
+=end item
+
+=begin item
+Any user options are provided from the call to register-signal().
+=end item
+
+Two examples of a registration and the handlers signature
+
+  # button clicks.
+  # register callback
+  $button.register-signal( $ho, 'click-button', 'clicked', :uo(...));
+
+  # callback method
+  method click-button ( :$_widget, :$_handler_id, :$uo ) { ... }
+
+
+
+  # keyboard key presses.
+  # register callback
+  $window.register-signal(
+    $ho, 'keyboard-handler', 'key-press-event', :uo(...)
+  );
+
+  # callback method
+  method keyboard-handler (
+    GdkEvent $event, :$_widget, :$_handler_id, :$uo --> Int
+  ) { ... }
+
+
+An more complete example to register and use a simple callback handler
+
+  # create a class with a handler method to process a button click event
   class X {
-    method click-handler ( :widget($button), Array :$my-data ) {
+    method click-handler ( Array :$my-data ) {
       say $my-data.join(' ');
     }
   }
@@ -354,9 +386,8 @@ on which the signal was registered. The name 'widget' is therefore reserved.
   my Array $data = [<Hello World>];
 
   # register button signal
-  my X $x .= new;
-  $button.register-signal( $x, 'click-handler', 'clicked', :my-data($data));
-=end code
+  $button.register-signal( X.new, 'click-handler', 'clicked', :my-data($data));
+
 
 =end pod
 
@@ -393,7 +424,10 @@ method register-signal (
 
     # overwrite any user specified widget argument
     my %named-args = %user-options;
-    %named-args<widget> = $current-object;
+    %named-args<widget> := $current-object;
+    %named-args<_widget> := $current-object;
+    %named-args<_handler-id> := $handler-id;
+#    Gnome::N::deprecate( 'callback(:widget)', 'callback(:_widget)', '0.16.8', '0.20.0');
 
     sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
@@ -537,7 +571,20 @@ Start a thread in such a way that the function can modify the user interface in 
 =item $priority; The priority to which the handler is started. The default is G_PRIORITY_DEFAULT. These are constants defined in B<Gnome::GObject::GMain>.
 =item $new-context; Whether to run the handler in a new context or to run it in the context of the main loop. Default is to run in the main loop.
 =item $start-time. Start time of thread. Default is now + 1 sec. Most of the time a thread starts too fast when some widget are not ready yet. All depends of course what the thread has to do.
-=item *%user-options; Any name but :start-time and :new-context is provided to the handler.
+
+=begin item
+%user-options; Any other user data in whatever type provided as one or more named arguments except for :start-time and :new-context. These arguments are provided to the user handler when the callback is invoked.
+
+=begin comment
+There will always be one named argument C<:$widget> which holds the class object on which the thread is started. The name 'widget' is therefore reserved.
+
+The named attribute C<:$widget> will be deprecated in the future. The name will be changed into C<:$_widget> to give the user a free hand in user provided named arguments. The names starting with '_' will then be reserved to provide special info to the user.
+=end comment
+
+The following named arguments can be used in the callback handler
+
+  =item C<:$_widget>; The instance which registered the signal.
+=end item
 
 Returns a C<Promise> object. If the call fails, the object is undefined.
 
@@ -580,7 +627,7 @@ method start-thread (
           CATCH { default { .message.note; .backtrace.concise.note } }
 
           $return-value = $handler-object."$handler-name"(
-            :widget(self), |%user-options
+            :widget(self), :_widget(self), |%user-options
           );
 
           G_SOURCE_REMOVE
