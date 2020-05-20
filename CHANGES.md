@@ -1,4 +1,8 @@
 ## Release notes
+* 2020-05-20 0.16.8
+  * provide user of a handler id not only from return of `register-signal()` but also in de named argument :$_handler-id.
+  * The named argument to the user callback from `.register-handler()` and also `.start-thread()` `:widget` is deprecated and is renamed to `:_widget`. This is done to give the user more freedom for their own named arguments. Also in all routines handling callbacks, the extra provided arguments, if any, are prefixed with a dash ('_'), so do not use that type of names.
+
 * 2020-05-15 0.16.7
   * Add catch block to `.start-thread()` just before calling user code in **Object**.
   * Improve and bugfixing `.emit_by_name()`. Also improved pod doc.
