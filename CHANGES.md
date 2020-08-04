@@ -1,6 +1,11 @@
 ## Release notes
+* 2020-08-04 0.16.9
+  * Rename **GdkEvent** into **N-GdkEvent** in an signal example.
+  * Use of `:_widget` and `:_handler-id` in examples.
+  * Bugfix: Somehow with newer Raku version the parameter list to `g_signal_connect_object()` went berserk and got exceptions from **NativeCall**.
+
 * 2020-05-20 0.16.8
-  * provide user of a handler id not only from return of `register-signal()` but also in de named argument :$_handler-id.
+  * provide user of a handler id not only from return of `register-signal()` but also in de named argument :$\_handler-id.
   * The named argument to the user callback from `.register-handler()` and also `.start-thread()` `:widget` is deprecated and is renamed to `:_widget`. This is done to give the user more freedom for their own named arguments. Also in all routines handling callbacks, the extra provided arguments, if any, are prefixed with a dash ('_'), so do not use that type of names.
 
 * 2020-05-15 0.16.7
