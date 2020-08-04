@@ -368,7 +368,7 @@ Two examples of a registration and the handlers signature
 
   # callback method
   method keyboard-handler (
-    GdkEvent $event, :$_widget, :$_handler_id, :$uo --> Int
+    N-GdkEvent $event, :$_widget, :$_handler_id, :$uo --> Int
   ) { ... }
 
 
@@ -488,9 +488,7 @@ method register-signal (
         );
 
         my $no = self.get-native-object-no-reffing;
-        note "Signal type and name: $signal-type, $signal-name\(",
-             ( $no.perl, $sh.perl, %shkeys{$signal-type}.perl
-             ).join(', '), ')' if $Gnome::N::x-debug;
+        note "\nSignal type and name: $signal-type, $signal-name\nHandler: $sh.perl(),\n" if $Gnome::N::x-debug;
 
         $handler-id = $!g-signal._convert_g_signal_connect_object(
           $no, $signal-name, $sh, %shkeys{$signal-type}
@@ -2652,7 +2650,8 @@ It is important to note that you must use [canonical parameter names][canonical-
 =end comment
 
   method handler (
-    Gnome::GObject::Object :widget($gobject),
+    Int :$_handler_id,
+    Gnome::GObject::Object :_widget($gobject),
     :handler-arg0($pspec),
     :$user-option1, ..., :$user-optionN
   );
