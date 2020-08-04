@@ -28,7 +28,7 @@ A means for customization of object behaviour and a general purpose notification
   # Define proper handler. The handler API must describe all arguments
   # and their types.
   my Callable $handler = sub (
-    N-GObject $native-widget, GdkEvent $event, OpaquePointer $ignore-d
+    N-GObject $native-widget, N-GdkEvent $event, OpaquePointer $ignore-d
   ) {
     ...
   }
@@ -43,7 +43,7 @@ The other option to connect a signal is to use the C<register-signal()> method d
 
   # Define handler method. The handler API must describe all positional
   # arguments and their types.
-  method mouse-event ( GdkEvent $event, :$widget ) { ... }
+  method mouse-event ( N-GdkEvent $event, :$widget ) { ... }
 
   # Get a window object
   my Gnome::Gtk3::Window $w .= new( ... );
@@ -163,8 +163,10 @@ method _convert_g_signal_connect_object (
     Parameter.new(type => N-GObject),     # object which received the signal
   );
 
-  # then process all parameters of the callback.
-  for $user-handler.signature.params -> $p {
+  # then process all parameters of the callback. Skip the first which is the
+  # instance which is not needed in the argument list to the handler.
+  for $user-handler.signature.params[1..*-1] -> $p {
+#note "\$p: $p.perl()";
 
     next if $p.name ~~ Nil;       # seems to be between it in the list
     next if $p.name eq '%_';      # only at the end I think
@@ -194,8 +196,9 @@ method _convert_g_signal_connect_object (
   @sub-parameter-list.push(
     Parameter.new(type => OpaquePointer), # data pointer which is ignored
   );
+#note "Subpar: @sub-parameter-list.perl()";
 
-  # create signature, test for return value
+  # create signature from user handler, test for return value
   my Signature $sub-signature;
   if $user-handler.signature.returns ~~ Mu {
     $sub-signature .= new(
@@ -210,30 +213,42 @@ method _convert_g_signal_connect_object (
       :returns($user-handler.signature.returns)
     );
   }
+#note "Sub: $sub-signature.perl()";
 
   # create parameter list for call to g_signal_connect_object
   my @parameterList = (
     Parameter.new(type => N-GObject),     # $instance
     Parameter.new(type => Str),           # $detailed-signal
-    Parameter.new(                        # $user-handler
+    Parameter.new(                        # wrapper around $user-handler
       :type(Callable),
       :$sub-signature
     ),
     Parameter.new(type => OpaquePointer), # $data is ignored
     Parameter.new(type => int32)          # $connect-flags is ignored
   );
+#note "Par: @parameterList.perl()";
 
   # create signature for call to g_signal_connect_object
   my Signature $signature .= new(
     :params( |@parameterList ),
     :returns(uint64)
   );
+#note "Sig: $signature.perl()";
 
   # get a pointer to the sub, then cast it to a sub with the created
   # signature. after that, the sub can be called, returning a value.
   state $ptr = cglobal( gobject-lib(), 'g_signal_connect_object', Pointer);
 
   my Callable $f = nativecast( $signature, $ptr);
+#note "F: $f.perl()";
+
+  note [~] "Calling: .g_signal_connect_object\(\n",
+    "  $instance.perl(),\n",
+    "  '$detailed-signal',\n",
+    "  $provided-handler.perl(),\n",
+    "  OpaquePointer,\n",
+    "  0\n",
+    ');'  if $Gnome::N::x-debug;
 
   # returns the signal id
   $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
