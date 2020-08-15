@@ -200,10 +200,13 @@ method _convert_g_signal_connect_object (
 
   # create signature from user handler, test for return value
   my Signature $sub-signature;
+
+  # Mu is not an accepted value for the NativeCall interface make it
+  # an OpaquePointer.
   if $user-handler.signature.returns ~~ Mu {
     $sub-signature .= new(
       :params( |@sub-parameter-list ),
-      :returns(int32)
+      :returns(OpaquePointer)
     );
   }
 
