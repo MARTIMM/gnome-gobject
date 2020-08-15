@@ -431,44 +431,49 @@ method register-signal (
 
     sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
-      if $sh.signature.returns ~~ Mu {
-        $handler-object."$handler-name"(|%named-args) // 1
-      }
 
-      else {
-        $handler-object."$handler-name"(|%named-args)
-      }
+      # Mu is not an accepted value  for the NativeCall interface
+      # _convert_g_signal_connect_object() in Signal makes it an OpaquePointer
+      my $retval = $handler-object."$handler-name"(|%named-args);
+      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      $retval
     }
 
     sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args($h0);
 #      $handler-object."$handler-name"( |@converted-args, |%named-args);
-      if $sh.signature.returns ~~ Mu {
-        $handler-object."$handler-name"( $h0, |%named-args) // 1
-      }
-
-      else {
-        $handler-object."$handler-name"( $h0, |%named-args)
-      }
+      my $retval = $handler-object."$handler-name"( $h0, |%named-args);
+      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      $retval
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1);
-      $handler-object."$handler-name"( $h0, $h1, |%named-args);
+      my $retval = $handler-object."$handler-name"( $h0, $h1, |%named-args);
+      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      $retval
     }
 
     sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
-      $handler-object."$handler-name"( $h0, $h1, $h2, |%named-args);
+      my $retval = $handler-object."$handler-name"(
+        $h0, $h1, $h2, |%named-args
+      );
+      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      $retval
     }
 
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
-      $handler-object."$handler-name"( $h0, $h1, $h2, $h3, |%named-args);
+      my $retval = $handler-object."$handler-name"(
+        $h0, $h1, $h2, $h3, |%named-args
+      );
+      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      $retval
     }
 
     sub w5(
@@ -476,7 +481,11 @@ method register-signal (
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
-      $handler-object."$handler-name"( $h0, $h1, $h2, $h3, $h4, |%named-args);
+      my $retval = $handler-object."$handler-name"(
+        $h0, $h1, $h2, $h3, $h4, |%named-args
+      );
+      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      $retval
     }
 
     given $signal-type {
