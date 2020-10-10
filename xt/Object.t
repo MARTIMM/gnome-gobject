@@ -57,12 +57,35 @@ class X {
     my Gnome::Gtk3::Label $l .= new(:native-object($nw));
     is $l.get-text, $test, 'label is ok';
   }
+
+  method click ( :_widget($w) ) {
+    note 'clicked ...';
+  }
 }
 
 subtest 'container', {
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
   $b.container-foreach( X.new, 'cb', :test<Start>, :test2<x>, :test3<y>);
 }
+
+#`{{
+#-------------------------------------------------------------------------------
+subtest 'signals', {
+
+  my Gnome::Gtk3::Button $b .= new(:label<Start>);
+  my Int $hid = $b.register-signal( X.new, 'click', 'clicked');
+  my Int $sid = $b.g_signal_lookup('clicked');
+  is $sid, $hid, '.signal-lookup(): ' ~ $hid;
+  $b.emit-by-name('clicked');
+  is $b.signal-name($sid), 'clicked', '.signal-name()';
+  $b.handler_disconnect($hid);
+
+  $hid = $b.register-signal( X.new, 'click', 'clicked');
+  is $b.g_signal_lookup('clicked'), $hid, '.signal-lookup(): ' ~ $hid;
+Gnome::N::debug(:on);
+  is $b.signal-lookup('clicked'), $hid, '.signal-lookup(): ' ~ $hid;
+}
+}}
 
 #-------------------------------------------------------------------------------
 done-testing;

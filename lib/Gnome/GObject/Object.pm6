@@ -68,6 +68,7 @@ I<GParamSpecObject>, C<g_param_spec_object()>
 
   unit class Gnome::GObject::Object;
   also is Gnome::N::TopLevelClassSupport;
+  also does Gnome::GObject::Signal;
 
 =begin comment
 =head2 Example
@@ -105,12 +106,13 @@ use Gnome::GObject::Value;
 #-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
+also does Gnome::GObject::Signal;
 
 #-------------------------------------------------------------------------------
 my Hash $signal-types = {};
 my Bool $signals-added = False;
 
-has Gnome::GObject::Signal $!g-signal;
+#has Gnome::GObject::Signal $!g-signal;
 
 # type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
@@ -186,9 +188,12 @@ method _fallback ( $native-sub --> Callable ) {
   my Callable $s;
 
   try { $s = &::("g_object_$native-sub"); };
+  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
+
+#`{{
   # Try to solve sub names from the GSignal class
   unless ?$s {
     $!g-signal .= new(:g-object(self.get-native-object));
@@ -196,6 +201,7 @@ method _fallback ( $native-sub --> Callable ) {
 
     $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
   }
+}}
 
   self.set-class-name-of-sub('GObject');
 
@@ -230,7 +236,7 @@ method get-native-gobject ( --> N-GObject ) {
 method set-native-object ( $n-native-object ) {
   if ? $n-native-object {
     # when object is set, create signal object too
-    $!g-signal .= new(:g-object($n-native-object));
+    #$!g-signal .= new(:g-object($n-native-object));
   }
 
   # now call the one from TopLevelClassSupport
@@ -499,7 +505,8 @@ method register-signal (
         my $no = self.get-native-object-no-reffing;
         note "\nSignal type and name: $signal-type, $signal-name\nHandler: $sh.perl(),\n" if $Gnome::N::x-debug;
 
-        $handler-id = $!g-signal._convert_g_signal_connect_object(
+#        $handler-id = $!g-signal._convert_g_signal_connect_object(
+        $handler-id = self._convert_g_signal_connect_object(
           $no, $signal-name, $sh, %shkeys{$signal-type}
         );
       }

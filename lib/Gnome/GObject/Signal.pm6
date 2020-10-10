@@ -13,7 +13,7 @@ A means for customization of object behaviour and a general purpose notification
 =head1 Synopsis
 =head2 Declaration
 
-  unit class Gnome::GObject::Signal;
+  unit role Gnome::GObject::Signal;
 
 =head2 Example
 
@@ -63,7 +63,7 @@ use Gnome::N::N-GObject;
 # See /usr/include/glib-2.0/gobject/gsignal.h
 # /usr/include/glib-2.0/gobject/gobject.h
 # https://developer.gnome.org/gobject/stable/gobject-Signals.html
-unit class Gnome::GObject::Signal:auth<github:MARTIMM>;
+unit role Gnome::GObject::Signal:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 has N-GObject $!g-object;
@@ -78,6 +78,7 @@ has N-GObject $!g-object;
 #TM:2:new():Object
 submethod BUILD ( N-GObject:D :$!g-object ) { }
 
+#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
@@ -103,6 +104,7 @@ method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
   #test-call-without-natobj( $s, |c)
   $return-sub-only ?? $s !! $s( $!g-object, |c)
 }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:2:g_signal_connect_object:
@@ -119,7 +121,7 @@ Connects a callback function to a signal for a particular object.
 sub g_signal_connect_object (
   N-GObject $instance, Str $detailed-signal, Callable $handler
   --> Int
-) {
+) is export {
 
   # create parameter list
   my @parameterList = (
@@ -254,6 +256,7 @@ method _convert_g_signal_connect_object (
     ');'  if $Gnome::N::x-debug;
 
   # returns the signal id
+#note "F: $instance.perl(), $detailed-signal, $provided-handler.perl()";
   $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
 }
 
@@ -445,7 +448,7 @@ Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to 
 sub g_signal_emit_by_name (
   N-GObject $instance, Str $detailed_signal, *@handler-arguments, *%options
   --> Any
-) {
+) is export {
 
   # create parameter list and start with inserting fixed arguments
   my @parameterList = (
@@ -507,4 +510,55 @@ The handler_id has to be a valid signal handler id, connected to a signal of ins
 
 sub g_signal_handler_disconnect( N-GObject $widget, uint64 $handler_id )
   is native(&gobject-lib)
+  is export
+  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:2:g_signal_lookup:xt/Object.t
+=begin pod
+=head2 [g_] signal_lookup
+
+Given the name of the signal and the type of object it connects to, gets the signal's identifying integer.
+=comment Emitting the signal by number is somewhat faster than using the name each time.
+
+Also tries the ancestors of the given widget (the native one, held within).
+
+The widget must already have been instantiated for this function to work, as signals are always installed during class initialization.
+
+  g_signal_lookup( Str $signal-name --> Int )
+
+=item $signal-name; the signal's name.
+=end pod
+
+sub g_signal_lookup ( N-GObject $widget, Str $signal-name --> Int ) is export {
+
+  my Int $widget-type = tlcs_type_from_name;
+  _g_signal_lookup( $signal-name, $widget-type)
+}
+
+sub _g_signal_lookup ( Str $name, int32 $itype --> uint32 )
+  is native(&gobject-lib)
+  is symbol('g_signal_lookup')
+  { * }
+}}
+#-------------------------------------------------------------------------------
+#TM:2:g_signal_name:xt/Object.t
+=begin pod
+=head2 [g_] signal_name
+
+Given the signal's identifier, finds its name. Two different signals may have the same name, if they have differing types.
+
+  g_signal_name( Str $signal-id --> Str )
+
+=item $signal-id; the signal's identifying number.
+
+Returns the signal name, or NULL if the signal number was invalid.
+
+=end pod
+
+sub g_signal_name( int32 $signal_id --> Str )
+  is native(&gobject-lib)
+#  is symbol('g_signal_name')
+  is export
   { * }
