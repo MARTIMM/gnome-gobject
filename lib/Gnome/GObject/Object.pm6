@@ -12,9 +12,9 @@ The base object type
 
 GObject is the fundamental type providing the common attributes and methods for all object types in GTK+, Pango and other libraries based on GObject. The GObject class provides methods for object construction and destruction, property access methods, and signal support.
 
-=begin comment
 
-Signals are described in detail [here][gobject-Signals].
+=begin comment
+Signals are described in detail L<here|https://developer.gnome.org/gobject/stable/signal.html>.
 
 For a tutorial on implementing a new GObject class, see [How to define and
 implement a new GObject][howto-gobject]. For a list of naming conventions for
@@ -68,11 +68,17 @@ I<GParamSpecObject>, C<g_param_spec_object()>
 
   unit class Gnome::GObject::Object;
   also is Gnome::N::TopLevelClassSupport;
+  also does Gnome::GObject::Signal;
+
+=head2 Uml Diagram
+
+![](plantuml/Object.svg)
+
 
 =begin comment
 =head2 Example
 
-This object is almost never used directly. Most of the classes inherit from this class. The below example shows how label text is set on a button using properties. This can be made much simpler by setting this label directly in the init of B<Gnome::Gtk3::Button>. The purpose of this example, however, is that there might be other properties which can only be set this way.
+This object is almost never used directly. Many classes inherit from this class. The below example shows how label text is set on a button using properties. This can be made much simpler by setting this label directly in the init of B<Gnome::Gtk3::Button>. The purpose of this example, however, is that there might be other properties which can only be set this way.
 
   use Gnome::GObject::Object;
   use Gnome::GObject::Value;
@@ -84,6 +90,7 @@ This object is almost never used directly. Most of the classes inherit from this
   my Gnome::Gtk3::Button $b .= new;
   $gv.g-value-set-string('Open file');
   $b.g-object-set-property( 'label', $gv);
+  $gv.clear-object;
 
 =end comment
 =end pod
@@ -105,12 +112,13 @@ use Gnome::GObject::Value;
 #-------------------------------------------------------------------------------
 unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
+also does Gnome::GObject::Signal;
 
 #-------------------------------------------------------------------------------
 my Hash $signal-types = {};
 my Bool $signals-added = False;
 
-has Gnome::GObject::Signal $!g-signal;
+#has Gnome::GObject::Signal $!g-signal;
 
 # type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
@@ -186,9 +194,12 @@ method _fallback ( $native-sub --> Callable ) {
   my Callable $s;
 
   try { $s = &::("g_object_$native-sub"); };
+  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
+
+#`{{
   # Try to solve sub names from the GSignal class
   unless ?$s {
     $!g-signal .= new(:g-object(self.get-native-object));
@@ -196,6 +207,7 @@ method _fallback ( $native-sub --> Callable ) {
 
     $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
   }
+}}
 
   self.set-class-name-of-sub('GObject');
 
@@ -230,7 +242,7 @@ method get-native-gobject ( --> N-GObject ) {
 method set-native-object ( $n-native-object ) {
   if ? $n-native-object {
     # when object is set, create signal object too
-    $!g-signal .= new(:g-object($n-native-object));
+    #$!g-signal .= new(:g-object($n-native-object));
   }
 
   # now call the one from TopLevelClassSupport
@@ -499,7 +511,8 @@ method register-signal (
         my $no = self.get-native-object-no-reffing;
         note "\nSignal type and name: $signal-type, $signal-name\nHandler: $sh.perl(),\n" if $Gnome::N::x-debug;
 
-        $handler-id = $!g-signal._convert_g_signal_connect_object(
+#        $handler-id = $!g-signal._convert_g_signal_connect_object(
+        $handler-id = self._convert_g_signal_connect_object(
           $no, $signal-name, $sh, %shkeys{$signal-type}
         );
       }
@@ -784,7 +797,6 @@ sub g_object_set (
 
 Sets I<$n_properties> properties for this object. Properties to be set will be taken from I<$values>. All properties must be valid. Warnings will be emitted and undefined behaviour may result if invalid properties are passed in.
 
-Since: 2.54
 
   method g_object_setv ( @names, @values )
 
@@ -847,7 +859,6 @@ Obtained properties will be set to I<values>. All properties must be valid.
 Warnings will be emitted and undefined behaviour may result if invalid
 properties are passed in.
 
-Since: 2.54
 
   method g_object_getv (
     UInt $n_properties, CArray[Str] $names, CArray[N-GValue] $values )
@@ -1049,7 +1060,6 @@ sub _g_object_unref ( N-GObject $object )
 
 Checks whether I<object> has a [floating][floating-ref] reference.
 
-Since: 2.10
 
 Returns: C<1> if I<object> has a floating reference
 
@@ -1194,7 +1204,6 @@ correct.  For virtually all uses, this makes no difference. If you
 need to get the overridden property, you can call
 C<g_param_spec_get_redirect_target()>.
 
-Since: 2.4
 
   method g_object_class_override_property ( GObjectClass $oclass, UInt $property_id, Str $name )
 
@@ -1275,7 +1284,6 @@ g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_FOO]);
 }
 ]|
 
-Since: 2.26
 
   method g_object_class_install_properties ( GObjectClass $oclass, UInt $n_pspecs, N-GParamSpec $pspecs )
 
@@ -1313,7 +1321,6 @@ been called for any object types implementing this interface.
 
 If I<pspec> is a floating reference, it will be consumed.
 
-Since: 2.4
 
   method g_object_interface_install_property ( Pointer $g_iface, N-GParamSpec $pspec )
 
@@ -1337,7 +1344,6 @@ will be the default vtable from C<g_type_default_interface_ref()>, or,
 if you know the interface has already been loaded,
 C<g_type_default_interface_peek()>.
 
-Since: 2.4
 
 Returns: (transfer none): the I<N-GParamSpec> for the property of the
 interface with the name I<property_name>, or C<Any> if no
@@ -1365,7 +1371,6 @@ vtable passed in as I<g_iface> will be the default vtable from
 C<g_type_default_interface_ref()>, or, if you know the interface has
 already been loaded, C<g_type_default_interface_peek()>.
 
-Since: 2.4
 
 Returns: (array length=n_properties_p) (transfer container): a
 pointer to an array of pointers to I<N-GParamSpec>
@@ -1429,7 +1434,6 @@ which are not explicitly specified are set to their default values.
 Returns: (type GObject.Object) (transfer full): a new instance of
 I<object_type>
 
-Since: 2.54
 
   method g_object_new_with_properties (
     int32 $object_type, UInt $n_properties,
@@ -1640,7 +1644,6 @@ and then notify a change on the "foo" property with:
 g_object_notify_by_pspec (self, properties[PROP_FOO]);
 ]|
 
-Since: 2.26
 
   method g_object_notify_by_pspec ( N-GParamSpec $pspec )
 
@@ -1805,7 +1808,6 @@ of them will ever be notified until all but one are removed.  For
 this reason, you should only ever use a toggle reference if there
 is important state in the proxy object.
 
-Since: 2.8
 
   method g_object_add_toggle_ref ( GToggleNotify $notify, Pointer $data )
 
@@ -1826,7 +1828,6 @@ sub g_object_add_toggle_ref ( N-GObject $object, GToggleNotify $notify, Pointer 
 Removes a reference added with C<g_object_add_toggle_ref()>. The
 reference count of the object is decreased by one.
 
-Since: 2.8
 
   method g_object_remove_toggle_ref ( GToggleNotify $notify, Pointer $data )
 
@@ -1991,7 +1992,6 @@ associated with I<quark> on I<object>, or C<Any> if not set.
 If I<dup_func> is C<Any>, the value is returned
 unmodified.
 
-Since: 2.34
 
   method g_object_dup_qdata ( int32 $quark, GDuplicateFunc $dup_func, Pointer $user_data --> Pointer  )
 
@@ -2028,7 +2028,6 @@ should not destroy the object in the normal way.
 Returns: C<1> if the existing value for I<quark> was replaced
 by I<newval>, C<0> otherwise.
 
-Since: 2.34
 
   method g_object_replace_qdata ( int32 $quark, Pointer $oldval, Pointer $newval, GDestroyNotify $destroy, GDestroyNotify $old_destroy --> Int  )
 
@@ -2162,7 +2161,6 @@ associated with I<key> on I<object>, or C<Any> if not set.
 If I<dup_func> is C<Any>, the value is returned
 unmodified.
 
-Since: 2.34
 
   method g_object_dup_data ( Str $key, GDuplicateFunc $dup_func, Pointer $user_data --> Pointer  )
 
@@ -2201,7 +2199,6 @@ should not destroy the object in the normal way.
 Returns: C<1> if the existing value for I<key> was replaced
 by I<newval>, C<0> otherwise.
 
-Since: 2.34
 
   method g_object_replace_data ( Str $key, Pointer $oldval, Pointer $newval, GDestroyNotify $destroy, GDestroyNotify $old_destroy --> Int  )
 
@@ -2433,7 +2430,6 @@ a [floating][floating-ref] object reference. Doing this is seldom
 required: all I<GInitiallyUnowneds> are created with a floating reference
 which usually just needs to be sunken by calling C<g_object_ref_sink()>.
 
-Since: 2.10
 
   method g_object_force_floating ( )
 
@@ -2476,7 +2472,6 @@ count of the object is not increased).
 If you want the I<GValue> to hold its own reference to I<v_object>, use
 C<g_value_set_object()> instead.
 
-Since: 2.4
 
   method g_value_take_object ( N-GObject $value, Pointer $v_object )
 
@@ -2505,7 +2500,6 @@ pointer is set to C<Any>.
 A macro is also included that allows this function to be used without
 pointer casts.
 
-Since: 2.28
 
   method g_clear_object ( )
 
@@ -2532,7 +2526,6 @@ C<g_weak_ref_clear()>.  It is not necessary to use this function for a
 I<GWeakRef> in static storage because it will already be
 properly initialised.  Just use C<g_weak_ref_set()> directly.
 
-Since: 2.32
 
   method g_weak_ref_init ( GWeakRef $weak_ref, Pointer $object )
 
@@ -2556,7 +2549,6 @@ After this call, the I<GWeakRef> is left in an undefined state.
 You should only call this on a I<GWeakRef> that previously had
 C<g_weak_ref_init()> called on it.
 
-Since: 2.32
 
   method g_weak_ref_clear ( GWeakRef $weak_ref )
 
@@ -2586,7 +2578,6 @@ by using C<g_object_unref()>.
 Returns: (transfer full) (type GObject.Object): the object pointed to
 by I<weak_ref>, or C<Any> if it was empty
 
-Since: 2.32
 
   method g_weak_ref_get ( GWeakRef $weak_ref --> Pointer  )
 
@@ -2610,7 +2601,6 @@ C<Any>.
 You must own a strong reference on I<object> while calling this
 function.
 
-Since: 2.32
 
   method g_weak_ref_set ( GWeakRef $weak_ref, Pointer $object )
 

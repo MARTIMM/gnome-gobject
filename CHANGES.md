@@ -1,4 +1,8 @@
 ## Release notes
+
+* 2020-10-11 0.16.11
+  * Turned **Gnome::GObject::Signal** into a role and inherited it in **Gnome::GObject::Object**.
+
 * 2020-08-15 0.16.10
   * Improved return value handling of user signal handlers in **Gnome::GObject::Object** and **Gnome::GObject::Signal** classes.
 
