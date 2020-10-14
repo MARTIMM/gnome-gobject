@@ -124,6 +124,10 @@ my Bool $signals-added = False;
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
 
+# check on native library initialization. must be global to all of the
+# TopLevelClassSupport classes. the
+my Bool $gui-initialized = False;
+
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
@@ -143,6 +147,38 @@ An example
 #TM:4:new():inheriting:*
 #TM:4:new(:build-id):*
 submethod BUILD ( *%options ) {
+
+  # check GTK+ init except when GtkApplication / GApplication is used. They have
+  # to inject this option in the .new() method of their class. Also the child
+  # classes of those application modules should inject it.
+  if not $gui-initialized #`{{and !%options<skip-init>}} {
+    # must setup gtk otherwise Raku will crash
+    my $argc = CArray[int32].new;
+    $argc[0] = 1 + @*ARGS.elems;
+
+    my $arg_arr = CArray[Str].new;
+    my Int $arg-count = 0;
+    $arg_arr[$arg-count++] = $*PROGRAM.Str;
+    for @*ARGS -> $arg {
+      $arg_arr[$arg-count++] = $arg;
+    }
+
+    my $argv = CArray[CArray[Str]].new;
+    $argv[0] = $arg_arr;
+
+    # call gtk_init_check
+    object_init_check( $argc, $argv);
+    $gui-initialized = True;
+
+    # now refill the ARGS list with left over commandline arguments
+    @*ARGS = ();
+    for ^$argc[0] -> $i {
+      # skip first argument == programname
+      next unless $i;
+      @*ARGS.push: $argv[0][$i];
+    }
+  }
+
 
   # add signal types
 #  unless $signals-added {
@@ -1100,6 +1136,16 @@ sub g_object_ref_sink ( N-GObject $object --> N-GObject )
   is native(&gobject-lib)
   { * }
 
+
+#-------------------------------------------------------------------------------
+# this sub belongs to Gnome::Gtk3::Main but is needed here. To avoid
+# circular dependencies, the sub is redeclared here for this purpose
+sub object_init_check (
+  CArray[int32] $argc, CArray[CArray[Str]] $argv
+  --> int32
+) is native(&gtk-lib)
+  is symbol('gtk_init_check')
+  { * }
 
 
 

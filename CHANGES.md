@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2020-10-14 0.16.12
+  * Moved Gtk initialization higher up in hierargy from **Gnome::N::TopLevelClassSupport** into **Gnome::GObject::Object**. It is not needed e.g. for Cairo and Glib.
+
 * 2020-10-11 0.16.11
   * Turned **Gnome::GObject::Signal** into a role and inherited it in **Gnome::GObject::Object**.
 
