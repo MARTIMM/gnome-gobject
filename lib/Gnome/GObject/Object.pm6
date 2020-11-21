@@ -449,7 +449,9 @@ method register-signal (
   # don't register if handler is not available
   my Method $sh = $handler-object.^lookup($handler-name) // Method;
   if ? $sh {
-    note "\nregister $handler-object\.$handler-name\() for signal $signal-name, options are ", %user-options if $Gnome::N::x-debug;
+    if $Gnome::N::x-debug {
+      note "\nregister $handler-object\.$handler-name\() for signal $signal-name, options are ", %user-options;
+    }
 
     # search for signal name defined by this class as well as its parent classes
     my Str $signal-type;
@@ -480,47 +482,105 @@ method register-signal (
     sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
+      note "w0 handler: %named-args.gist()" if $Gnome::N::x-debug;
+
       # Mu is not an accepted value  for the NativeCall interface
       # _convert_g_signal_connect_object() in Signal makes it an OpaquePointer
       my $retval = $handler-object."$handler-name"(|%named-args);
-      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = OpaquePointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w0 handler result: $retval";
+      }
+
       $retval
     }
 
     sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
+
+      note "w1 handler: $h0, %named-args.gist()" if $Gnome::N::x-debug;
+
 #      my List @converted-args = self!check-args($h0);
 #      $handler-object."$handler-name"( |@converted-args, |%named-args);
       my $retval = $handler-object."$handler-name"( $h0, |%named-args);
-      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = OpaquePointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w1 handler result: $retval";
+      }
+
       $retval
     }
 
     sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
+
+      note "w2 handler: $h0, $h1, %named-args.gist()" if $Gnome::N::x-debug;
+
 #      my List @converted-args = self!check-args( $h0, $h1);
-      my $retval = $handler-object."$handler-name"( $h0, $h1, |%named-args);
-      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+      my $retval = $handler-object."$handler-name"(
+        $h0, $h1, |%named-args
+      );
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = OpaquePointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w2 handler result: $retval";
+      }
+
       $retval
     }
 
     sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
+
+      note "w3 handler: $h0, $h1, $h2, %named-args.gist()"
+        if $Gnome::N::x-debug;
+
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
       my $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, |%named-args
       );
-      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = OpaquePointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w3 handler result: $retval";
+      }
+
       $retval
     }
 
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
+
+      note "w4 handler: $h0, $h1, $h2, $h3, %named-args.gist()"
+        if $Gnome::N::x-debug;
+
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
-      my $retval = $handler-object."$handler-name"(
+      my int32 $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, $h3, |%named-args
       );
-      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = OpaquePointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w4 handler result: $retval";
+      }
+
       $retval
     }
 
@@ -528,11 +588,23 @@ method register-signal (
       N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
+
+      note "w5 handler: $h0, $h1, $h2, $h3, $h4, %named-args.gist()"
+        if $Gnome::N::x-debug;
+
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
       my $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, $h3, $h4, |%named-args
       );
-      $retval = OpaquePointer if $sh.signature.returns ~~ Mu;
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = OpaquePointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w5 handler result: $retval";
+      }
+
       $retval
     }
 
