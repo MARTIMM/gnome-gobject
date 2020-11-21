@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2020-10-14 0.16.13
+  * Bugfixes in Object and Signal. The return value of a signal handler set using `.register-signal()` was processed wrong.
+  * Added some more debug information.
+
 * 2020-10-14 0.16.12
   * Moved Gtk initialization higher up in hierargy from **Gnome::N::TopLevelClassSupport** into **Gnome::GObject::Object**. It is not needed e.g. for Cairo and Glib.
 
