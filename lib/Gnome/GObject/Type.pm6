@@ -375,7 +375,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 #-------------------------------------------------------------------------------
 # conveniance method to convert a type to a Raku parameter
 #TM:2:get-parameter:Gnome::Gtk3::ListStore
-method get-parameter( Int $type, Any:D :$otype --> Parameter ) {
+method get-parameter( Int $type, :$otype --> Parameter ) {
 
   my Parameter $p;
   given $type {
@@ -417,8 +417,14 @@ method get-parameter( Int $type, Any:D :$otype --> Parameter ) {
         $p .= new(:$type);
       }
 
-      else { # ??
+      elsif ?$otype {
         $p .= new(type => $otype.get-class-gtype);
+      }
+
+      else {
+        die X::Gnome.new(
+          :message("Unknown basic type $type and \$otype is undefined")
+        );
       }
     }
   }
