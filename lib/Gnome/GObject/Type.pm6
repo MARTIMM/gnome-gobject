@@ -411,14 +411,20 @@ method get-parameter( Int $type, :$otype --> Parameter ) {
     default {
       # if type is larger than the max of fundamental types (like G_TYPE_INT) it
       # is a type which is set when a GTK+ object is created. In Raku the
-      # object type is stored in the class as $!gtk-class-gtype in
-      # Gnome::GObject::Object and retrievable with .get-class-gtype()
+      # object type is stored in the class as $!class-gtype in
+      # Gnome::N::TopLevelSupport and retrievable with .get-class-gtype()
       if $type > G_TYPE_MAKE_FUNDAMENTAL_MAX {
         $p .= new(:$type);
       }
 
-      else { # ??
+      elsif ?$otype {
         $p .= new(type => $otype.get-class-gtype);
+      }
+
+      else {
+        die X::Gnome.new(
+          :message("Unknown basic type $type and \$otype is undefined")
+        );
       }
     }
   }
