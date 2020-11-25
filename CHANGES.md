@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2020-11-24 0.16.14
+  * Bugfix in **Gnome::GObject::Type**. Types returned from several methods are uint32. However, they might turn negative when they are read into Int typed values and their most significant bit is set. `.get-parameter()` has now added code to handle this. Other places should still be checked where this might pose a problem.
+
 * 2020-10-14 0.16.13
   * Bugfixes in Object and Signal. The return value of a signal handler set using `.register-signal()` was processed wrong.
   * Added some more debug information.
