@@ -375,14 +375,14 @@ method FALLBACK ( $native-sub is copy, |c ) {
 #-------------------------------------------------------------------------------
 # conveniance method to convert a type to a Raku parameter
 #TM:2:get-parameter:Gnome::Gtk3::ListStore
-method get-parameter( Int $type is copy, :$otype --> Parameter ) {
+method get-parameter( UInt $type, :$otype --> Parameter ) {
 
   # tests showed elsewhere that types can come in negative. this should be
   # trapped at the generated spot but it could be anywhere so here it
   # should be converted in any case. It is caused by returned types with
   # 32th bit set which is seen as negative. remedy is to take a two's
   # complement of the negative value.
-  $type = ^+ $type if $type < 0;
+  #$type = ^+ $type if $type < 0;
 
   my Parameter $p;
   given $type {
