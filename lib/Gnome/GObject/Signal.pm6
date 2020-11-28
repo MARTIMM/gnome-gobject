@@ -15,6 +15,12 @@ A means for customization of object behaviour and a general purpose notification
 
   unit role Gnome::GObject::Signal;
 
+
+=head2 Uml Diagram
+
+![](plantuml/Signal.svg)
+
+
 =head2 Example
 
   use NativeCall;
@@ -28,7 +34,7 @@ A means for customization of object behaviour and a general purpose notification
   # Define proper handler. The handler API must describe all arguments
   # and their types.
   my Callable $handler = sub (
-    N-GObject $native-widget, N-GdkEvent $event, OpaquePointer $ignore-d
+    N-GObject $native-widget, N-GdkEvent $event, OpaquePointer $ignored
   ) {
     ...
   }
@@ -43,13 +49,16 @@ The other option to connect a signal is to use the C<register-signal()> method d
 
   # Define handler method. The handler API must describe all positional
   # arguments and their types.
-  method mouse-event ( N-GdkEvent $event, :$widget ) { ... }
+  method mouse-event ( N-GdkEvent $event, :$_widget , :$_handler-id) { ... }
 
   # Get a window object
   my Gnome::Gtk3::Window $w .= new( ... );
 
   # Then register
   $w.register-signal( self, 'mouse-event', 'button-press-event');
+
+
+When some of the primitive types are needed like C<gboolean> or C<guint>, you can just use the module B<Gnome::N::GlibToRakuTypes> and leave the types as they are found in the docs. It might be tricky to choose the proper type: e.g. is a C<guint> an C<unsigned int32> or C<unsigned int64>? By the way, enumerations can be typed C<GEnum>.
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -58,6 +67,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
+use Gnome::N::GlibToRakuTypes;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gobject/gsignal.h
@@ -66,7 +76,7 @@ use Gnome::N::N-GObject;
 unit role Gnome::GObject::Signal:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
-has N-GObject $!g-object;
+#has N-GObject $!g-object;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -76,39 +86,26 @@ has N-GObject $!g-object;
 #-------------------------------------------------------------------------------
 # Native object is handed over by a Gnome::GObject::Object object
 #TM:2:new():Object
-submethod BUILD ( N-GObject:D :$!g-object ) { }
+#submethod BUILD ( N-GObject:D :$!g-object ) { }
+submethod BUILD ( *%options ) { }
 
-#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, Bool :$return-sub-only = False, |c ) {
-
-#  CATCH { test-catch-exception( $_, $native-sub); }
-  CATCH { .note; die; }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
-#`{{
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') >= 0;
-}}
+method _signal_interface ( Str $native-sub --> Callable ) {
 
   my Callable $s;
-#note "s s0: $native-sub, ", $s;
-  try { $s = &::($native-sub); }
-#note "s s1: g_signal_$native-sub, ", $s unless ?$s;
   try { $s = &::("g_signal_$native-sub"); } unless ?$s;
-#note "s s2: ==> ", $s;
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  #test-call-without-natobj( $s, |c)
-  $return-sub-only ?? $s !! $s( $!g-object, |c)
+  $s
 }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:2:g_signal_connect_object:
 =begin pod
+=head2 [[g_] signal_] connect_object
+
 Connects a callback function to a signal for a particular object.
 
   method g_signal_connect_object (
@@ -121,33 +118,35 @@ Connects a callback function to a signal for a particular object.
 sub g_signal_connect_object (
   N-GObject $instance, Str $detailed-signal, Callable $handler
   --> Int
-) is export {
+) {
 
   # create parameter list
   my @parameterList = (
     Parameter.new(type => N-GObject),     # $instance
-    Parameter.new(type => Str),           # $detailed-signal
+    Parameter.new(type => gchar-ptr),     # $detailed-signal
     Parameter.new(                        # $handler
       type => Callable,
       sub-signature => $handler.signature
     ),
-    Parameter.new(type => OpaquePointer), # $data is ignored
-    Parameter.new(type => int32)          # $connect-flags is ignored
+    Parameter.new(type => gpointer),      # $data is ignored
+#    Parameter.new(type => OpaquePointer), # $data is ignored
+    Parameter.new(type => GEnum)          # $connect-flags is ignored
   );
 
   # create signature
   my Signature $signature .= new(
     :params( |@parameterList ),
-    :returns(uint64)
+    :returns(gulong)
   );
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
-  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', Pointer);
+  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', gpointer);
   my Callable $f = nativecast( $signature, $ptr);
 
   # returns the signal id
-  $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
+  $f( $instance, $detailed-signal, $handler, gpointer, 0)
+#  $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
 }
 
 #-------------------------------------------------------------------------------
@@ -177,15 +176,15 @@ method _convert_g_signal_connect_object (
     my $ha-type = $p.type;
     given $ha-type {
       when UInt {
-        @sub-parameter-list.push(Parameter.new(type => uint32));
+        @sub-parameter-list.push(Parameter.new(type => guint));
       }
 
       when Int {
-        @sub-parameter-list.push(Parameter.new(type => int32));
+        @sub-parameter-list.push(Parameter.new(type => gint));
       }
 
       when Num {
-        @sub-parameter-list.push(Parameter.new(type => num32));
+        @sub-parameter-list.push(Parameter.new(type => gfloat));
       }
 
       default {
@@ -196,7 +195,8 @@ method _convert_g_signal_connect_object (
 
   # finish with data pointer argument
   @sub-parameter-list.push(
-    Parameter.new(type => OpaquePointer), # data pointer which is ignored
+    Parameter.new(type => gpointer), # data pointer which is ignored
+#    Parameter.new(type => OpaquePointer), # data pointer which is ignored
   );
 #note "Subpar: @sub-parameter-list.perl()";
 
@@ -208,7 +208,8 @@ method _convert_g_signal_connect_object (
   if $user-handler.signature.returns.gist ~~ '(Mu)' {
     $sub-signature .= new(
       :params( |@sub-parameter-list ),
-      :returns(OpaquePointer)
+      :returns(gpointer)
+#      :returns(OpaquePointer)
     );
   }
 
@@ -228,15 +229,16 @@ method _convert_g_signal_connect_object (
       :type(Callable),
       :$sub-signature
     ),
-    Parameter.new(type => OpaquePointer), # $data is ignored
-    Parameter.new(type => int32)          # $connect-flags is ignored
+    Parameter.new(type => gpointer), # $data is ignored
+#    Parameter.new(type => OpaquePointer), # $data is ignored
+    Parameter.new(type => GEnum)          # $connect-flags is ignored
   );
 #note "Par: @parameterList.perl()";
 
   # create signature for call to g_signal_connect_object
   my Signature $signature .= new(
     :params( |@parameterList ),
-    :returns(uint64)
+    :returns(gulong)
   );
 #note "Sig: $signature.perl()";
 
@@ -251,13 +253,15 @@ method _convert_g_signal_connect_object (
     "  $instance.perl(),\n",
     "  '$detailed-signal',\n",
     "  $provided-handler.perl(),\n",
-    "  OpaquePointer,\n",
+    "  gpointer,\n",
+#    "  OpaquePointer,\n",
     "  0\n",
     ');'  if $Gnome::N::x-debug;
 
   # returns the signal id
 #note "F: $instance.perl(), $detailed-signal, $provided-handler.perl()";
-  $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
+  $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
+#  $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
 }
 
 #`{{
@@ -407,37 +411,42 @@ sub g_signal_emit (
 Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to the default if no handlers are connected.
 
   g_signal_emit_by_name (
-    Str $detailed-signal, *@handler-arguments, *%options
+    Str $detailed-signal, *@handler-arguments,
+    Array :$parameters, :$return-type
   )
 
-=item $signal; a string of the form "signal-name::detail". '::detail' part is mostly not defined such as a button click signal called 'clicked'.
+=item $detailed-signal; a string of the form "signal-name::detail". '::detail' part is mostly not defined such as a button click signal called 'clicked'.
 =item *@handler-arguments; a series of arguments needed for the signal handler.
-=item *%options; needed to modify argument types and return value;
-=item2 :parameters([type, ...]); a series of types, one for each argument. Most of the time the types are correctly interpreted but for e.g. int64 or num64 this option must be provided. All types for all arguments must be specified if used.
-=item2 :return-type(type); specifies the type of the return value. When there is no return value, you can omit this. An error is be thrown by GTK+ when a return value type is not specified while the signal handler does return something.
+=item :parameters([type, ...]); a series of types, one for each argument.
+=item :return-type(type); specifies the type of the return value. When there is no return value, you can omit this.
 
-  (Window.t:46695): GLib-GObject-WARNING **: 15:04:59.689: ../gobject/gsignal.c:3417: value location for 'gboolean' passed as NULL
 
 =head3 An example
 
 =begin code
+  use Gnome::N::GlibToRakuTypes;
+  ...
+
   # The extra argument here is $toggle
   method enable-debugging-handler (
-    int32 $toggle, Gnome::Gtk3::Window :$widget
-    --> int32
+    gboolean $toggle, Gnome::Gtk3::Window :$_widget
+    --> gboolean
   ) {
     ...
     1
   }
 
-  $w.register-signal( self, 'enable-debugging-handler', 'enable-debugging');
+  $window.register-signal(
+    self, 'enable-debugging-handler', 'enable-debugging'
+  );
 
   ... loop started ...
   ... in another thread ...
   my Gnome::Gtk3::Main $main .= new;
   while $main.gtk-events-pending() { $main.iteration-do(False); }
-  $widget.emit-by-name(
-    'enable-debugging', 1, :return-type(int32), :parameters([int32,])
+  $window.emit-by-name(
+    'enable-debugging', 1,
+    :parameters([gboolean,]), :return-type(gboolean)
   );
 
   ...
@@ -446,25 +455,28 @@ Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to 
 =end pod
 
 sub g_signal_emit_by_name (
-  N-GObject $instance, Str $detailed_signal, *@handler-arguments, *%options
+  N-GObject $instance, Str $detailed_signal, *@handler-arguments,
+  Array :$parameters is copy, :$return-type
   --> Any
-) is export {
+) {
+
+  $parameters = [] unless $parameters.defined;
 
   # create parameter list and start with inserting fixed arguments
   my @parameterList = (
     Parameter.new(type => N-GObject),   # $instance
-    Parameter.new(type => Str),         # $signal name
+    Parameter.new(type => gchar-ptr),   # $signal name
   );
 
   # rest of the arguments can be converted to natives if any
-  my @new-args .= new;
+  my @new-args = ();
   for @handler-arguments -> $arg {
     my $a = $arg;
     $a .= get-native-object-no-reffing
         if $a.^can('get-native-object-no-reffing');
 
-    my $t = %options<parameters>:exists
-            ?? shift %options<parameters>
+    my $t = $parameters.elems
+            ?? shift $parameters
             !! $a.WHAT;
     @parameterList.push(Parameter.new(type => $t));
     @new-args.push($a);
@@ -472,8 +484,8 @@ sub g_signal_emit_by_name (
 
   # add a location for a return value if needed
   my $rv;
-  if %options<return-type>:exists {
-    $rv = CArray[%options<return-type>].new;
+  if :return-type.defined {
+    $rv = CArray[$return-type].new;
     #$rv[0] = %options<return-type>;
     @parameterList.push(Parameter.new(type => CArray));
     @new-args.push($rv);
@@ -482,12 +494,12 @@ sub g_signal_emit_by_name (
   # create signature
   my Signature $signature .= new(
     :params(|@parameterList),
-    :returns(int32)
+    :returns(gint)
   );
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
-  state $ptr = cglobal( &gobject-lib, 'g_signal_emit_by_name', Pointer);
+  state $ptr = cglobal( &gobject-lib, 'g_signal_emit_by_name', gpointer);
   my Callable $f = nativecast( $signature, $ptr);
 
   $f( $instance, $detailed_signal, |@new-args);
@@ -508,9 +520,8 @@ The handler_id has to be a valid signal handler id, connected to a signal of ins
 =item $handler_id; Handler id of the handler to be disconnected.
 =end pod
 
-sub g_signal_handler_disconnect( N-GObject $widget, uint64 $handler_id )
+sub g_signal_handler_disconnect( N-GObject $widget, gulong $handler_id )
   is native(&gobject-lib)
-  is export
   { * }
 
 #`{{
@@ -531,7 +542,7 @@ The widget must already have been instantiated for this function to work, as sig
 =item $signal-name; the signal's name.
 =end pod
 
-sub g_signal_lookup ( N-GObject $widget, Str $signal-name --> Int ) is export {
+sub g_signal_lookup ( N-GObject $widget, Str $signal-name --> Int ) {
 
   my Int $widget-type = tlcs_type_from_name;
   _g_signal_lookup( $signal-name, $widget-type)
@@ -542,6 +553,7 @@ sub _g_signal_lookup ( Str $name, int32 $itype --> uint32 )
   is symbol('g_signal_lookup')
   { * }
 }}
+
 #-------------------------------------------------------------------------------
 #TM:2:g_signal_name:xt/Object.t
 =begin pod
@@ -549,7 +561,7 @@ sub _g_signal_lookup ( Str $name, int32 $itype --> uint32 )
 
 Given the signal's identifier, finds its name. Two different signals may have the same name, if they have differing types.
 
-  g_signal_name( Str $signal-id --> Str )
+  g_signal_name( UInt $signal-id --> Str )
 
 =item $signal-id; the signal's identifying number.
 
@@ -557,8 +569,7 @@ Returns the signal name, or NULL if the signal number was invalid.
 
 =end pod
 
-sub g_signal_name( int32 $signal_id --> Str )
+sub g_signal_name( guint $signal_id --> Str )
   is native(&gobject-lib)
 #  is symbol('g_signal_name')
-  is export
   { * }

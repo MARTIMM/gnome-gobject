@@ -102,6 +102,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Glib::Main;
 use Gnome::GObject::Signal;
@@ -153,17 +154,17 @@ submethod BUILD ( *%options ) {
   # classes of those application modules should inject it.
   if not $gui-initialized #`{{and !%options<skip-init>}} {
     # must setup gtk otherwise Raku will crash
-    my $argc = CArray[int32].new;
+    my $argc = int-ptr.new;
     $argc[0] = 1 + @*ARGS.elems;
 
-    my $arg_arr = CArray[Str].new;
+    my $arg_arr = char-pptr.new;
     my Int $arg-count = 0;
     $arg_arr[$arg-count++] = $*PROGRAM.Str;
     for @*ARGS -> $arg {
       $arg_arr[$arg-count++] = $arg;
     }
 
-    my $argv = CArray[CArray[Str]].new;
+    my $argv = char-ppptr.new;
     $argv[0] = $arg_arr;
 
     # call gtk_init_check
@@ -234,22 +235,14 @@ method _fallback ( $native-sub --> Callable ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-
-#`{{
-  # Try to solve sub names from the GSignal class
-  unless ?$s {
-    $!g-signal .= new(:g-object(self.get-native-object));
-    note "Look for $native-sub in ", $!g-signal if $Gnome::N::x-debug;
-
-    $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
-  }
-}}
+  try { $s = self._signal_interface($native-sub); } unless ?$s;
 
   self.set-class-name-of-sub('GObject');
 
   $s
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
@@ -273,6 +266,7 @@ method get-native-gobject ( --> N-GObject ) {
 
   self.get-native-object
 }
+}}
 
 #-------------------------------------------------------------------------------
 method set-native-object ( $n-native-object ) {
@@ -365,16 +359,11 @@ $signal-name; The name of the event to be handled. Each gtk object has its own s
 =end item
 
 =begin item
-%user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired.
+%user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired. The names starting with '_' are reserved to provide other info to the user.
 
-There will always be one named argument C<:$widget> which holds the class object on which the signal was registered. The name 'widget' is therefore reserved.
-
-The named attribute C<:$widget> will be deprecated in the future. The name will be changed into C<:$_widget> to give the user a free hand in user provided named arguments. The names starting with '_' will then be reserved to provide special info to the user.
-
-The following named arguments can be used
-
-  =item C<:$_widget>; The instance which registered the signal.
-  =item C<:$_handler-id>; The handler id which is returned from the registration.
+The following reserved named arguments are available;
+  =item C<:$_widget>; The instance which registered the signal
+  =item C<:$_handler-id>; The handler id which is returned from the registration
 =end item
 
 The method returns a handler id which can be used for example to disconnect the callback later.
@@ -401,28 +390,35 @@ Two examples of a registration and the handlers signature
 
   # button clicks.
   # register callback
-  $button.register-signal( $ho, 'click-button', 'clicked', :uo(...));
+  $button.register-signal(
+    $handler-object, 'click-button', 'clicked', :uo(...)
+  );
 
-  # callback method
-  method click-button ( :$_widget, :$_handler_id, :$uo ) { ... }
+  # callback method in users handler class
+  method click-button ( :$_widget, :$_handler_id, :$uo ) {
+    ...
+  }
 
-
+Second example
 
   # keyboard key presses.
   # register callback
   $window.register-signal(
-    $ho, 'keyboard-handler', 'key-press-event', :uo(...)
+    $handler-object, 'keyboard-handler',
+    'key-press-event', :uo(...)
   );
 
-  # callback method
+  # callback method in users handler class
   method keyboard-handler (
-    N-GdkEvent $event, :$_widget, :$_handler_id, :$uo --> Int
+    N-GdkEvent $event, :$_widget, :$_handler_id, :$uo
+    --> gboolean
   ) { ... }
 
 
-An more complete example to register and use a simple callback handler
+A more complete example to register and use a simple callback handler
 
-  # create a class with a handler method to process a button click event
+  # create a class with a handler method to process
+  # a button click event
   class X {
     method click-handler ( Array :$my-data ) {
       say $my-data.join(' ');
@@ -434,7 +430,10 @@ An more complete example to register and use a simple callback handler
   my Array $data = [<Hello World>];
 
   # register button signal
-  $button.register-signal( X.new, 'click-handler', 'clicked', :my-data($data));
+  $button.register-signal(
+    X.new, 'click-handler', 'clicked',
+    :my-data([$data-item1, $data-item2])
+  );
 
 
 =end pod
@@ -1025,7 +1024,7 @@ Sets a property on an object.
 =end pod
 
 sub g_object_set_property (
-  N-GObject $object, Str $property_name, N-GValue $value
+  N-GObject $object, gchar-ptr $property_name, N-GValue $value
 ) is native(&gobject-lib)
   is symbol('g_object_set_property')
   { * }
