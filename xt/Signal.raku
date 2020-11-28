@@ -1,10 +1,11 @@
 use v6.d;
 
 # for new signal key specs
-use lib '../../lib', 'lib';
+#use lib '../../lib', 'lib';
 
 use NativeCall;
 use Gnome::N::N-GObject;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Gdk3::Events;
 use Gnome::Gdk3::Types;
@@ -26,9 +27,9 @@ class AppSignalHandlers {
 
   # Focus handling
   method focus-handle (
-    Int $direction, :$widget, :$my-arg0, :$my-arg1 --> Int
+    GEnum $direction, :$_widget, Str :$my-arg0, Str :$my-arg1 --> gboolean
   ) {
-    note "Focus event, widget: ", $widget;
+    note "Focus event, widget: ", $_widget;
     note "Dir type: ", GtkDirectionType($direction);
     note "User args: $my-arg0, $my-arg1";
 
@@ -36,29 +37,23 @@ class AppSignalHandlers {
   }
 
   # Click button
-  method click-button1 ( :$widget, :$some-arg --> Int ) {
-    note "Click 1 event, widget: ", $widget, ", $some-arg";
-
-    1;
+  method click-button1 ( :$_widget, :$some-arg ) {
+    note "Click 1 event, widget: ", $_widget, ", $some-arg";
   }
 
   # Click button
-  method click-button2 ( :$widget, :$some-arg --> Int ) {
-    note "Click 2 event, widget: ", $widget, ", $some-arg";
-
-    1;
+  method click-button2 ( :$_widget, :$some-arg ) {
+    note "Click 2 event, widget: ", $_widget, ", $some-arg";
   }
 
   # Handle window managers 'close app' button
-  method exit-program ( :$widget --> Int ) {
-    note "Destroy event, widget: ", $widget;
+  method exit-program ( :$_widget ) {
+    note "Destroy event, widget: ", $_widget;
     $m.gtk-main-quit;
-
-    1;
   }
 
   # Handle keyboard event
-  method keyboard-event ( GdkEvent $event, :$widget, :$time --> Int ) {
+  method keyboard-event ( GdkEvent $event, :$_widget, :$time --> gboolean ) {
 
     my GdkEventKey $event-key := $event.event-key;
     note "\nevent type: ", GdkEventType($event-key.type);
@@ -81,7 +76,7 @@ class AppSignalHandlers {
   }
 
   #-----------------------------------------------------------------------------
-  method mouse-event ( GdkEvent $event, :widget($window) --> Int ) {
+  method mouse-event ( GdkEvent $event, :_widget($window) --> gboolean ) {
 
     my GdkEventType $t = GdkEventType($event.event-any.type);
     note "\nevent type: $t";
@@ -96,14 +91,18 @@ class AppSignalHandlers {
 
     note "Button: ", $event-button.button;
 
-    1;
+    0;
   }
 
   #-----------------------------------------------------------------------------
-  method handle-query ( Int $x, Int $y, Int $kb-mode, N-GObject $tooltip ) {
+  method handle-query (
+    gint $x, gint $y, gboolean $kb-mode, N-GObject $tooltip --> gboolean
+  ) {
     note "\n query-tooltip\nXY: $x, $y";
     note "keyboard mode: $kb-mode";
     note "tooltip object: ", $tooltip;
+
+    0;
   }
 }
 
@@ -127,7 +126,7 @@ $b1.register-signal(
 );
 
 $b1.register-signal(
-  $ash, 'focus-handle-bttn', 'focus', :my-arg0<b1-arg2>, :my-arg1<b1-arg3>
+  $ash, 'focus-handle', 'focus', :my-arg0<b1-arg2>, :my-arg1<b1-arg3>
 );
 
 $b1.register-signal( $ash, 'handle-query', 'query-tooltip');
@@ -137,7 +136,7 @@ $b2.register-signal(
 );
 
 $b2.register-signal(
-  $ash, 'focus-handle-bttn', 'focus', :my-arg0<b2-arg2>, :my-arg1<b2-arg3>
+  $ash, 'focus-handle', 'focus', :my-arg0<b2-arg2>, :my-arg1<b2-arg3>
 );
 
 $top-window.register-signal( $ash, 'exit-program', 'destroy');
@@ -152,9 +151,9 @@ $top-window.register-signal(
 # the difficult way; a) provide handler, b) connect, c) define unused arguments
 my Callable $handler = sub (
   N-GObject $ignore-w, GdkEvent $event, OpaquePointer $ignore-d
-  --> Int
+  --> gboolean
 ) {
-  $ash.mouse-event( $event, :widget($top-window));
+  $ash.mouse-event( $event, :widget($top-window))
 };
 $top-window.connect-object( 'button-press-event', $handler);
 
