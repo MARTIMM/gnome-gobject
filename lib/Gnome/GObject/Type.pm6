@@ -671,6 +671,21 @@ sub g_type_name_from_instance ( N-GObject $instance --> Str )
   { * }
 
 
+#-------------------------------------------------------------------------------
+#TM:2:g_gtype_get_type:t/Value.t
+=begin pod
+=head2 [g_] gtype_get_type
+
+Get dynamic type for a GTyped value. In C there is this name G_TYPE_GTYPE.
+
+  method g_gtype_get_type ( --> UInt  )
+
+=end pod
+
+sub g_gtype_get_type (  --> GType )
+  is native(&gobject-lib)
+  { * }
+
 
 
 
