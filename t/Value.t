@@ -105,38 +105,33 @@ subtest 'Manipulations', {
   is $v.get-string, 'other value', '.set-string()';
   $v.clear-object;
 
-#`{{
-Gnome::N::debug(:on);
-  enum SomeType ( :Tset1(0x1), :Tset2(0x2), :Tset3(0x4), :Tset4(0x8) );
-  my N-GEnumValue $ev .= new(
-    :value(Tset2), :value_name('Tset2'), :value_nick('ts2')
-  );
   $v .= new(:init(G_TYPE_ENUM));
-#  is $v.get-gtype, G_TYPE_ENUM, '.new(:init(G_TYPE_ENUM))';
-  $v.set-enum($ev);
-  is SomeType($v.get-enum.value), Tset2, '.set-enum() / .get-enum()';
-}}
-
-#`{{
-  enum SomeType ( :Tset1(0x1), :Tset2(0x2), :Tset3(0x4), :Tset4(0x8) );
-  my N-GEnumValue $ev .= new(
-    :value(Tset2), :value_name('Tset2'), :value_nick('ts2')
-  );
-  $v .= new( :type(G_TYPE_ENUM), :value($ev));
-
-#  is SomeType($v.get-enum), Tset2, '.new( :type, :value) / .get-enum()';
-#  $v.set-enum(Tset4);
-#  is $v.get-enum, Tset4, '.set-enum()';
+  $v.set-enum(0x124);
+  is $v.get-enum, 0x124, '.set-enum() / .get-enum()';
   $v.clear-object;
-}}
 
-#`{{
-  $v .= new( :type(G_TYPE_FLAGS), :value(Tset2 +| Tset4));
-  is $v.get-flags, 0xa, '.new( :type, :value) / .get-flags()';
-  $v.set-flags(Tset3 +| Tset1);
-  is $v.get-flags, 0x5, '.set-flags()';
+  $v .= new( :type(G_TYPE_FLAGS), :value(0x20F));
+  is $v.get-flags, 0x20F, '.new( :type, :value) / .get-flags()';
+  $v.set-flags(0x80);
+  is $v.get-flags, 0x80, '.set-flags()';
   $v.clear-object;
-}}
+
+  ok $v.type-compatible( G_TYPE_INT64, G_TYPE_INT64), '.type-compatible()';
+  ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
+
+  my Gnome::GObject::Type $t .= new;
+  $v .= new(:init($t.gtype-get-type));
+  $v.set-gtype(0xff);
+  is $v.get-gtype, 0xff, 't.gtype-get-type() / .set-gtype() / .get-gtype()';
+
+  ok $v.type-compatible( G_TYPE_INT64, G_TYPE_INT64), '.type-compatible()';
+  ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
+
+#  ok $v.type-transformable( G_TYPE_FLAGS, G_TYPE_INT), '.type-transformable()';
+  my Gnome::GObject::Value $v1 .= new( :type(G_TYPE_FLAGS), :value(0x20F));
+  my Gnome::GObject::Value $v2 .= new( :type(G_TYPE_INT), :value(-1));
+  ok $v1.transform($v2), '.transform() ok';
+  is $v2.get-int, 0x20F, '.transform() int matches flags';
 }
 
 #-------------------------------------------------------------------------------
