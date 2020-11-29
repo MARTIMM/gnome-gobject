@@ -18,5 +18,7 @@ submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
   return unless self.^name eq 'Gnome::GObject::InitiallyUnowned';
+
+  # when direct init here, die on it
   die X::Gnome.new(:message('Forbidden to initialize for ' ~ self.^name));
 }

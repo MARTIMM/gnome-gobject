@@ -3,8 +3,12 @@ use v6;
 use NativeCall;
 use Test;
 
+use Gnome::N::N-GObject;
+
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
+
+use Gnome::Gtk3::Window;
 use Gnome::Gtk3::Button;
 use Gnome::Gtk3::Label;
 
@@ -15,13 +19,19 @@ use Gnome::N::X;
 subtest 'properties', {
 
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
-  my Gnome::GObject::Value $v = $b.get-property( 'label', G_TYPE_STRING);
-  is $v.get-string, 'Start', '.get-property( Str, GType)';
-  $v.clear-object;
+  ok $b.is-floating, '.is-floating() is floating no ownership';
 
+  my Gnome::Gtk3::Window $w .= new;
+  $w.container-add($b);
+  ok !$b.is-floating, '.is-floating() not floating -> parent is window';
+
+  my Gnome::GObject::Value $v = $b.get-property( 'label', G_TYPE_STRING);
+  is $v.get-string, 'Start', '.get-property( \'label\', G_TYPE_STRING)';
+  $v.clear-object;
   $v .= new(:init(G_TYPE_BOOLEAN));
   $b.get-property( 'use-underline', $v);
-  is $v.get-boolean, 0, '.get-property( Str, Gnome::GObject::Value)';
+  is $v.get-boolean, 0,
+     '.get-property( \'use-underline\', Gnome::GObject::Value)';
   $v.clear-object;
 #`{{
   $v = $b.g-object-get-property( 'always-show-image', G_TYPE_BOOLEAN);
@@ -50,12 +60,14 @@ subtest 'properties', {
 
 #-------------------------------------------------------------------------------
 class X {
-  method cb ( $nw, :$test = '???' ) {
+  method cb ( N-GObject $nw, :$test = '???' ) {
     my Gnome::Gtk3::Widget $w .= new(:native-object($nw));
-    is $w.widget-get-name(), 'GtkLabel', 'the one and only widget in a button';
+    if $w.widget-get-name() eq 'GtkLabel' {
+      ok 1, 'the one and only widget in a button';
 
-    my Gnome::Gtk3::Label $l .= new(:native-object($nw));
-    is $l.get-text, $test, 'label is ok';
+      my Gnome::Gtk3::Label $l .= new(:native-object($nw));
+      is $l.get-text, $test, 'label is ok';
+    }
   }
 
   method click ( :_widget($w) ) {
@@ -66,6 +78,9 @@ class X {
 subtest 'container', {
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
   $b.container-foreach( X.new, 'cb', :test<Start>, :test2<x>, :test3<y>);
+
+  $b.clear-object;
+  ok !$b.is-valid, '.clear-object() object cleared';
 }
 
 #`{{

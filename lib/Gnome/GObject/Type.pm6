@@ -1,14 +1,15 @@
-#TL:0:Gnome::GObject::Type:
+#TL:1:Gnome::GObject::Type:
 
 use v6;
+
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::GObject::Type
+=head1 Gnome::GObject::Type
 
-=SUBTITLE The GLib Runtime type identification and management system
+The GLib Runtime type identification and management system
 
-I<B<Note: The methods described here are mostly used internally and is not interesting for the normal Raku user.>>
+I<B<Note: The methods described here are mostly used internally and is not of much interest for the normal Raku user.>>
 
 =head1 Description
 
@@ -30,10 +31,12 @@ Type instance and class structs are limited to a total of 64 KiB, including all 
 
 As mentioned in the [GType conventions](https://developer.gnome.org/gobject/stable/gtype-conventions.html), type names must be at least three characters long. There is no upper length limit. The first character must be a letter (a–z or A–Z) or an underscore (‘_’). Subsequent characters can be letters, numbers or any of ‘-_+’.
 
+
 =head1 Synopsis
 =head2 Declaration
 
   unit class Gnome::GObject::Type;
+
 
 =comment '=head2 Example'
 
@@ -44,6 +47,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
+use Gnome::N::GlibToRakuTypes;
 #use Gnome::GObject::Value;
 
 #-------------------------------------------------------------------------------
@@ -52,8 +56,11 @@ use Gnome::N::N-GObject;
 # https://developer.gnome.org/glib/stable/glib-Basic-Types.html
 unit class Gnome::GObject::Type:auth<github:MARTIMM>;
 
-#TODO not yet implemented in Raku (2020-04-08) subset N-GType of uint64;
+#my native gint is repr('P6int') is Int is nativesize(32) { }
+#my native guint is repr('P6int') is Int is nativesize(32) { }
+
 #-------------------------------------------------------------------------------
+#`{{
 =begin pod
 =head2 class N-GTypeInstance
 
@@ -61,12 +68,15 @@ An opaque structure used as the base of all type instances.
 
 =end pod
 
-#TT:0:N-GTypeInstance:
+# TT:0:N-GTypeInstance:
 class N-GTypeInstance
   is repr('CPointer')
   is export
   { }
+}
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GTypeInterface
@@ -75,12 +85,14 @@ An opaque structure used as the base of all interface types.
 
 =end pod
 
-#TT:0:N-GTypeInterface:
+# TT:0:N-GTypeInterface:
 class N-GTypeInterface
   is repr('CPointer')
   is export
   { }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GTypeClass
@@ -89,11 +101,12 @@ An opaque structure used as the base of all type instances.
 
 =end pod
 
-#TT:0::N-GTypeClass
+# TT:0::N-GTypeClass
 class N-GTypeClass
   is repr('CPointer')
   is export
   { }
+}}
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -101,21 +114,22 @@ class N-GTypeClass
 
 A structure holding information for a specific type. It is filled in by the C<g_type_query()> function.
 
-=item int32 $.type: the B<N-GType> value of the type.
+=item UInt $.type: the GType value of the type.
 =item Str $.type_name: the name of the type.
 =item UInt $.class_size: the size of the class structure.
 =item UInt $.instance_size: the size of the instance structure.
 
 =end pod
 
-#TT:0:N-GTypeQuery:
+# TT:1:N-GTypeQuery:
 class N-GTypeQuery is export is repr('CStruct') {
-  has int32 $.type;
-  has str $.type_name;
+  has uint64 $.type;
+  has CArray[uint8] $.type_name;
   has uint32 $.class_size;
   has uint32 $.instance_size;
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GTypeInfo
@@ -138,7 +152,14 @@ The initialized structure is passed to the C<g_type_register_static()> function 
 
 =end pod
 
-#TT:0:N-GTypeInfo:
+
+# TT:0:N-GTypeInfo:
+class N-GTypeInfo
+  is repr('CPointer')
+  is export
+  { }
+
+#`{{
 class N-GTypeInfo is export is repr('CStruct') {
   has uint16 $.class_size;
   has Pointer $.base_init;      #has GBaseInitFunc $.base_init;
@@ -149,9 +170,12 @@ class N-GTypeInfo is export is repr('CStruct') {
   has uint16 $.instance_size;
   has uint16 $.n_preallocs;
   has Pointer $.instance_init;  #has GInstanceInitFunc $.instance_init;
-  has int32 $.value_table;
+  has Pointer $.value_table;
 }
+}}
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GTypeFundamentalInfo
@@ -162,11 +186,34 @@ A structure that provides information to the type system which is used specifica
 
 =end pod
 
-#TT:0:N-GTypeFundamentalInfo:
+# TT:0:N-GTypeFundamentalInfo:
 class N-GTypeFundamentalInfo is export is repr('CStruct') {
-  has int32 $.type_flags;
+  has int $.type_flags;
 }
+}}
 
+#`{{
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 enum N-GTypeFundamentalFlags
+
+Bit masks used to check or determine specific characteristics of a fundamental type.
+
+=item G_TYPE_FLAG_CLASSED; Indicates a classed type
+=item G_TYPE_FLAG_INSTANTIATABLE; Indicates an instantiable type (implies classed)
+=item G_TYPE_FLAG_DERIVABLE; Indicates a flat derivable type
+=item G_TYPE_FLAG_DEEP_DERIVABLE; Indicates a deep derivable type (implies derivable)
+
+=end pod
+
+# TT:0::N-GTypeFundamentalFlags
+enum N-GTypeFundamentalFlags is export <
+  G_TYPE_FLAG_CLASSED G_TYPE_FLAG_INSTANTIATABLE
+  G_TYPE_FLAG_DERIVABLE G_TYPE_FLAG_DEEP_DERIVABLE
+>;
+}}
+
+#`{{
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 class N-GInterfaceInfo
@@ -180,11 +227,12 @@ A structure that provides information to the type system which is used specifica
 =end pod
 
 #TT:0:N-GInterfaceInfo:
-class N-GInterfaceInfo is export is repr('CStruct') {
+class N-GInterface!build-types-conversion-moduleInfo is export is repr('CStruct') {
   has Pointer $.interface_init;     #has GInterfaceInitFunc $.interface_init;
   has Pointer $.interface_finalize; #has GInterfaceFinalizeFunc $.interface_finalize;
   has Pointer $.interface_data;
 }
+}}
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -303,8 +351,8 @@ class N-TypesMap is repr('CUnion') is export {
   has uint64 $.ulong;       # G_TYPE_ULONG
   has int64 $.int64;        # G_TYPE_INT64
   has uint64 $.uint64;      # G_TYPE_UINT64
-  has int32 $.enum;         # G_TYPE_ENUM
-  has int32 $.flags;        # G_TYPE_FLAGS
+  has int $.enum;           # G_TYPE_ENUM
+  has int $.flags;          # G_TYPE_FLAGS
   has num32 $.float;        # G_TYPE_FLOAT
   has num64 $.double;       # G_TYPE_DOUBLE
   has str $.string;         # G_TYPE_STRING
@@ -323,21 +371,12 @@ class N-TypesMap is repr('CUnion') is export {
 =head2 new
 =head3 default, no options
 
-Create a new plain object. In contrast with other objects, this class doesn't wrap a native object, so therefore no named arguments to specify something
+Create a new plain object. In contrast with other objects, this class doesn't wrap a native object, so therefore no options to specify something.
 
 =end pod
 
-#TM:0:new():
+#TM:1:new():
 submethod BUILD ( *%options ) {
-
-  # add signal info in the form of group<signal-name>.
-  # groups are e.g. signal, event, nativeobject etc
-  #$signals-added = self.add-signal-types( $?CLASS.^name,
-  #  # ... :type<signame>
-  #) unless $signals-added;
-
-  # prevent creating wrong widgets
-  #return unless self.^name eq 'Gnome::GObject::Type';
 
   if %options.keys.elems {
     die X::Gnome.new(
@@ -347,15 +386,11 @@ submethod BUILD ( *%options ) {
               )
     );
   }
-
-  # only after creating the native-object, the gtype is known
-  #self.set-class-info('GType');
 }
 
 #-------------------------------------------------------------------------------
 method FALLBACK ( $native-sub is copy, |c ) {
 
-#  CATCH { test-catch-exception( $_, $native-sub); }
   CATCH { .note; die; }
 
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
@@ -374,7 +409,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
 #-------------------------------------------------------------------------------
 # conveniance method to convert a type to a Raku parameter
-#TM:2:get-parameter:Gnome::Gtk3::ListStore
+#TM:4:get-parameter:Gnome::Gtk3::ListStore
 method get-parameter( UInt $type, :$otype --> Parameter ) {
 
   # tests showed elsewhere that types can come in negative. this should be
@@ -386,20 +421,20 @@ method get-parameter( UInt $type, :$otype --> Parameter ) {
 
   my Parameter $p;
   given $type {
-    when G_TYPE_CHAR    { $p .= new(type => int8); }
-    when G_TYPE_UCHAR   { $p .= new(type => uint8); }
-    when G_TYPE_BOOLEAN { $p .= new(type => int32); }
-    when G_TYPE_INT     { $p .= new(type => int32); }
-    when G_TYPE_UINT    { $p .= new(type => uint32); }
-    when G_TYPE_LONG    { $p .= new(type => int64); }
-    when G_TYPE_ULONG   { $p .= new(type => uint64); }
-    when G_TYPE_INT64   { $p .= new(type => int64); }
-    when G_TYPE_UINT64  { $p .= new(type => uint64); }
-    when G_TYPE_ENUM    { $p .= new(type => int32); }
-    when G_TYPE_FLAGS   { $p .= new(type => int32); }
-    when G_TYPE_FLOAT   { $p .= new(type => num32); }
-    when G_TYPE_DOUBLE  { $p .= new(type => num64); }
-    when G_TYPE_STRING  { $p .= new(type => str); }
+    when G_TYPE_CHAR    { $p .= new(type => gchar); }
+    when G_TYPE_UCHAR   { $p .= new(type => guchar); }
+    when G_TYPE_BOOLEAN { $p .= new(type => gboolean); }
+    when G_TYPE_INT     { $p .= new(type => gint); }
+    when G_TYPE_UINT    { $p .= new(type => guint); }
+    when G_TYPE_LONG    { $p .= new(type => glong); }
+    when G_TYPE_ULONG   { $p .= new(type => gulong); }
+    when G_TYPE_INT64   { $p .= new(type => gint64); }
+    when G_TYPE_UINT64  { $p .= new(type => guint64); }
+    when G_TYPE_ENUM    { $p .= new(type => gint); }
+    when G_TYPE_FLAGS   { $p .= new(type => gint); }
+    when G_TYPE_FLOAT   { $p .= new(type => gfloat); }
+    when G_TYPE_DOUBLE  { $p .= new(type => gdouble); }
+    when G_TYPE_STRING  { $p .= new(type => gchar-ptr); }
 
 #    when G_TYPE_OBJECT | G_TYPE_BOXED {
 #      die X::Gnome.new(:message('Object in named argument :o not defined'))
@@ -440,26 +475,26 @@ method get-parameter( UInt $type, :$otype --> Parameter ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:g_type_name:
+#TM:2:g_type_name:xt/Type.t
 =begin pod
 =head2 [g_] type_name
 
 Get the unique name that is assigned to a type ID. Note that this function (like all other GType API) cannot cope with invalid type IDs. C<G_TYPE_INVALID> may be passed to this function, as may be any other validly registered type ID, but randomized type IDs should not be passed in and will most likely lead to a crash.
 
-Returns: static type name or C<Any>
+Returns: static type name or undefined
 
-  method g_type_name ( UInt $type --> Str )
+  method g_type_name ( UInt $gtype --> Str )
 
 =end pod
 
-sub g_type_name ( uint64 $type )
-  returns Str
+sub g_type_name ( GType $type --> Str )
   is native(&gobject-lib)
   { * }
 
 #`{{
+}}
 #-------------------------------------------------------------------------------
-#TM:0:g_type_qname:
+#TM:2:g_type_qname:xt/Type.t
 =begin pod
 =head2 [g_] type_qname
 
@@ -467,19 +502,16 @@ Get the corresponding quark of the type IDs name.
 
 Returns: the type names quark or 0
 
-  method g_type_qname ( --> int32  )
-
+  method g_type_qname ( --> UInt  )
 
 =end pod
 
-sub g_type_qname ( int32 $type )
-  returns int32
+sub g_type_qname ( GType $type --> GQuark )
   is native(&gobject-lib)
   { * }
-}}
 
 #-------------------------------------------------------------------------------
-#TM:1:g_type_from_name:
+#TM:2:g_type_from_name:xt/Type.t
 =begin pod
 =head2 [[g_] type_] from_name
 
@@ -493,13 +525,12 @@ Returns: corresponding type ID or 0
 
 =end pod
 
-sub g_type_from_name ( Str $name )
-  returns uint64
+sub g_type_from_name ( Str $name --> GType )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:1:g_type_parent:
+#TM:2:g_type_parent:xt/Type.t
 =begin pod
 =head2 [g_] type_parent
 
@@ -511,13 +542,12 @@ Returns: the parent type
 
 =end pod
 
-sub g_type_parent ( uint64 $type )
-  returns uint64
+sub g_type_parent ( GType $type --> GType )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:1:g_type_depth:
+#TM:2:g_type_depth:xt/Type.t
 =begin pod
 =head2 [g_] type_depth
 
@@ -530,33 +560,12 @@ Returns: the depth of I<$type>
 
 =end pod
 
-sub g_type_depth ( uint64 $type )
-  returns uint32
+sub g_type_depth ( GType $type --> guint )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_next_base:
-=begin pod
-=head2 [[g_] type_] next_base
-
-Given a I<$leaf_type> and a I<$root_type> which is contained in its anchestry, return the type that I<$root_type> is the immediate parent of. In other words, this function determines the type that is derived directly from I<$root_type> which is also a base class of I<$leaf_type>. Given a root type and a leaf type, this function can be used to determine the types and order in which the leaf type is descended from the root type.
-
-Returns: immediate child of I<$root_type> and anchestor of I<$leaf_type>
-
-  method g_type_next_base ( Int $root_type --> Int )
-
-=item int32 $root_type; immediate parent of the returned type
-
-=end pod
-
-sub g_type_next_base ( uint64 $leaf_type, uint64 $root_type )
-  returns int64
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_type_is_a:
+#TM:2:g_type_is_a:xt/Type.t
 =begin pod
 =head2 [[g_] type_] is_a
 
@@ -564,377 +573,244 @@ If I<$is_a_type> is a derivable type, check whether I<$type> is a descendant of 
 
 Returns: C<1> if I<$type> is a I<$is_a_type>.
 
-  method g_type_is_a ( UInt $type, UInt $is_a_type --> Int  )
+  method g_type_is_a ( UInt $type, UInt $is_a_type --> Int )
 
 =item UInt $is_a_type; possible anchestor of I<$type> or interface that I<$type> could conform to.
 
 =end pod
 
-sub g_type_is_a ( uint64 $type, uint64 $is_a_type )
-  returns int32
+sub g_type_is_a ( GType $type, GType $is_a_type --> gboolean )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:g_type_query:xt/Type.t
+=begin pod
+=head2 [g_] type_query
+
+Queries the type system for information about a specific type. This function will fill in a user-provided structure to hold type-specific information. If an invalid I<GType> is passed in, the I<$type> member of the I<N-GTypeQuery> is 0. All members filled into the I<N-GTypeQuery> structure should be considered constant and have to be left untouched.
+
+  method g_type_query ( int32 $type --> N-GTypeQuery )
+
+=item N-GTypeQuery $query; a structure that is filled in with constant values upon success
+
+=end pod
+
+sub g_type_query ( GType $type --> N-GTypeQuery ) {
+  my N-GTypeQuery $query .= new;
+  _g_type_query( $type, $query);
+
+  $query
+}
+
+sub _g_type_query ( GType $type, N-GTypeQuery $query is rw )
+  is native(&gobject-lib)
+  is symbol('g_type_query')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:g_type_check_instance_cast:xt/Type.t
+=begin pod
+=head2 [[g_] type_] check_instance_cast
+
+Checks that instance is an instance of the type identified by g_type and issues a warning if this is not the case. Returns instance casted to a pointer to c_type.
+
+No warning will be issued if instance is NULL, and NULL will be returned.
+
+This macro should only be used in type implementations.
+
+  method g_type_check_instance_cast (
+    N-GObject $instance, UInt $iface_type
+    --> N-GObject
+  )
+
+=item N-GObject $instance;
+=item UInt $iface_type;
+
+=end pod
+
+sub g_type_check_instance_cast ( N-GObject $instance, GType $iface_type --> N-GObject )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:g_type_check_instance_is_a:xt/Type.t
+=begin pod
+=head2 [[g_] type_] check_instance_is_a
+
+  method g_type_check_instance_is_a (
+    N-GObject $instance, UInt $iface_type --> Int
+  )
+
+=item N-GObject $instance; the native object to check.
+=item UInt $iface_type; the gtype the instance is inheriting from.
+
+=end pod
+
+sub g_type_check_instance_is_a ( N-GObject $instance, GType $iface_type --> int32 )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:6:g_type_name_from_instance:Gnome::Gtk3::Builder
+=begin pod
+=head2 [[g_] type_] name_from_instance
+
+Get name of type from the instance.
+
+  method g_type_name_from_instance ( N-GObject $instance --> Str  )
+
+=item int32 $instance;
+
+Returns the name of the instance.
+
+=end pod
+
+sub g_type_name_from_instance ( N-GObject $instance --> Str )
+  is native(&gobject-lib)
+  { * }
+
+
+#-------------------------------------------------------------------------------
+#TM:2:g_gtype_get_type:t/Value.t
+=begin pod
+=head2 [g_] gtype_get_type
+
+Get dynamic type for a GTyped value. In C there is this name G_TYPE_GTYPE.
+
+  method g_gtype_get_type ( --> UInt  )
+
+=end pod
+
+sub g_gtype_get_type (  --> GType )
+  is native(&gobject-lib)
+  { * }
+
+
+
+
+
+=finish
+
+#-------------------------------------------------------------------------------
+#--[ Unused code of subs ]------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_name_from_class:
+=begin pod
+=head2 [[g_] type_] name_from_class
+
+
+
+  method g_type_name_from_class ( int32 $g_class --> Str  )
+
+=item int32 $g_class;
+
+=end pod
+
+sub g_type_name_from_class ( int32 $g_class --> Str )
   is native(&gobject-lib)
   { * }
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_ref:
+# TM:0:g_type_check_instance_is_fundamentally_a:
 =begin pod
-=head2 [[g_] type_] class_ref
+=head2 [[g_] type_] check_instance_is_fundamentally_a
 
-Increments the reference count of the class structure belonging to
-I<type>. This function will demand-create the class if it doesn't
-exist already.
 
-Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
-structure for the given type ID
 
-  method g_type_class_ref ( --> Pointer  )
+  method g_type_check_instance_is_fundamentally_a ( int32 $instance, int32 $fundamental_type --> Int  )
 
+=item int32 $instance;
+=item int32 $fundamental_type;
 
 =end pod
 
-sub g_type_class_ref ( int32 $type )
-  returns Pointer
+sub g_type_check_instance_is_fundamentally_a ( int32 $instance, int32 $fundamental_type --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_peek:
+# TM:0:g_type_check_class_cast:
 =begin pod
-=head2 [[g_] type_] class_peek
+=head2 [[g_] type_] check_class_cast
 
-This function is essentially the same as C<g_type_class_ref()>,
-except that the classes reference count isn't incremented.
-As a consequence, this function may return C<Any> if the class
-of the type passed in does not currently exist (hasn't been
-referenced before).
 
-Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
-structure for the given type ID or C<Any> if the class does not
-currently exist
 
-  method g_type_class_peek ( --> Pointer  )
+  method g_type_check_class_cast ( int32 $g_class, int32 $is_a_type --> int32  )
 
+=item int32 $g_class;
+=item int32 $is_a_type;
 
 =end pod
 
-sub g_type_class_peek ( int32 $type )
-  returns Pointer
+sub g_type_check_class_cast ( int32 $g_class, int32 $is_a_type --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_peek_static:
+# TM:0:g_type_check_class_is_a:
 =begin pod
-=head2 [[g_] type_] class_peek_static
+=head2 [[g_] type_] check_class_is_a
 
-A more efficient version of C<g_type_class_peek()> which works only for
-static types.
 
-Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
-structure for the given type ID or C<Any> if the class does not
-currently exist or is dynamically loaded
 
-Since: 2.4
+  method g_type_check_class_is_a ( int32 $g_class, int32 $is_a_type --> Int  )
 
-  method g_type_class_peek_static ( --> Pointer  )
-
+=item int32 $g_class;
+=item int32 $is_a_type;
 
 =end pod
 
-sub g_type_class_peek_static ( int32 $type )
-  returns Pointer
+sub g_type_check_class_is_a ( int32 $g_class, int32 $is_a_type --> int32 )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_unref:
+# TM:0:g_type_check_value:
 =begin pod
-=head2 [[g_] type_] class_unref
+=head2 [[g_] type_] check_value
 
-Decrements the reference count of the class structure being passed in.
-Once the last reference count of a class has been released, classes
-may be finalized by the type system, so further dereferencing of a
-class pointer after C<g_type_class_unref()> are invalid.
+Checks if value has been initialized to hold values of type g_type.
 
-  method g_type_class_unref ( Pointer $g_class )
+  method g_type_check_value ( N-GObject $value --> Int  )
 
-=item Pointer $g_class; (type GObject.TypeClass): a I<N-GTypeClass> structure to unref
+=item N-GObject $value;
 
 =end pod
 
-sub g_type_class_unref ( Pointer $g_class )
+sub g_type_check_value ( N-GObject $value --> int32 )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_peek_parent:
+# TM:0:g_type_check_value_holds:
 =begin pod
-=head2 [[g_] type_] class_peek_parent
+=head2 [[g_] type_] check_value_holds
 
-This is a convenience function often needed in class initializers.
-It returns the class structure of the immediate parent type of the
-class passed in.  Since derived classes hold a reference count on
-their parent classes as long as they are instantiated, the returned
-class will always exist.
 
-This function is essentially equivalent to:
-g_type_class_peek (g_type_parent (G_TYPE_FROM_CLASS (g_class)))
 
-Returns: (type GObject.TypeClass) (transfer none): the parent class
-of I<g_class>
+  method g_type_check_value_holds ( N-GObject $value, int32 $type --> Int  )
 
-  method g_type_class_peek_parent ( Pointer $g_class --> Pointer  )
-
-=item Pointer $g_class; (type GObject.TypeClass): the I<N-GTypeClass> structure to retrieve the parent class for
+=item N-GObject $value;
+=item int32 $type;
 
 =end pod
 
-sub g_type_class_peek_parent ( Pointer $g_class )
-  returns Pointer
+sub g_type_check_value_holds ( N-GObject $value, int32 $type --> int32 )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_interface_peek:
-=begin pod
-=head2 [[g_] type_] interface_peek
-
-Returns the I<GTypeInterface> structure of an interface to which the
-passed in class conforms.
-
-Returns: (type GObject.TypeInterface) (transfer none): the I<GTypeInterface>
-structure of I<iface_type> if implemented by I<instance_class>, C<Any>
-otherwise
-
-  method g_type_interface_peek ( Pointer $instance_class, int32 $iface_type --> Pointer  )
-
-=item Pointer $instance_class; (type GObject.TypeClass): a I<N-GTypeClass> structure
-=item int32 $iface_type; an interface ID which this class conforms to
-
-=end pod
-
-sub g_type_interface_peek ( Pointer $instance_class, int32 $iface_type )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_interface_peek_parent:
-=begin pod
-=head2 [[g_] type_] interface_peek_parent
-
-Returns the corresponding I<GTypeInterface> structure of the parent type
-of the instance type to which I<g_iface> belongs. This is useful when
-deriving the implementation of an interface from the parent type and
-then possibly overriding some methods.
-
-Returns: (transfer none) (type GObject.TypeInterface): the
-corresponding I<GTypeInterface> structure of the parent type of the
-instance type to which I<g_iface> belongs, or C<Any> if the parent
-type doesn't conform to the interface
-
-  method g_type_interface_peek_parent ( Pointer $g_iface --> Pointer  )
-
-=item Pointer $g_iface; (type GObject.TypeInterface): a I<GTypeInterface> structure
-
-=end pod
-
-sub g_type_interface_peek_parent ( Pointer $g_iface )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_default_interface_ref:
-=begin pod
-=head2 [[g_] type_] default_interface_ref
-
-Increments the reference count for the interface type I<g_type>,
-and returns the default interface vtable for the type.
-
-If the type is not currently in use, then the default vtable
-for the type will be created and initalized by calling
-the base interface init and default vtable init functions for
-the type (the I<base_init> and I<class_init> members of I<GTypeInfo>).
-Calling C<g_type_default_interface_ref()> is useful when you
-want to make sure that signals and properties for an interface
-have been installed.
-
-Since: 2.4
-
-Returns: (type GObject.TypeInterface) (transfer none): the default
-vtable for the interface; call C<g_type_default_interface_unref()>
-when you are done using the interface.
-
-  method g_type_default_interface_ref ( --> Pointer  )
-
-
-=end pod
-
-sub g_type_default_interface_ref ( int32 $g_type )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_default_interface_peek:
-=begin pod
-=head2 [[g_] type_] default_interface_peek
-
-If the interface type I<g_type> is currently in use, returns its
-default interface vtable.
-
-Since: 2.4
-
-Returns: (type GObject.TypeInterface) (transfer none): the default
-vtable for the interface, or C<Any> if the type is not currently
-in use
-
-  method g_type_default_interface_peek ( --> Pointer  )
-
-
-=end pod
-
-sub g_type_default_interface_peek ( int32 $g_type )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_default_interface_unref:
-=begin pod
-=head2 [[g_] type_] default_interface_unref
-
-Decrements the reference count for the type corresponding to the
-interface default vtable I<g_iface>. If the type is dynamic, then
-when no one is using the interface and all references have
-been released, the finalize function for the interface's default
-vtable (the I<class_finalize> member of I<GTypeInfo>) will be called.
-
-Since: 2.4
-
-  method g_type_default_interface_unref ( Pointer $g_iface )
-
-=item Pointer $g_iface; (type GObject.TypeInterface): the default vtable structure for a interface, as returned by C<g_type_default_interface_ref()>
-
-=end pod
-
-sub g_type_default_interface_unref ( Pointer $g_iface )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_children:
-=begin pod
-=head2 [g_] type_children
-
-Return a newly allocated and 0-terminated array of type IDs, listing
-the child types of I<type>.
-
-Returns: (array length=n_children) (transfer full): Newly allocated
-and 0-terminated array of child types, free with C<g_free()>
-
-  method g_type_children ( UInt $n_children --> int32  )
-
-=item UInt $n_children; (out) (optional): location to store the length of the returned array, or C<Any>
-
-=end pod
-
-sub g_type_children ( int32 $type, uint32 $n_children )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_interfaces:
-=begin pod
-=head2 [g_] type_interfaces
-
-Return a newly allocated and 0-terminated array of type IDs, listing
-the interface types that I<type> conforms to.
-
-Returns: (array length=n_interfaces) (transfer full): Newly allocated
-and 0-terminated array of interface types, free with C<g_free()>
-
-  method g_type_interfaces ( UInt $n_interfaces --> int32  )
-
-=item UInt $n_interfaces; (out) (optional): location to store the length of the returned array, or C<Any>
-
-=end pod
-
-sub g_type_interfaces ( int32 $type, uint32 $n_interfaces )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_set_qdata:
-=begin pod
-=head2 [[g_] type_] set_qdata
-
-Attaches arbitrary data to a type.
-
-  method g_type_set_qdata ( int32 $quark, Pointer $data )
-
-=item int32 $quark; a I<GQuark> id to identify the data
-=item Pointer $data; the data
-
-=end pod
-
-sub g_type_set_qdata ( int32 $type, int32 $quark, Pointer $data )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_get_qdata:
-=begin pod
-=head2 [[g_] type_] get_qdata
-
-Obtains data which has previously been attached to I<type>
-with C<g_type_set_qdata()>.
-
-Note that this does not take subtyping into account; data
-attached to one type with C<g_type_set_qdata()> cannot
-be retrieved from a subtype using C<g_type_get_qdata()>.
-
-Returns: (transfer none): the data, or C<Any> if no data was found
-
-  method g_type_get_qdata ( int32 $quark --> Pointer  )
-
-=item int32 $quark; a I<GQuark> id to identify the data
-
-=end pod
-
-sub g_type_get_qdata ( int32 $type, int32 $quark )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_query:
-=begin pod
-=head2 [g_] type_query
-
-Queries the type system for information about a specific type.
-This function will fill in a user-provided structure to hold
-type-specific information. If an invalid I<GType> is passed in, the
-I<type> member of the I<GTypeQuery> is 0. All members filled into the
-I<GTypeQuery> structure should be considered constant and have to be
-left untouched.
-
-  method g_type_query ( int32 $query )
-
-=item int32 $query; (out caller-allocates): a user provided structure that is filled in with constant values upon success
-
-=end pod
-
-sub g_type_query ( int32 $type, int32 $query )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_get_instance_count:
+# TM:0:g_type_get_instance_count:
 =begin pod
 =head2 [[g_] type_] get_instance_count
 
@@ -946,20 +822,17 @@ variable to include instance-count).
 Returns: the number of instances allocated of the given type;
 if instance counts are not available, returns 0.
 
-Since: 2.44
-
   method g_type_get_instance_count ( --> int32  )
 
 
 =end pod
 
-sub g_type_get_instance_count ( int32 $type )
-  returns int32
+sub g_type_get_instance_count ( int32 $type --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_register_static:
+# TM:0:g_type_register_static:
 =begin pod
 =head2 [[g_] type_] register_static
 
@@ -979,14 +852,13 @@ Returns: the new type identifier
 
 =end pod
 
-sub g_type_register_static ( int32 $parent_type, Str $type_name, int32 $info, int32 $flags )
-  returns int32
+sub g_type_register_static ( int32 $parent_type, Str $type_name, int32 $info, int32 $flags --> int32 )
   is native(&gobject-lib)
   { * }
 }}
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_register_static_simple:
+# TM:0:g_type_register_static_simple:
 =begin pod
 =head2 [[g_] type_] register_static_simple
 
@@ -994,8 +866,6 @@ Registers I<type_name> as the name of a new static type derived from
 I<parent_type>.  The value of I<flags> determines the nature (e.g.
 abstract or not) of the type. It works by filling a I<GTypeInfo>
 struct and calling C<g_type_register_static()>.
-
-Since: 2.12
 
 Returns: the new type identifier
 
@@ -1010,15 +880,14 @@ Returns: the new type identifier
 
 =end pod
 
-sub g_type_register_static_simple ( int32 $parent_type, Str $type_name, uint32 $class_size, GClassInitFunc $class_init, uint32 $instance_size, GInstanceInitFunc $instance_init, int32 $flags )
-  returns int32
+sub g_type_register_static_simple ( int32 $parent_type, Str $type_name, uint32 $class_size, GClassInitFunc $class_init, uint32 $instance_size, GInstanceInitFunc $instance_init, int32 $flags --> int32 )
   is native(&gobject-lib)
   { * }
 }}
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_register_dynamic:
+# TM:0:g_type_register_dynamic:
 =begin pod
 =head2 [[g_] type_] register_dynamic
 
@@ -1038,15 +907,14 @@ Returns: the new type identifier or I<G_TYPE_INVALID> if registration failed
 
 =end pod
 
-sub g_type_register_dynamic ( int32 $parent_type, Str $type_name, int32 $plugin, int32 $flags )
-  returns int32
+sub g_type_register_dynamic ( int32 $parent_type, Str $type_name, int32 $plugin, int32 $flags --> int32 )
   is native(&gobject-lib)
   { * }
 }}
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_register_fundamental:
+# TM:0:g_type_register_fundamental:
 =begin pod
 =head2 [[g_] type_] register_fundamental
 
@@ -1069,15 +937,14 @@ Returns: the predefined type identifier
 
 =end pod
 
-sub g_type_register_fundamental ( int32 $type_id, Str $type_name, int32 $info, int32 $finfo, int32 $flags )
-  returns int32
+sub g_type_register_fundamental ( int32 $type_id, Str $type_name, int32 $info, int32 $finfo, int32 $flags --> int32 )
   is native(&gobject-lib)
   { * }
 }}
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_add_interface_static:
+# TM:0:g_type_add_interface_static:
 =begin pod
 =head2 [[g_] type_] add_interface_static
 
@@ -1097,7 +964,7 @@ sub g_type_add_interface_static ( int32 $instance_type, int32 $interface_type, N
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_add_interface_dynamic:
+# TM:0:g_type_add_interface_dynamic:
 =begin pod
 =head2 [[g_] type_] add_interface_dynamic
 
@@ -1119,7 +986,7 @@ sub g_type_add_interface_dynamic ( int32 $instance_type, int32 $interface_type, 
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_interface_add_prerequisite:
+# TM:0:g_type_interface_add_prerequisite:
 =begin pod
 =head2 [[g_] type_] interface_add_prerequisite
 
@@ -1140,13 +1007,11 @@ sub g_type_interface_add_prerequisite ( int32 $interface_type, int32 $prerequisi
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_interface_prerequisites:
+# TM:0:g_type_interface_prerequisites:
 =begin pod
 =head2 [[g_] type_] interface_prerequisites
 
 Returns the prerequisites of an interfaces type.
-
-Since: 2.2
 
 Returns: (array length=n_prerequisites) (transfer full): a
 newly-allocated zero-terminated array of I<GType> containing
@@ -1158,13 +1023,12 @@ the prerequisites of I<interface_type>
 
 =end pod
 
-sub g_type_interface_prerequisites ( int32 $interface_type, uint32 $n_prerequisites )
-  returns int32
+sub g_type_interface_prerequisites ( int32 $interface_type, uint32 $n_prerequisites --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_add_instance_private:
+# TM:0:g_type_add_instance_private:
 =begin pod
 =head2 [[g_] type_] add_instance_private
 
@@ -1176,13 +1040,12 @@ sub g_type_interface_prerequisites ( int32 $interface_type, uint32 $n_prerequisi
 
 =end pod
 
-sub g_type_add_instance_private ( int32 $class_type, uint64 $private_size )
-  returns int32
+sub g_type_add_instance_private ( int32 $class_type, uint64 $private_size --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_instance_get_private:
+# TM:0:g_type_instance_get_private:
 =begin pod
 =head2 [[g_] type_] instance_get_private
 
@@ -1195,13 +1058,12 @@ sub g_type_add_instance_private ( int32 $class_type, uint64 $private_size )
 
 =end pod
 
-sub g_type_instance_get_private ( int32 $instance, int32 $private_type )
-  returns Pointer
+sub g_type_instance_get_private ( int32 $instance, int32 $private_type --> Pointer )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_adjust_private_offset:
+# TM:0:g_type_class_adjust_private_offset:
 =begin pod
 =head2 [[g_] type_] class_adjust_private_offset
 
@@ -1219,7 +1081,7 @@ sub g_type_class_adjust_private_offset ( Pointer $g_class, int32 $private_size_o
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_add_class_private:
+# TM:0:g_type_add_class_private:
 =begin pod
 =head2 [[g_] type_] add_class_private
 
@@ -1234,8 +1096,6 @@ type's C<get_type()> function after the type is registered.
 The private structure can be retrieved using the
 C<G_TYPE_CLASS_GET_PRIVATE()> macro.
 
-Since: 2.24
-
   method g_type_add_class_private ( UInt $private_size )
 
 =item UInt $private_size; size of private structure
@@ -1247,7 +1107,7 @@ sub g_type_add_class_private ( int32 $class_type, uint64 $private_size )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_get_private:
+# TM:0:g_type_class_get_private:
 =begin pod
 =head2 [[g_] type_] class_get_private
 
@@ -1260,13 +1120,14 @@ sub g_type_add_class_private ( int32 $class_type, uint64 $private_size )
 
 =end pod
 
-sub g_type_class_get_private ( int32 $klass, int32 $private_type )
-  returns Pointer
+sub g_type_class_get_private ( int32 $klass, int32 $private_type --> Pointer )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_get_instance_private_offset:
+# TM:0:g_type_class_get_instance_private_offset:
 =begin pod
 =head2 [[g_] type_] class_get_instance_private_offset
 
@@ -1281,21 +1142,20 @@ data area for I<g_class> using C<g_type_class_add_private()>.
 
 Returns: the offset, in bytes
 
-Since: 2.38
-
   method g_type_class_get_instance_private_offset ( Pointer $g_class --> Int  )
 
 =item Pointer $g_class; (type GObject.TypeClass): a I<N-GTypeClass>
 
 =end pod
 
-sub g_type_class_get_instance_private_offset ( Pointer $g_class )
-  returns int32
+sub g_type_class_get_instance_private_offset ( Pointer $g_class --> int32 )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_ensure:
+# TM:0:g_type_ensure:
 =begin pod
 =head2 [g_] type_ensure
 
@@ -1312,8 +1172,6 @@ you write a bare call to a C<_get_type()> macro, it may get optimized
 out by the compiler. Using C<g_type_ensure()> guarantees that the
 type's C<_get_type()> method is called.
 
-Since: 2.34
-
   method g_type_ensure ( )
 
 
@@ -1324,7 +1182,7 @@ sub g_type_ensure ( int32 $type )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_get_type_registration_serial:
+# TM:0:g_type_get_type_registration_serial:
 =begin pod
 =head2 [[g_] type_] get_type_registration_serial
 
@@ -1334,8 +1192,6 @@ which means you can cache information based on type lookups (such as
 C<g_type_from_name()>) and know if the cache is still valid at a later
 time by comparing the current serial with the one at the type lookup.
 
-Since: 2.36
-
 Returns: An unsigned int, representing the state of type registrations
 
   method g_type_get_type_registration_serial ( --> UInt  )
@@ -1343,15 +1199,14 @@ Returns: An unsigned int, representing the state of type registrations
 
 =end pod
 
-sub g_type_get_type_registration_serial (  )
-  returns uint32
+sub g_type_get_type_registration_serial (  --> uint32 )
   is native(&gobject-lib)
   { * }
 }}
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_get_plugin:
+# TM:0:g_type_get_plugin:
 =begin pod
 =head2 [[g_] type_] get_plugin
 
@@ -1365,13 +1220,12 @@ if I<type> is a dynamic type, C<Any> otherwise
 
 =end pod
 
-sub g_type_get_plugin ( int32 $type )
-  returns int32
+sub g_type_get_plugin ( int32 $type --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_interface_get_plugin:
+# TM:0:g_type_interface_get_plugin:
 =begin pod
 =head2 [[g_] type_] interface_get_plugin
 
@@ -1389,15 +1243,14 @@ interface I<interface_type> of I<instance_type>
 
 =end pod
 
-sub g_type_interface_get_plugin ( int32 $instance_type, int32 $interface_type )
-  returns int32
+sub g_type_interface_get_plugin ( int32 $instance_type, int32 $interface_type --> int32 )
   is native(&gobject-lib)
   { * }
 }}
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_fundamental_next:
+# TM:0:g_type_fundamental_next:
 =begin pod
 =head2 [[g_] type_] fundamental_next
 
@@ -1414,13 +1267,12 @@ or 0 if the type system ran out of fundamental type IDs
 
 =end pod
 
-sub g_type_fundamental_next (  )
-  returns int32
+sub g_type_fundamental_next (  --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_fundamental:
+# TM:0:g_type_fundamental:
 =begin pod
 =head2 [g_] type_fundamental
 
@@ -1434,13 +1286,12 @@ Returns: fundamental type ID
 
 =end pod
 
-sub g_type_fundamental ( int32 $type_id )
-  returns int32
+sub g_type_fundamental ( int32 $type_id --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_create_instance:
+# TM:0:g_type_create_instance:
 =begin pod
 =head2 [[g_] type_] create_instance
 
@@ -1469,13 +1320,12 @@ treatment by the fundamental type implementation
 
 =end pod
 
-sub g_type_create_instance ( int32 $type )
-  returns int32
+sub g_type_create_instance ( int32 $type --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_free_instance:
+# TM:0:g_type_free_instance:
 =begin pod
 =head2 [[g_] type_] free_instance
 
@@ -1496,7 +1346,7 @@ sub g_type_free_instance ( int32 $instance )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_add_class_cache_func:
+# TM:0:g_type_add_class_cache_func:
 =begin pod
 =head2 [[g_] type_] add_class_cache_func
 
@@ -1520,7 +1370,7 @@ sub g_type_add_class_cache_func ( Pointer $cache_data, int32 $cache_func )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_remove_class_cache_func:
+# TM:0:g_type_remove_class_cache_func:
 =begin pod
 =head2 [[g_] type_] remove_class_cache_func
 
@@ -1538,9 +1388,11 @@ C<g_type_remove_class_cache_func()> to avoid leaks.
 sub g_type_remove_class_cache_func ( Pointer $cache_data, int32 $cache_func )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_class_unref_uncached:
+# TM:0:g_type_class_unref_uncached:
 =begin pod
 =head2 [[g_] type_] class_unref_uncached
 
@@ -1558,9 +1410,11 @@ otherwise.
 sub g_type_class_unref_uncached ( Pointer $g_class )
   is native(&gobject-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_add_interface_check:
+# TM:0:g_type_add_interface_check:
 =begin pod
 =head2 [[g_] type_] add_interface_check
 
@@ -1574,8 +1428,6 @@ implementation of I<GObject> uses this facility to check that an
 object implements all of the properties that are defined on its
 interfaces.
 
-Since: 2.4
-
   method g_type_add_interface_check ( Pointer $check_data, int32 $check_func )
 
 =item Pointer $check_data; data to pass to I<check_func>
@@ -1588,14 +1440,12 @@ sub g_type_add_interface_check ( Pointer $check_data, int32 $check_func )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_remove_interface_check:
+# TM:0:g_type_remove_interface_check:
 =begin pod
 =head2 [[g_] type_] remove_interface_check
 
 Removes an interface check function added with
 C<g_type_add_interface_check()>.
-
-Since: 2.4
 
   method g_type_remove_interface_check ( Pointer $check_data, int32 $check_func )
 
@@ -1609,7 +1459,7 @@ sub g_type_remove_interface_check ( Pointer $check_data, int32 $check_func )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_value_table_peek:
+# TM:0:g_type_value_table_peek:
 =begin pod
 =head2 [[g_] type_] value_table_peek
 
@@ -1627,13 +1477,12 @@ C<Any> if there is no I<GTypeValueTable> associated with I<type>
 
 =end pod
 
-sub g_type_value_table_peek ( int32 $type )
-  returns int32
+sub g_type_value_table_peek ( int32 $type --> int32 )
   is native(&gobject-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_type_check_instance:
+# TM:0:g_type_check_instance:
 =begin pod
 =head2 [[g_] type_] check_instance
 
@@ -1648,194 +1497,361 @@ Returns: C<1> if I<instance> is valid, C<0> otherwise
 
 =end pod
 
-sub g_type_check_instance ( N-GTypeInstance $instance )
-  returns int32
+sub g_type_check_instance ( N-GTypeInstance $instance --> int32 )
   is native(&gobject-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-#TM:3:g_type_check_instance_cast:
-=begin pod
-=head2 [[g_] type_] check_instance_cast
-
-Checks that instance is an instance of the type identified by g_type and issues a warning if this is not the case. Returns instance casted to a pointer to c_type.
-
-No warning will be issued if instance is NULL, and NULL will be returned.
-
-This macro should only be used in type implementations.
-
-  method g_type_check_instance_cast (
-    N-GObject $instance, UInt $iface_type
-    --> N-GObject
-  )
-
-=item N-GObject $instance;
-=item UInt $iface_type;
-
-=end pod
-
-sub g_type_check_instance_cast ( N-GObject $instance, uint64 $iface_type )
-  returns N-GObject
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_type_check_instance_is_a:
-=begin pod
-=head2 [[g_] type_] check_instance_is_a
-
-  method g_type_check_instance_is_a (
-    N-GObject $instance, UInt $iface_type --> Int
-  )
-
-=item int32 $instance;
-=item int32 $iface_type;
-
-=end pod
-
-sub g_type_check_instance_is_a ( N-GObject $instance, uint64 $iface_type )
-  returns int32
-  is native(&gobject-lib)
-  { * }
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_check_instance_is_fundamentally_a:
+# TM:0:g_type_class_ref:
 =begin pod
-=head2 [[g_] type_] check_instance_is_fundamentally_a
+=head2 [[g_] type_] class_ref
 
+Increments the reference count of the class structure belonging to
+I<type>. This function will demand-create the class if it doesn't
+exist already.
 
+Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
+structure for the given type ID
 
-  method g_type_check_instance_is_fundamentally_a ( int32 $instance, int32 $fundamental_type --> Int  )
+  method g_type_class_ref ( --> Pointer  )
 
-=item int32 $instance;
-=item int32 $fundamental_type;
 
 =end pod
 
-sub g_type_check_instance_is_fundamentally_a ( int32 $instance, int32 $fundamental_type )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_check_class_cast:
-=begin pod
-=head2 [[g_] type_] check_class_cast
-
-
-
-  method g_type_check_class_cast ( int32 $g_class, int32 $is_a_type --> int32  )
-
-=item int32 $g_class;
-=item int32 $is_a_type;
-
-=end pod
-
-sub g_type_check_class_cast ( int32 $g_class, int32 $is_a_type )
-  returns int32
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_type_check_class_is_a:
-=begin pod
-=head2 [[g_] type_] check_class_is_a
-
-
-
-  method g_type_check_class_is_a ( int32 $g_class, int32 $is_a_type --> Int  )
-
-=item int32 $g_class;
-=item int32 $is_a_type;
-
-=end pod
-
-sub g_type_check_class_is_a ( int32 $g_class, int32 $is_a_type )
-  returns int32
+sub g_type_class_ref ( int32 $type --> Pointer )
   is native(&gobject-lib)
   { * }
 }}
-#-------------------------------------------------------------------------------
-#TM:0:g_type_check_value:
-=begin pod
-=head2 [[g_] type_] check_value
-
-Checks if value has been initialized to hold values of type g_type.
-
-  method g_type_check_value ( N-GObject $value --> Int  )
-
-=item N-GObject $value;
-
-=end pod
-
-sub g_type_check_value ( N-GObject $value )
-  returns int32
-  is native(&gobject-lib)
-  { * }
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_check_value_holds:
+# TM:0:g_type_class_peek:
 =begin pod
-=head2 [[g_] type_] check_value_holds
+=head2 [[g_] type_] class_peek
 
+This function is essentially the same as C<g_type_class_ref()>,
+except that the classes reference count isn't incremented.
+As a consequence, this function may return C<Any> if the class
+of the type passed in does not currently exist (hasn't been
+referenced before).
 
+Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
+structure for the given type ID or C<Any> if the class does not
+currently exist
 
-  method g_type_check_value_holds ( N-GObject $value, int32 $type --> Int  )
+  method g_type_class_peek ( --> Pointer  )
 
-=item N-GObject $value;
-=item int32 $type;
 
 =end pod
 
-sub g_type_check_value_holds ( N-GObject $value, int32 $type )
-  returns int32
+sub g_type_class_peek ( int32 $type --> Pointer )
   is native(&gobject-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-#TM:4:g_type_name_from_instance:Gnome::Gtk3::Builder
-=begin pod
-=head2 [[g_] type_] name_from_instance
-
-Get name of type from the instance.
-
-  method g_type_name_from_instance ( int32 $instance --> Str  )
-
-=item int32 $instance;
-
-Returns the name of the instance.
-
-=end pod
-
-sub g_type_name_from_instance ( int32 $instance --> Str )
-  is native(&gobject-lib)
-  { * }
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_type_name_from_class:
+# TM:0:g_type_class_peek_static:
 =begin pod
-=head2 [[g_] type_] name_from_class
+=head2 [[g_] type_] class_peek_static
 
+A more efficient version of C<g_type_class_peek()> which works only for
+static types.
 
+Returns: (type GObject.TypeClass) (transfer none): the I<N-GTypeClass>
+structure for the given type ID or C<Any> if the class does not
+currently exist or is dynamically loaded
 
-  method g_type_name_from_class ( int32 $g_class --> Str  )
+  method g_type_class_peek_static ( --> Pointer  )
 
-=item int32 $g_class;
 
 =end pod
 
-sub g_type_name_from_class ( int32 $g_class )
-  returns Str
+sub g_type_class_peek_static ( int32 $type --> Pointer )
+  is native(&gobject-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:g_type_class_unref:
+=begin pod
+=head2 [[g_] type_] class_unref
+
+Decrements the reference count of the class structure being passed in.
+Once the last reference count of a class has been released, classes
+may be finalized by the type system, so further dereferencing of a
+class pointer after C<g_type_class_unref()> are invalid.
+
+  method g_type_class_unref ( Pointer $g_class )
+
+=item Pointer $g_class; (type GObject.TypeClass): a I<N-GTypeClass> structure to unref
+
+=end pod
+
+sub g_type_class_unref ( Pointer $g_class )
+  is native(&gobject-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:g_type_class_peek_parent:
+=begin pod
+=head2 [[g_] type_] class_peek_parent
+
+This is a convenience function often needed in class initializers.
+It returns the class structure of the immediate parent type of the
+class passed in.  Since derived classes hold a reference count on
+their parent classes as long as they are instantiated, the returned
+class will always exist.
+
+This function is essentially equivalent to:
+g_type_class_peek (g_type_parent (G_TYPE_FROM_CLASS (g_class)))
+
+Returns: (type GObject.TypeClass) (transfer none): the parent class
+of I<g_class>
+
+  method g_type_class_peek_parent ( Pointer $g_class --> Pointer  )
+
+=item Pointer $g_class; (type GObject.TypeClass): the I<N-GTypeClass> structure to retrieve the parent class for
+
+=end pod
+
+sub g_type_class_peek_parent ( Pointer $g_class --> Pointer )
+  is native(&gobject-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:g_type_interface_peek:
+=begin pod
+=head2 [[g_] type_] interface_peek
+
+Returns the I<GTypeInterface> structure of an interface to which the
+passed in class conforms.
+
+Returns: (type GObject.TypeInterface) (transfer none): the I<GTypeInterface>
+structure of I<iface_type> if implemented by I<instance_class>, C<Any>
+otherwise
+
+  method g_type_interface_peek ( Pointer $instance_class, int32 $iface_type --> Pointer  )
+
+=item Pointer $instance_class; (type GObject.TypeClass): a I<N-GTypeClass> structure
+=item int32 $iface_type; an interface ID which this class conforms to
+
+=end pod
+
+sub g_type_interface_peek ( Pointer $instance_class, int32 $iface_type --> Pointer )
+  is native(&gobject-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:g_type_interface_peek_parent:
+=begin pod
+=head2 [[g_] type_] interface_peek_parent
+
+Returns the corresponding I<GTypeInterface> structure of the parent type
+of the instance type to which I<g_iface> belongs. This is useful when
+deriving the implementation of an interface from the parent type and
+then possibly overriding some methods.
+
+Returns: (transfer none) (type GObject.TypeInterface): the
+corresponding I<GTypeInterface> structure of the parent type of the
+instance type to which I<g_iface> belongs, or C<Any> if the parent
+type doesn't conform to the interface
+
+  method g_type_interface_peek_parent ( Pointer $g_iface --> Pointer  )
+
+=item Pointer $g_iface; (type GObject.TypeInterface): a I<GTypeInterface> structure
+
+=end pod
+
+sub g_type_interface_peek_parent ( Pointer $g_iface --> Pointer )
   is native(&gobject-lib)
   { * }
 
+#-------------------------------------------------------------------------------
+# TM:0:g_type_default_interface_ref:
+=begin pod
+=head2 [[g_] type_] default_interface_ref
+
+Increments the reference count for the interface type I<g_type>,
+and returns the default interface vtable for the type.
+
+If the type is not currently in use, then the default vtable
+for the type will be created and initalized by calling
+the base interface init and default vtable init functions for
+the type (the I<base_init> and I<class_init> members of I<GTypeInfo>).
+Calling C<g_type_default_interface_ref()> is useful when you
+want to make sure that signals and properties for an interface
+have been installed.
+
+Returns: (type GObject.TypeInterface) (transfer none): the default
+vtable for the interface; call C<g_type_default_interface_unref()>
+when you are done using the interface.
+
+  method g_type_default_interface_ref ( --> Pointer  )
 
 
+=end pod
+
+sub g_type_default_interface_ref ( int32 $g_type --> Pointer )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_default_interface_peek:
+=begin pod
+=head2 [[g_] type_] default_interface_peek
+
+If the interface type I<g_type> is currently in use, returns its
+default interface vtable.
+
+Returns: (type GObject.TypeInterface) (transfer none): the default
+vtable for the interface, or C<Any> if the type is not currently
+in use
+
+  method g_type_default_interface_peek ( --> Pointer  )
+
+
+=end pod
+
+sub g_type_default_interface_peek ( int32 $g_type --> Pointer )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_default_interface_unref:
+=begin pod
+=head2 [[g_] type_] default_interface_unref
+
+Decrements the reference count for the type corresponding to the
+interface default vtable I<g_iface>. If the type is dynamic, then
+when no one is using the interface and all references have
+been released, the finalize function for the interface's default
+vtable (the I<class_finalize> member of I<GTypeInfo>) will be called.
+
+  method g_type_default_interface_unref ( Pointer $g_iface )
+
+=item Pointer $g_iface; (type GObject.TypeInterface): the default vtable structure for a interface, as returned by C<g_type_default_interface_ref()>
+
+=end pod
+
+sub g_type_default_interface_unref ( Pointer $g_iface )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_children:
+=begin pod
+=head2 [g_] type_children
+
+Return a newly allocated and 0-terminated array of type IDs, listing
+the child types of I<type>.
+
+Returns: (array length=n_children) (transfer full): Newly allocated
+and 0-terminated array of child types, free with C<g_free()>
+
+  method g_type_children ( UInt $n_children --> int32  )
+
+=item UInt $n_children; (out) (optional): location to store the length of the returned array, or C<Any>
+
+=end pod
+
+sub g_type_children ( int32 $type, uint32 $n_children --> int32 )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_interfaces:
+=begin pod
+=head2 [g_] type_interfaces
+
+Return a newly allocated and 0-terminated array of type IDs, listing
+the interface types that I<type> conforms to.
+
+Returns: (array length=n_interfaces) (transfer full): Newly allocated
+and 0-terminated array of interface types, free with C<g_free()>
+
+  method g_type_interfaces ( UInt $n_interfaces --> int32  )
+
+=item UInt $n_interfaces; (out) (optional): location to store the length of the returned array, or C<Any>
+
+=end pod
+
+sub g_type_interfaces ( int32 $type, uint32 $n_interfaces --> int32 )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_set_qdata:
+=begin pod
+=head2 [[g_] type_] set_qdata
+
+Attaches arbitrary data to a type.
+
+  method g_type_set_qdata ( int32 $quark, Pointer $data )
+
+=item int32 $quark; a I<GQuark> id to identify the data
+=item Pointer $data; the data
+
+=end pod
+
+sub g_type_set_qdata ( int32 $type, int32 $quark, Pointer $data )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# TM:0:g_type_get_qdata:
+=begin pod
+=head2 [[g_] type_] get_qdata
+
+Obtains data which has previously been attached to I<type>
+with C<g_type_set_qdata()>.
+
+Note that this does not take subtyping into account; data
+attached to one type with C<g_type_set_qdata()> cannot
+be retrieved from a subtype using C<g_type_get_qdata()>.
+
+Returns: (transfer none): the data, or C<Any> if no data was found
+
+  method g_type_get_qdata ( int32 $quark --> Pointer  )
+
+=item int32 $quark; a I<GQuark> id to identify the data
+
+=end pod
+
+sub g_type_get_qdata ( int32 $type, int32 $quark --> Pointer )
+  is native(&gobject-lib)
+  { * }
+}}
+
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:g_type_next_base:
+=begin pod
+=head2 [[g_] type_] next_base
+
+Given a I<$leaf_type> and a I<$root_type> which is contained in its anchestry, return the type that I<$root_type> is the immediate parent of. In other words, this function determines the type that is derived directly from I<$root_type> which is also a base class of I<$leaf_type>. Given a root type and a leaf type, this function can be used to determine the types and order in which the leaf type is descended from the root type.
+
+Returns: immediate child of I<$root_type> and anchestor of I<$leaf_type>
+
+  method g_type_next_base ( Int $root_type --> UInt )
+
+=item int32 $root_type; immediate parent of the returned type
+
+=end pod
+
+sub g_type_next_base ( ulong $leaf_type, ulong $root_type --> ulong )
+  is native(&gobject-lib)
+  { * }
 }}
 
 
@@ -1853,15 +1869,9 @@ sub g_type_name_from_class ( int32 $g_class )
 
 
 
-
-
-
-
-
-=finish
-
 #-------------------------------------------------------------------------------
-Code from c-source to study casting
+#--[ Code from c-source to study casting ]--------------------------------------
+#-------------------------------------------------------------------------------
 
 #define GTK_TYPE_MENU_SHELL             (gtk_menu_shell_get_type ())
 

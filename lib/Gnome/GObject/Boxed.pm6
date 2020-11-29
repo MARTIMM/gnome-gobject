@@ -8,7 +8,7 @@ A mechanism to wrap opaque C structures registered by the type system
 
 =head1 Description
 
-GBoxed is a generic wrapper mechanism for arbitrary C structures. The only thing the type system needs to know about the structures is how to copy free them, beyond that they are treated as opaque chunks of memory.
+GBoxed is a generic wrapper mechanism for arbitrary C structures. The only thing the type system needs to know about the structures is how to copy and  free them, beyond that they are treated as opaque chunks of memory.
 
 Boxed types are useful for simple value-holder structures like rectangles or points. They can also be used for wrapping structures defined in non-GObject based libraries.
 
@@ -23,6 +23,12 @@ GBoxed is designed so that reference counted types can be boxed. Use the type’
 
   unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
   also is Gnome::N::TopLevelClassSupport;
+
+
+=head2 Uml Diagram
+
+![](plantuml/Boxed.svg)
+
 
 =comment head2 Example
 
@@ -80,6 +86,13 @@ method get-native-gboxed ( --> Any ) {
   #$!n-native-object
   self.get-native-object
 }
+
+
+
+
+
+
+=finish
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -227,7 +240,7 @@ sub g_value_dup_boxed ( N-GObject $value --> Pointer )
 =begin pod
 =head2 [g_boxed_] type_register_static
 
-This function creates a new C<G_TYPE_BOXED> derived type id for a new
+This function creates a new C<G_TY✓PE_BOXED> derived type id for a new
 boxed type with name I<name>. Boxed type handling functions have to be
 provided to copy and free opaque boxed structures of this type.
 

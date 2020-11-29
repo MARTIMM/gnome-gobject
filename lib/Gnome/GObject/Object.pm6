@@ -102,6 +102,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Glib::Main;
 use Gnome::GObject::Signal;
@@ -153,17 +154,17 @@ submethod BUILD ( *%options ) {
   # classes of those application modules should inject it.
   if not $gui-initialized #`{{and !%options<skip-init>}} {
     # must setup gtk otherwise Raku will crash
-    my $argc = CArray[int32].new;
+    my $argc = int-ptr.new;
     $argc[0] = 1 + @*ARGS.elems;
 
-    my $arg_arr = CArray[Str].new;
+    my $arg_arr = char-pptr.new;
     my Int $arg-count = 0;
     $arg_arr[$arg-count++] = $*PROGRAM.Str;
     for @*ARGS -> $arg {
       $arg_arr[$arg-count++] = $arg;
     }
 
-    my $argv = CArray[CArray[Str]].new;
+    my $argv = char-ppptr.new;
     $argv[0] = $arg_arr;
 
     # call gtk_init_check
@@ -234,22 +235,14 @@ method _fallback ( $native-sub --> Callable ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-
-#`{{
-  # Try to solve sub names from the GSignal class
-  unless ?$s {
-    $!g-signal .= new(:g-object(self.get-native-object));
-    note "Look for $native-sub in ", $!g-signal if $Gnome::N::x-debug;
-
-    $s = $!g-signal.FALLBACK( $native-sub, :return-sub-only);
-  }
-}}
+  try { $s = self._signal_interface($native-sub); } unless ?$s;
 
   self.set-class-name-of-sub('GObject');
 
   $s
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
@@ -273,6 +266,7 @@ method get-native-gobject ( --> N-GObject ) {
 
   self.get-native-object
 }
+}}
 
 #-------------------------------------------------------------------------------
 method set-native-object ( $n-native-object ) {
@@ -365,16 +359,11 @@ $signal-name; The name of the event to be handled. Each gtk object has its own s
 =end item
 
 =begin item
-%user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired.
+%user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired. The names starting with '_' are reserved to provide other info to the user.
 
-There will always be one named argument C<:$widget> which holds the class object on which the signal was registered. The name 'widget' is therefore reserved.
-
-The named attribute C<:$widget> will be deprecated in the future. The name will be changed into C<:$_widget> to give the user a free hand in user provided named arguments. The names starting with '_' will then be reserved to provide special info to the user.
-
-The following named arguments can be used
-
-  =item C<:$_widget>; The instance which registered the signal.
-  =item C<:$_handler-id>; The handler id which is returned from the registration.
+The following reserved named arguments are available;
+  =item C<:$_widget>; The instance which registered the signal
+  =item C<:$_handler-id>; The handler id which is returned from the registration
 =end item
 
 The method returns a handler id which can be used for example to disconnect the callback later.
@@ -401,28 +390,35 @@ Two examples of a registration and the handlers signature
 
   # button clicks.
   # register callback
-  $button.register-signal( $ho, 'click-button', 'clicked', :uo(...));
+  $button.register-signal(
+    $handler-object, 'click-button', 'clicked', :uo(...)
+  );
 
-  # callback method
-  method click-button ( :$_widget, :$_handler_id, :$uo ) { ... }
+  # callback method in users handler class
+  method click-button ( :$_widget, :$_handler_id, :$uo ) {
+    ...
+  }
 
-
+Second example
 
   # keyboard key presses.
   # register callback
   $window.register-signal(
-    $ho, 'keyboard-handler', 'key-press-event', :uo(...)
+    $handler-object, 'keyboard-handler',
+    'key-press-event', :uo(...)
   );
 
-  # callback method
+  # callback method in users handler class
   method keyboard-handler (
-    N-GdkEvent $event, :$_widget, :$_handler_id, :$uo --> Int
+    N-GdkEvent $event, :$_widget, :$_handler_id, :$uo
+    --> gboolean
   ) { ... }
 
 
-An more complete example to register and use a simple callback handler
+A more complete example to register and use a simple callback handler
 
-  # create a class with a handler method to process a button click event
+  # create a class with a handler method to process
+  # a button click event
   class X {
     method click-handler ( Array :$my-data ) {
       say $my-data.join(' ');
@@ -434,7 +430,10 @@ An more complete example to register and use a simple callback handler
   my Array $data = [<Hello World>];
 
   # register button signal
-  $button.register-signal( X.new, 'click-handler', 'clicked', :my-data($data));
+  $button.register-signal(
+    X.new, 'click-handler', 'clicked',
+    :my-data([$data-item1, $data-item2])
+  );
 
 
 =end pod
@@ -774,6 +773,223 @@ method start-thread (
   $p
 }
 
+#-------------------------------------------------------------------------------
+#TM:2:g_object_set_property:xt/Object.t
+=begin pod
+=head2 [[g_] object_] set_property
+
+Sets a property on an object.
+
+  method g_object_set_property (
+    Str $property_name, Gnome::GObject::Value $value
+  )
+
+=item Str $property_name; the name of the property to set
+=item N-GObject $value; the value
+
+=end pod
+
+sub g_object_set_property (
+  N-GObject $object, gchar-ptr $property_name, N-GValue $value
+) is native(&gobject-lib)
+  is symbol('g_object_set_property')
+  { * }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 [[g_] object_] get_property
+
+Gets a property of an object. The value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed).
+
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling C<clear-object()>.
+
+Next signature is used when no B<Gnome::GObject::Value> is available. The routine will create the Value using C<$gtype>.
+
+  method g_object_get_property (
+    Str $property_name, Int $gtype
+    --> Gnome::GObject::Value
+  )
+
+The following is used when a Value object is available.
+
+  method g_object_get_property (
+    Str $property_name, Gnome::GObject::Value $value
+    --> Gnome::GObject::Value
+  )
+
+=item $property_name; the name of the property to get.
+=item $gtype; the type of the value, e.g. G_TYPE_INT.
+=item $value; the property value. The value is stored in the Value object. Use any of the getter methods of Value to get the data. Also setters are available to modify data.
+
+The methods always return a B<Gnome::GObject::Value> with the result.
+
+  my Gnome::Gtk3::Label $label .= new;
+  my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
+  $label.g-object-get-property( 'label', $gv);
+  $gv.g-value-set-string('my text label');
+
+=end pod
+
+proto sub g_object_get_property (
+  N-GObject $object, gchar-ptr $property_name, |
+) { * }
+
+#TM:2:g_object_get-property(N-GObject,Prop,Int):xt/Object.t
+multi sub g_object_get_property (
+  $object, $property_name, Int $type
+  --> Gnome::GObject::Value
+) {
+  my Gnome::GObject::Value $v .= new(:init($type));
+  my N-GValue $nv = $v.get-native-object;
+  _g_object_get_property( $object, $property_name, $nv);
+#  $v.set-native-object($nv);
+
+  $v
+}
+
+#TM:2:g_object_get_property(N-GObject,Str,N-GValue):xt/Object.t
+multi sub g_object_get_property (
+  $object, $property_name, N-GValue $nv
+  --> Gnome::GObject::Value
+) {
+  my Gnome::GObject::Value $v .= new(:init($nv.g-type));
+  _g_object_get_property( $object, $property_name, $nv);
+  $v.set-native-object($nv);
+
+  $v
+}
+
+#`{{
+#TM:2:g_object_get_property(N-GObject,Str,Int):xt/Object.t
+multi sub g_object_get_property (
+  N-GObject $object, Str $property_name, Int $type
+  --> Gnome::GObject::Value
+) {
+  my Gnome::GObject::Value $v .= new(:init($type));
+  my N-GValue $nv = $v.get-native-object;
+  _g_object_get_property( $object, $property_name, $nv);
+  $v.set-native-object($nv);
+
+  $v
+}
+}}
+
+sub _g_object_get_property (
+  N-GObject $object, gchar-ptr $property_name, N-GValue $gvalue is rw
+) is native(&gobject-lib)
+  is symbol('g_object_get_property')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_ref:
+=begin pod
+=head2 [g_] object_ref
+
+Increases the reference count of this object and returns the same object.
+
+  method g_object_ref ( --> N-GObject )
+
+=end pod
+
+sub g_object_ref ( N-GObject $object --> N-GObject )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_unref:
+=begin pod
+=head2 [g_] object_unref
+
+Decreases the reference count of the native object. When its reference count drops to 0, the object is finalized (i.e. its memory is freed).
+
+When the object has a floating reference because it is not added to a container or it is not a toplevel window, the reference is first sunk followed by C<g_object_unref()>.
+
+  method g_object_unref ( )
+
+=item N-GObject $object; a native I<GObject>.
+
+=end pod
+
+sub g_object_unref ( N-GObject $object is copy ) {
+
+  $object = g_object_ref_sink($object) if g_object_is_floating($object);
+  _g_object_unref($object)
+}
+
+sub _g_object_unref ( N-GObject $object )
+  is native(&gobject-lib)
+  is symbol('g_object_unref')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:g_object_is_floating:
+=begin pod
+=head2 [[g_] object_] is_floating
+
+Checks whether I<object> has a floating reference.
+
+Returns: C<1> if I<object> has a floating reference
+
+  method g_object_is_floating ( --> Int  )
+
+=item Pointer $object; (type GObject.Object): a I<GObject>
+
+=end pod
+
+sub g_object_is_floating ( N-GObject $object --> gboolean )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_object_ref_sink:
+=begin pod
+=head2 [[g_] object_] ref_sink
+
+Increase the reference count of this native I<object>, and possibly remove the floating reference, if I<object> has a floating reference.
+
+In other words, if the object is floating, then this call "assumes ownership" of the floating reference, converting it to a normal reference by clearing the floating flag while leaving the reference count unchanged.  If the object is not floating, then this call adds a new normal reference increasing the reference count by one.
+
+The type of I<object> will be propagated to the return type under the same conditions as for C<g_object_ref()>.
+
+Returns: N-GObject
+
+  method g_object_ref_sink ( --> N-GObject )
+
+=end pod
+
+sub g_object_ref_sink ( N-GObject $object --> N-GObject )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+# this sub belongs to Gnome::Gtk3::Main but is needed here. To avoid
+# circular dependencies, the sub is redeclared here for this purpose
+sub object_init_check (
+#  CArray[int32] $argc, CArray[CArray[Str]] $argv
+  int-ptr $argc, char-ppptr $argv
+  --> int32
+) is native(&gtk-lib)
+  is symbol('gtk_init_check')
+  { * }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=finish
+
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_initially_unowned_get_type:
@@ -1007,225 +1223,6 @@ sub g_object_get_valist ( N-GObject $object, Str $first_property_name, CArray[N-
   is native(&gobject-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-#TM:2:g_object_set_property:xt/Object.t
-=begin pod
-=head2 [[g_] object_] set_property
-
-Sets a property on an object.
-
-  method g_object_set_property (
-    Str $property_name, Gnome::GObject::Value $value
-  )
-
-=item Str $property_name; the name of the property to set
-=item N-GObject $value; the value
-
-=end pod
-
-sub g_object_set_property (
-  N-GObject $object, Str $property_name, N-GValue $value
-) is native(&gobject-lib)
-  is symbol('g_object_set_property')
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [[g_] object_] get_property
-
-Gets a property of an object. The value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed).
-
-In general, a copy is made of the property contents and the caller is responsible for freeing the memory by calling C<clear-object()>.
-
-Next signature is used when no B<Gnome::GObject::Value> is available. The routine will create the Value using C<$gtype>.
-
-  method g_object_get_property (
-    Str $property_name, Int $gtype
-    --> Gnome::GObject::Value
-  )
-
-The following is used when a Value object is available.
-
-  method g_object_get_property (
-    Str $property_name, Gnome::GObject::Value $value
-    --> Gnome::GObject::Value
-  )
-
-=item $property_name; the name of the property to get.
-=item $gtype; the type of the value, e.g. G_TYPE_INT.
-=item $value; the property value. The value is stored in the Value object. Use any of the getter methods of Value to get the data. Also setters are available to modify data.
-
-The methods always return a B<Gnome::GObject::Value> with the result.
-
-  my Gnome::Gtk3::Label $label .= new;
-  my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
-  $label.g-object-get-property( 'label', $gv);
-  $gv.g-value-set-string('my text label');
-
-=end pod
-
-proto sub g_object_get_property (
-  N-GObject $object, Str $property_name, |
-) { * }
-
-#TM:2:g_object_get-property(N-GObject,Prop,Int):xt/Object.t
-multi sub g_object_get_property (
-  $object, $property_name, Int $type
-  --> Gnome::GObject::Value
-) {
-  my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-object;
-  _g_object_get_property( $object, $property_name, $nv);
-#  $v.set-native-object($nv);
-
-  $v
-}
-
-#TM:2:g_object_get_property(N-GObject,Str,N-GValue):xt/Object.t
-multi sub g_object_get_property (
-  $object, $property_name, N-GValue $nv
-  --> Gnome::GObject::Value
-) {
-  my Gnome::GObject::Value $v .= new(:init($nv.g-type));
-  _g_object_get_property( $object, $property_name, $nv);
-  $v.set-native-object($nv);
-
-  $v
-}
-
-#`{{
-#TM:2:g_object_get_property(N-GObject,Str,Int):xt/Object.t
-multi sub g_object_get_property (
-  N-GObject $object, Str $property_name, Int $type
-  --> Gnome::GObject::Value
-) {
-  my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-object;
-  _g_object_get_property( $object, $property_name, $nv);
-  $v.set-native-object($nv);
-
-  $v
-}
-}}
-
-sub _g_object_get_property (
-  N-GObject $object, Str $property_name, N-GValue $gvalue is rw
-) is native(&gobject-lib)
-  is symbol('g_object_get_property')
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_ref:
-=begin pod
-=head2 [g_] object_ref
-
-Increases the reference count of this object and returns the same object.
-
-  method g_object_ref ( --> N-GObject  )
-
-=end pod
-
-sub g_object_ref ( N-GObject $object )
-  returns N-GObject
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_unref:
-=begin pod
-=head2 [g_] object_unref
-
-Decreases the reference count of the native object. When its reference count drops to 0, the object is finalized (i.e. its memory is freed).
-
-When the object has a floating reference because it is not added to a container or it is not a toplevel window, the reference is first sunk followed by C<g_object_unref()>.
-
-=begin comment
-If the pointer to the native object may be reused in future (for example, if it is an instance variable of another object), it is recommended to clear the pointer to C<Any> rather than retain a dangling pointer to a potentially invalid I<GObject> instance. Use C<g_clear_object()> for this.
-=end comment
-
-  method g_object_unref ( )
-
-=item N-GObject $object; a I<GObject>
-
-=end pod
-
-sub g_object_unref ( N-GObject $object is copy ) {
-
-  $object = g_object_ref_sink($object) if g_object_is_floating($object);
-  _g_object_unref($object)
-}
-
-sub _g_object_unref ( N-GObject $object )
-  is native(&gobject-lib)
-  is symbol('g_object_unref')
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_is_floating:
-=begin pod
-=head2 [[g_] object_] is_floating
-
-Checks whether I<object> has a [floating][floating-ref] reference.
-
-
-Returns: C<1> if I<object> has a floating reference
-
-  method g_object_is_floating ( Pointer $object --> Int  )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-
-=end pod
-
-sub g_object_is_floating ( N-GObject $object --> int32 )
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_ref_sink:
-=begin pod
-=head2 [[g_] object_] ref_sink
-
-Increase the reference count of I<object>, and possibly remove the
-[floating][floating-ref] reference, if I<object> has a floating reference.
-
-In other words, if the object is floating, then this call "assumes
-ownership" of the floating reference, converting it to a normal
-reference by clearing the floating flag while leaving the reference
-count unchanged.  If the object is not floating, then this call
-adds a new normal reference increasing the reference count by one.
-
-Since GLib 2.56, the type of I<object> will be propagated to the return type
-under the same conditions as for C<g_object_ref()>.
-
-Returns: N-GObject
-
-  method g_object_ref_sink ( --> N-GObject )
-
-=end pod
-
-sub g_object_ref_sink ( N-GObject $object --> N-GObject )
-  is native(&gobject-lib)
-  { * }
-
-
-#-------------------------------------------------------------------------------
-# this sub belongs to Gnome::Gtk3::Main but is needed here. To avoid
-# circular dependencies, the sub is redeclared here for this purpose
-sub object_init_check (
-  CArray[int32] $argc, CArray[CArray[Str]] $argv
-  --> int32
-) is native(&gtk-lib)
-  is symbol('gtk_init_check')
-  { * }
-
-
-
-
-
-
-
-=finish
 
 #`{{
 #-------------------------------------------------------------------------------

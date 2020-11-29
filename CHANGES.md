@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2020-11-28 0.16.15
+  * Conversions of types using the type mapping from **Gnome::N::GlibToRakuTypes**.
+  * Enums module is taken out temporarily (maybe forever...).
+
 * 2020-11-24 0.16.14
   * Bugfix in **Gnome::GObject::Type**. Types returned from several methods are uint32. However, they might turn negative when they are read into Int typed values and their most significant bit is set. `.get-parameter()` has now added code to handle this. Other places should still be checked where this might pose a problem.
 
