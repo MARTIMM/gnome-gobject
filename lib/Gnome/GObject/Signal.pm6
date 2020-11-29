@@ -455,12 +455,11 @@ Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to 
 =end pod
 
 sub g_signal_emit_by_name (
-  N-GObject $instance, Str $detailed_signal, *@handler-arguments,
-  Array :$parameters is copy, :$return-type
+  N-GObject $instance, Str $detailed_signal, *@handler-arguments, *%options
   --> Any
 ) {
 
-  $parameters = [] unless $parameters.defined;
+  my Array $parameters = %options<parameters> // [];
 
   # create parameter list and start with inserting fixed arguments
   my @parameterList = (
@@ -484,18 +483,14 @@ sub g_signal_emit_by_name (
 
   # add a location for a return value if needed
   my $rv;
-  if :return-type.defined {
-    $rv = CArray[$return-type].new;
-    #$rv[0] = %options<return-type>;
+  if %options<return-type>:exists {
     @parameterList.push(Parameter.new(type => CArray));
+    $rv = CArray[%options<return-type>].new;
     @new-args.push($rv);
   }
 
   # create signature
-  my Signature $signature .= new(
-    :params(|@parameterList),
-    :returns(gint)
-  );
+  my Signature $signature .= new( :params(|@parameterList), :returns(gint));
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
@@ -503,7 +498,7 @@ sub g_signal_emit_by_name (
   my Callable $f = nativecast( $signature, $ptr);
 
   $f( $instance, $detailed_signal, |@new-args);
-  $rv[0]
+  $rv[0] if $rv.defined
 }
 
 #-------------------------------------------------------------------------------
