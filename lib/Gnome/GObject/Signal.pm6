@@ -128,8 +128,8 @@ sub g_signal_connect_object (
       type => Callable,
       sub-signature => $handler.signature
     ),
-    Parameter.new(type => gpointer),      # $data is ignored
-#    Parameter.new(type => OpaquePointer), # $data is ignored
+#    Parameter.new(type => gpointer),      # $data is ignored
+    Parameter.new(type => OpaquePointer), # $data is ignored
     Parameter.new(type => GEnum)          # $connect-flags is ignored
   );
 
@@ -141,12 +141,13 @@ sub g_signal_connect_object (
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
-  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', gpointer);
+#  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', gpointer);
+  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', OpaquePointer);
   my Callable $f = nativecast( $signature, $ptr);
 
   # returns the signal id
-  $f( $instance, $detailed-signal, $handler, gpointer, 0)
-#  $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
+#  $f( $instance, $detailed-signal, $handler, gpointer, 0)
+  $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
 }
 
 #-------------------------------------------------------------------------------
@@ -195,8 +196,8 @@ method _convert_g_signal_connect_object (
 
   # finish with data pointer argument
   @sub-parameter-list.push(
-    Parameter.new(type => gpointer), # data pointer which is ignored
-#    Parameter.new(type => OpaquePointer), # data pointer which is ignored
+#    Parameter.new(type => gpointer), # data pointer which is ignored
+    Parameter.new(type => OpaquePointer), # data pointer which is ignored
   );
 #note "Subpar: @sub-parameter-list.perl()";
 
@@ -208,8 +209,8 @@ method _convert_g_signal_connect_object (
   if $user-handler.signature.returns.gist ~~ '(Mu)' {
     $sub-signature .= new(
       :params( |@sub-parameter-list ),
-      :returns(gpointer)
-#      :returns(OpaquePointer)
+#      :returns(gpointer)
+      :returns(OpaquePointer)
     );
   }
 
@@ -229,8 +230,8 @@ method _convert_g_signal_connect_object (
       :type(Callable),
       :$sub-signature
     ),
-    Parameter.new(type => gpointer), # $data is ignored
-#    Parameter.new(type => OpaquePointer), # $data is ignored
+#    Parameter.new(type => gpointer), # $data is ignored
+    Parameter.new(type => OpaquePointer), # $data is ignored
     Parameter.new(type => GEnum)          # $connect-flags is ignored
   );
 #note "Par: @parameterList.perl()";
@@ -253,15 +254,15 @@ method _convert_g_signal_connect_object (
     "  $instance.perl(),\n",
     "  '$detailed-signal',\n",
     "  $provided-handler.perl(),\n",
-    "  gpointer,\n",
-#    "  OpaquePointer,\n",
+#    "  gpointer,\n",
+    "  OpaquePointer,\n",
     "  0\n",
     ');'  if $Gnome::N::x-debug;
 
   # returns the signal id
 #note "F: $instance.perl(), $detailed-signal, $provided-handler.perl()";
-  $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
-#  $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
+#  $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
+  $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
 }
 
 #`{{
