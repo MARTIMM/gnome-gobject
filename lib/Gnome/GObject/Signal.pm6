@@ -128,8 +128,7 @@ sub g_signal_connect_object (
       type => Callable,
       sub-signature => $handler.signature
     ),
-#    Parameter.new(type => gpointer),      # $data is ignored
-    Parameter.new(type => OpaquePointer), # $data is ignored
+    Parameter.new(type => gpointer),      # $data is ignored
     Parameter.new(type => GEnum)          # $connect-flags is ignored
   );
 
@@ -141,13 +140,12 @@ sub g_signal_connect_object (
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
-#  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', gpointer);
-  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', OpaquePointer);
+  state $ptr = cglobal( &gobject-lib, 'g_signal_connect_object', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
   # returns the signal id
-#  $f( $instance, $detailed-signal, $handler, gpointer, 0)
-  $f( $instance, $detailed-signal, $handler, OpaquePointer, 0)
+  $f( $instance, $detailed-signal, $handler, gpointer, 0)
+#  $f( $instance, $detailed-signal, $handler, Nil, 0)
 }
 
 #-------------------------------------------------------------------------------
@@ -156,7 +154,7 @@ sub g_signal_connect_object (
 method _convert_g_signal_connect_object (
   N-GObject $instance, Str $detailed-signal,
   Callable $user-handler, Callable $provided-handler
-  --> Int
+  --> gulong
 ) {
 
   # create callback handlers signature using the users callback.
@@ -168,7 +166,6 @@ method _convert_g_signal_connect_object (
   # then process all parameters of the callback. Skip the first which is the
   # instance which is not needed in the argument list to the handler.
   for $user-handler.signature.params[1..*-1] -> $p {
-#note "\$p: $p.perl()";
 
     next if $p.name ~~ Nil;       # seems to be between it in the list
     next if $p.name eq '%_';      # only at the end I think
@@ -194,12 +191,8 @@ method _convert_g_signal_connect_object (
     }
   }
 
-  # finish with data pointer argument
-  @sub-parameter-list.push(
-#    Parameter.new(type => gpointer), # data pointer which is ignored
-    Parameter.new(type => OpaquePointer), # data pointer which is ignored
-  );
-#note "Subpar: @sub-parameter-list.perl()";
+  # finish with data pointer argument which is ignored
+  @sub-parameter-list.push(Parameter.new(type => gpointer));
 
   # create signature from user handler, test for return value
   my Signature $sub-signature;
@@ -209,8 +202,7 @@ method _convert_g_signal_connect_object (
   if $user-handler.signature.returns.gist ~~ '(Mu)' {
     $sub-signature .= new(
       :params( |@sub-parameter-list ),
-#      :returns(gpointer)
-      :returns(OpaquePointer)
+      :returns(gpointer)
     );
   }
 
@@ -220,7 +212,6 @@ method _convert_g_signal_connect_object (
       :returns($user-handler.signature.returns)
     );
   }
-#note "Sub: $sub-signature.perl()";
 
   # create parameter list for call to g_signal_connect_object
   my @parameterList = (
@@ -230,18 +221,15 @@ method _convert_g_signal_connect_object (
       :type(Callable),
       :$sub-signature
     ),
-#    Parameter.new(type => gpointer), # $data is ignored
-    Parameter.new(type => OpaquePointer), # $data is ignored
+    Parameter.new(type => gpointer),      # $data is ignored
     Parameter.new(type => GEnum)          # $connect-flags is ignored
   );
-#note "Par: @parameterList.perl()";
 
   # create signature for call to g_signal_connect_object
   my Signature $signature .= new(
     :params( |@parameterList ),
     :returns(gulong)
   );
-#note "Sig: $signature.perl()";
 
   # get a pointer to the sub, then cast it to a sub with the created
   # signature. after that, the sub can be called, returning a value.
@@ -254,15 +242,14 @@ method _convert_g_signal_connect_object (
     "  $instance.perl(),\n",
     "  '$detailed-signal',\n",
     "  $provided-handler.perl(),\n",
-#    "  gpointer,\n",
-    "  OpaquePointer,\n",
+    "  gpointer,\n",
+#    "  OpaquePointer,\n",
     "  0\n",
     ');'  if $Gnome::N::x-debug;
 
   # returns the signal id
 #note "F: $instance.perl(), $detailed-signal, $provided-handler.perl()";
-#  $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
-  $f( $instance, $detailed-signal, $provided-handler, OpaquePointer, 0)
+  $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
 }
 
 #`{{
@@ -475,9 +462,7 @@ sub g_signal_emit_by_name (
     $a .= get-native-object-no-reffing
         if $a.^can('get-native-object-no-reffing');
 
-    my $t = $parameters.elems
-            ?? shift $parameters
-            !! $a.WHAT;
+    my $t = $parameters.elems ?? shift $parameters !! $a.WHAT;
     @parameterList.push(Parameter.new(type => $t));
     @new-args.push($a);
   }

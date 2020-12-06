@@ -478,17 +478,17 @@ method register-signal (
     %named-args<_handler-id> := $handler-id;
 #    Gnome::N::deprecate( 'callback(:widget)', 'callback(:_widget)', '0.16.8', '0.20.0');
 
-    sub w0 ( N-GObject $w, OpaquePointer $d ) is export {
+    sub w0 ( N-GObject $w, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
       note "w0 handler: %named-args.gist()" if $Gnome::N::x-debug;
 
       # Mu is not an accepted value  for the NativeCall interface
-      # _convert_g_signal_connect_object() in Signal makes it an OpaquePointer
+      # _convert_g_signal_connect_object() in Signal makes it an gpointer
       my $retval = $handler-object."$handler-name"(|%named-args);
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
-        $retval = OpaquePointer;
+        $retval = gpointer;
       }
 
       elsif $Gnome::N::x-debug {
@@ -498,7 +498,7 @@ method register-signal (
       $retval
     }
 
-    sub w1( N-GObject $w, $h0, OpaquePointer $d ) is export {
+    sub w1( N-GObject $w, $h0, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
       note "w1 handler: $h0, %named-args.gist()" if $Gnome::N::x-debug;
@@ -508,7 +508,7 @@ method register-signal (
       my $retval = $handler-object."$handler-name"( $h0, |%named-args);
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
-        $retval = OpaquePointer;
+        $retval = gpointer;
       }
 
       elsif $Gnome::N::x-debug {
@@ -518,7 +518,7 @@ method register-signal (
       $retval
     }
 
-    sub w2( N-GObject $w, $h0, $h1, OpaquePointer $d ) is export {
+    sub w2( N-GObject $w, $h0, $h1, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
       note "w2 handler: $h0, $h1, %named-args.gist()" if $Gnome::N::x-debug;
@@ -529,7 +529,7 @@ method register-signal (
       );
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
-        $retval = OpaquePointer;
+        $retval = gpointer;
       }
 
       elsif $Gnome::N::x-debug {
@@ -539,7 +539,7 @@ method register-signal (
       $retval
     }
 
-    sub w3( N-GObject $w, $h0, $h1, $h2, OpaquePointer $d ) is export {
+    sub w3( N-GObject $w, $h0, $h1, $h2, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
       note "w3 handler: $h0, $h1, $h2, %named-args.gist()"
@@ -551,7 +551,7 @@ method register-signal (
       );
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
-        $retval = OpaquePointer;
+        $retval = gpointer;
       }
 
       elsif $Gnome::N::x-debug {
@@ -561,7 +561,7 @@ method register-signal (
       $retval
     }
 
-    sub w4( N-GObject $w, $h0, $h1, $h2, $h3, OpaquePointer $d ) is export {
+    sub w4( N-GObject $w, $h0, $h1, $h2, $h3, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
       note "w4 handler: $h0, $h1, $h2, $h3, %named-args.gist()"
@@ -573,7 +573,7 @@ method register-signal (
       );
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
-        $retval = OpaquePointer;
+        $retval = gpointer;
       }
 
       elsif $Gnome::N::x-debug {
@@ -584,7 +584,7 @@ method register-signal (
     }
 
     sub w5(
-      N-GObject $w, $h0, $h1, $h2, $h3, $h4, OpaquePointer $d
+      N-GObject $w, $h0, $h1, $h2, $h3, $h4, gpointer $d
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
@@ -597,7 +597,7 @@ method register-signal (
       );
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
-        $retval = OpaquePointer;
+        $retval = gpointer;
       }
 
       elsif $Gnome::N::x-debug {
@@ -750,7 +750,7 @@ method start-thread (
       my $return-value;
       $gmain.context-invoke-full(
         $gmain-context, $priority,
-        -> OpaquePointer $d {
+        -> gpointer $d {
           CATCH { default { .message.note; .backtrace.concise.note } }
 
           $return-value = $handler-object."$handler-name"(
@@ -759,7 +759,7 @@ method start-thread (
 
           G_SOURCE_REMOVE
         },
-        OpaquePointer, OpaquePointer
+        gpointer, gpointer
       );
 
       if $new-context {
