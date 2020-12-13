@@ -2,10 +2,11 @@
 
 # Gnome GObject - Data structures and utilities for C programs
 
-[![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
+[![Build Status](https://travis-ci.org/MARTIMM/gnome-gobject.svg?branch=master)](https://travis-ci.org/MARTIMM/gnome-gobject) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-gobject?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-gobject/branch/master) [![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
 
 # Description
 
+<!--
 # Documentation
 
 | Pdf from pod | Link to Gnome Developer ||
@@ -17,6 +18,7 @@
 | [Gnome::GObject::Signal][Gnome::GObject::Signal pdf]  | [Signal handling][Signal]|
 | Gnome::GObject::Type | [Type Information][Type1] | [ Basic Types][Type2]
 | Gnome::GObject::Value | [Generic values][Value1] | [ Parameters and Values][Value2]
+-->
 
 ## Release notes
 * [Release notes][changes]
