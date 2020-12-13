@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2020-12-11 0.16.16
+  * Bugfixes in **Gnome::GObject::Value**. Also in test was a wrong assumption that a long type should have a 64 bit size.
+
 * 2020-11-28 0.16.15
   * Conversions of types using the type mapping from **Gnome::N::GlibToRakuTypes**.
   * Enums module is taken out temporarily (maybe forever...).

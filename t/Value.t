@@ -34,61 +34,61 @@ subtest 'ISA test', {
 subtest 'Manipulations', {
 
   $v .= new( :type(G_TYPE_BOOLEAN), :value(True));
-  is $v.get-boolean.Bool, True, '.new( :type, :value) / .get-boolean()';
+  is $v.get-boolean.Bool, True, '.get-boolean()';
   $v.set-boolean(False);
   is $v.get-boolean.Bool, False, '.set-boolean()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_CHAR), :value(41));
-  is $v.get-schar, 41, '.new( :type, :value) / .get-schar()';
+  is $v.get-schar, 41, '.get-schar()';
   $v.set-schar(-80);
   is $v.get-schar, -80, '.set-schar()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_UCHAR), :value(130));
-  is $v.get-uchar, 130, '.new( :type, :value) / .get-uchar()';
+  is $v.get-uchar, 130, '.get-uchar()';
   $v.set-uchar(200);
   is $v.get-uchar, 200, '.set-uchar()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_INT), :value(-42));
-  is $v.get-int, -42, '.new( :type, :value) / .get-int()';
+  is $v.get-int, -42, '.get-int()';
   $v.set-int(-1001);
   is $v.get-int, -1001, '.set-int()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_UINT), :value(42));
-  is $v.get-uint, 42, '.new( :type, :value) / .get-uint()';
+  is $v.get-uint, 42, '.get-uint()';
   $v.set-uint(1001);
   is $v.get-uint, 1001, '.set-uint()';
   $v.clear-object;
 
-  $v .= new( :type(G_TYPE_LONG), :value(-20304050607));
-  is $v.get-long, -20304050607, '.new( :type, :value) / .get-long()';
-  $v.set-long(-20304050607786);
-  is $v.get-long, -20304050607786, '.set-long()';
+  $v .= new( :type(G_TYPE_LONG), :value(-2030));
+  is $v.get-long, -2030, '.get-long()';
+  $v.set-long(-7786);
+  is $v.get-long, -7786, '.set-long()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_ULONG), :value(76523847654));
-  is $v.get-ulong, 76523847654, '.new( :type, :value) / .get-ulong()';
+  is $v.get-ulong, 76523847654, '.get-ulong()';
   $v.set-ulong(7652384765432);
   is $v.get-ulong, 7652384765432, '.set-ulong()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_INT64), :value(-20304050607));
-  is $v.get-int64, -20304050607, '.new( :type, :value) / .get-int64()';
+  is $v.get-int64, -20304050607, '.get-int64()';
   $v.set-int64(-2030405007);
   is $v.get-int64, -2030405007, '.set-int64()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_UINT64), :value(3847));
-  is $v.get-uint64, 3847, '.new( :type, :value) / .get-uint64()';
+  is $v.get-uint64, 3847, '.get-uint64()';
   $v.set-uint64(7654);
   is $v.get-uint64, 7654, '.set-uint64()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_FLOAT), :value(42.6334e1));
-  is-approx $v.get-float, 42633.4e-2, '.new( :type, :value) / .get-float()';
+  is-approx $v.get-float, 42633.4e-2, '.get-float()';
   $v.set-float(42.63354e1);
   is-approx $v.get-float, 426335.4e-3, '.set-float()';
   $v.clear-object;
@@ -100,7 +100,7 @@ subtest 'Manipulations', {
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_STRING), :value('new value'));
-  is $v.get-string, 'new value', '.new( :type, :value) / .get-string()';
+  is $v.get-string, 'new value', '.get-string()';
   $v.set-string('other value');
   is $v.get-string, 'other value', '.set-string()';
   $v.clear-object;
@@ -111,7 +111,7 @@ subtest 'Manipulations', {
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_FLAGS), :value(0x20F));
-  is $v.get-flags, 0x20F, '.new( :type, :value) / .get-flags()';
+  is $v.get-flags, 0x20F, '.get-flags()';
   $v.set-flags(0x80);
   is $v.get-flags, 0x80, '.set-flags()';
   $v.clear-object;

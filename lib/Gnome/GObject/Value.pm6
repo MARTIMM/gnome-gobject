@@ -120,10 +120,10 @@ also is Gnome::GObject::Boxed;
 =begin pod
 =head2 N-GValue
 
-A structure to hold a type and a value. Its type is readable from the structure as a 32 bit integer and holds type values like C<G_TYPE_UCHAR> and C<G_TYPE_LONG>. Dynamic types from native widgets are also used. The static type names are defined in B<Gnome::GObject::Type>.
+A structure to hold a type and a value.
+=coment Its type is readable from the structure as a 32 bit integer and holds type values like C<G_TYPE_UCHAR> and C<G_TYPE_LONG>.
 
-  my Gnome::GObject::Value $v .= new( :type(G_TYPE_ULONG), :value(765237654));
-  say $v.get-native-object.g-type;  # 36
+Dynamic types from native widgets are also stored. The static type names like C<G_TYPE_UCHAR> and C<G_TYPE_LONG>, are defined in B<Gnome::GObject::Type>.
 
 =end pod
 
@@ -133,16 +133,15 @@ class N-GValue is repr('CStruct') is export {
 
   # Data is a union. We do not use it but GTK does, so here it is
   # only set to a type with 64 bits for the longest field in the union.
-  has int64 $!g-data;
+  has gint64 $!g-data;
 
-  # As if it was G_VALUE_INIT macro
+  # As if it was G_VALUE_INIT macro. g_value_init() must have the type
+  # set to 0.
   submethod TWEAK {
     $!g-type = 0;
-    $!g-data = 0;
+#    $!g-data = 0;
   }
 }
-
-
 
 #-------------------------------------------------------------------------------
 #TODO add $!value-is-valid flag
@@ -562,7 +561,7 @@ sub g_value_set_boolean ( N-GValue $value, gboolean $v_boolean )
 
 Get the contents of a C<G_TYPE_BOOLEAN> typed B<N-GValue>. Returns 0 or 1.
 
-  method g_value_get_boolean ( --> Int  )
+  method g_value_get_boolean ( --> Int )
 
 =end pod
 
@@ -583,7 +582,7 @@ Set the contents of a C<G_TYPE_INT> typed B<N-GValue> to I<$v_int>.
 
 =end pod
 
-sub g_value_set_int ( N-GValue $value, gint32 $v_int )
+sub g_value_set_int ( N-GValue $value, gint $v_int )
   is native(&gobject-lib)
   { * }
 
@@ -599,7 +598,7 @@ Get the contents of a C<G_TYPE_INT> typed B<N-GValue>.
 
 =end pod
 
-sub g_value_get_int ( N-GValue $value --> gint32 )
+sub g_value_get_int ( N-GValue $value --> gint )
   is native(&gobject-lib)
   { * }
 
@@ -616,7 +615,7 @@ Set the contents of a C<G_TYPE_UINT> typed B<N-GValue> to I<$v_uint>.
 
 =end pod
 
-sub g_value_set_uint ( N-GValue $value, guint32 $v_uint )
+sub g_value_set_uint ( N-GValue $value, guint $v_uint )
   is native(&gobject-lib)
   { * }
 
@@ -631,7 +630,7 @@ Get the contents of a C<G_TYPE_UINT> typed B<N-GValue>.
 
 =end pod
 
-sub g_value_get_uint ( N-GValue $value --> guint32 )
+sub g_value_get_uint ( N-GValue $value --> guint )
   is native(&gobject-lib)
   { * }
 
@@ -648,7 +647,7 @@ Set the contents of a C<G_TYPE_LONG> typed B<N-GValue> to I<$v_long>.
 
 =end pod
 
-sub g_value_set_long ( N-GValue $value, gint64 $v_long )
+sub g_value_set_long ( N-GValue $value, glong $v_long )
   is native(&gobject-lib)
   { * }
 
@@ -663,7 +662,7 @@ Get the contents of a C<G_TYPE_LONG> typed B<N-GValue>.
 
 =end pod
 
-sub g_value_get_long ( N-GValue $value --> gint64 )
+sub g_value_get_long ( N-GValue $value --> glong )
   is native(&gobject-lib)
   { * }
 
@@ -680,7 +679,7 @@ Set the contents of a C<G_TYPE_ULONG> typed B<N-GValue> to I<$v_ulong>.
 
 =end pod
 
-sub g_value_set_ulong ( N-GValue $value, guint64 $v_ulong )
+sub g_value_set_ulong ( N-GValue $value, gulong $v_ulong )
   is native(&gobject-lib)
   { * }
 
@@ -695,7 +694,7 @@ Get the contents of a C<G_TYPE_ULONG> typed B<N-GValue>.
 
 =end pod
 
-sub g_value_get_ulong ( N-GValue $value --> guint64 )
+sub g_value_get_ulong ( N-GValue $value --> gulong )
   is native(&gobject-lib)
   { * }
 
