@@ -69,10 +69,10 @@ subtest 'Manipulations', {
   is $v.get-long, -7786, '.set-long()';
   $v.clear-object;
 
-  $v .= new( :type(G_TYPE_ULONG), :value(76523847654));
-  is $v.get-ulong, 76523847654, '.get-ulong()';
-  $v.set-ulong(7652384765432);
-  is $v.get-ulong, 7652384765432, '.set-ulong()';
+  $v .= new( :type(G_TYPE_ULONG), :value(47654));
+  is $v.get-ulong, 47654, '.get-ulong()';
+  $v.set-ulong(65432);
+  is $v.get-ulong, 65432, '.set-ulong()';
   $v.clear-object;
 
   $v .= new( :type(G_TYPE_INT64), :value(-20304050607));
