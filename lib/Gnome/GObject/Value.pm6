@@ -139,7 +139,7 @@ class N-GValue is repr('CStruct') is export {
   # set to 0.
   submethod TWEAK {
     $!g-type = 0;
-#    $!g-data = 0;
+    $!g-data = 0;
   }
 }
 
@@ -200,33 +200,33 @@ submethod BUILD ( *%options ) {
   }
 
   elsif %options<type>.defined and %options<value>.defined {
-    my $type = %options<type>;
+    my GType $type = %options<type>;
     $new-object = g_value_init( N-GValue.new, $type);
 
-    my $value = %options<value>;
-
     given $type {
-      when G_TYPE_BOOLEAN { g_value_set_boolean( $new-object, $value); }
-      when G_TYPE_CHAR { g_value_set_schar( $new-object, $value); }
-      when G_TYPE_UCHAR { g_value_set_uchar( $new-object, $value); }
-      when G_TYPE_INT { g_value_set_int( $new-object, $value); }
-      when G_TYPE_UINT { g_value_set_uint( $new-object, $value); }
-      when G_TYPE_LONG { g_value_set_long( $new-object, $value); }
-      when G_TYPE_ULONG { g_value_set_ulong( $new-object, $value); }
-      when G_TYPE_INT64 { g_value_set_int64( $new-object, $value); }
-      when G_TYPE_UINT64 { g_value_set_uint64( $new-object, $value); }
-      when G_TYPE_FLOAT { g_value_set_float( $new-object, $value); }
-      when G_TYPE_DOUBLE { g_value_set_double( $new-object, $value); }
-      when G_TYPE_STRING { g_value_set_string( $new-object, $value); }
+      when G_TYPE_BOOLEAN {
+        g_value_set_boolean( $new-object, %options<value>);
+      }
+      when G_TYPE_CHAR { g_value_set_schar( $new-object, %options<value>); }
+      when G_TYPE_UCHAR { g_value_set_uchar( $new-object, %options<value>); }
+      when G_TYPE_INT { g_value_set_int( $new-object, %options<value>); }
+      when G_TYPE_UINT { g_value_set_uint( $new-object, %options<value>); }
+      when G_TYPE_LONG { g_value_set_long( $new-object, %options<value>); }
+      when G_TYPE_ULONG { g_value_set_ulong( $new-object, %options<value>); }
+      when G_TYPE_INT64 { g_value_set_int64( $new-object, %options<value>); }
+      when G_TYPE_UINT64 { g_value_set_uint64( $new-object, %options<value>); }
+      when G_TYPE_FLOAT { g_value_set_float( $new-object, %options<value>); }
+      when G_TYPE_DOUBLE { g_value_set_double( $new-object, %options<value>); }
+      when G_TYPE_STRING { g_value_set_string( $new-object, %options<value>); }
 
-      when G_TYPE_ENUM { g_value_set_enum( $new-object, $value); }
-      when G_TYPE_FLAGS { g_value_set_flags( $new-object, $value); }
+      when G_TYPE_ENUM { g_value_set_enum( $new-object, %options<value>); }
+      when G_TYPE_FLAGS { g_value_set_flags( $new-object, %options<value>); }
 
-      when G_TYPE_OBJECT {note "Type object for $value not yet available";}# { g_value_set_( $new-object, $value); }
-      when G_TYPE_POINTER {note "Type pointer for $value not yet available";}# { g_value_set_( $new-object, $value); }
-      when G_TYPE_BOXED {note "Type boxed for $value not yet available";}# { g_value_set_( $new-object, $value); }
-      when G_TYPE_PARAM {note "Type param for $value not yet available";}# { g_value_set_( $new-object, $value); }
-      when G_TYPE_VARIANT {note "Type variant for $value not yet available";}# { g_value_set_( $new-object, $value); }
+      when G_TYPE_OBJECT {note "Type object for %options<value> not yet available";}# { g_value_set_( $new-object, %options<value>); }
+      when G_TYPE_POINTER {note "Type pointer for %options<value> not yet available";}# { g_value_set_( $new-object, %options<value>); }
+      when G_TYPE_BOXED {note "Type boxed for %options<value> not yet available";}# { g_value_set_( $new-object, %options<value>); }
+      when G_TYPE_PARAM {note "Type param for %options<value> not yet available";}# { g_value_set_( $new-object, %options<value>); }
+      when G_TYPE_VARIANT {note "Type variant for %options<value> not yet available";}# { g_value_set_( $new-object, %options<value>); }
     }
   }
 
