@@ -2,7 +2,19 @@
 
 # Gnome GObject - Data structures and utilities for C programs
 
-[![Build Status](https://travis-ci.org/MARTIMM/gnome-gobject.svg?branch=master)](https://travis-ci.org/MARTIMM/gnome-gobject) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-gobject?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-gobject/branch/master) [![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
+![T][travis-svg] ![A][appveyor-svg] ![L][license-svg]
+
+<!--
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-gobject?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-gobject/branch/master)
+-->
+[travis-svg]: https://travis-ci.org/MARTIMM/gnome-gobject.svg?branch=master
+[travis-run]: https://travis-ci.org/MARTIMM/gnome-gobject
+
+[appveyor-svg]: https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-gobject?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true
+[appveyor-run]: https://ci.appveyor.com/project/MARTIMM/gnome-gobject/branch/master
+
+[license-svg]: http://martimm.github.io/label/License-label.svg
+[licence-lnk]: http://www.perlfoundation.org/artistic_license_2_0
 
 # Description
 
@@ -19,6 +31,11 @@
 | Gnome::GObject::Type | [Type Information][Type1] | [ Basic Types][Type2]
 | Gnome::GObject::Value | [Generic values][Value1] | [ Parameters and Values][Value2]
 -->
+## Documentation
+[ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-gobject.html)
+[ 🔗 Travis-ci run on master branch][travis-run]
+[ 🔗 Appveyor run on master branch][appveyor-run]
+[ 🔗 License document][licence-lnk]
 
 ## Release notes
 * [Release notes][changes]
