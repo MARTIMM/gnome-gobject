@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.15
+version: 0.16.16.16
 image:
   - Visual Studio 2019
 
@@ -25,30 +25,31 @@ install:
 
   # set path to use MSYS2 tools like pacman
   - set PATH=C:\msys64\usr\bin;C:\msys64\usr\lib;%PATH%
-  - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-gtk3"
+  - bash -lc |
+      pacman -S --noconfirm mingw-w64-x86_64-gtk3
 
 #  - choco feature enable -n allowEmptyChecksums
 #  - choco install rakudostar
 #  - choco install strawberryperl --allow-empty-checksums
 
-  - bash -lc "curl https://rakubrew.org/install-on-perl.sh | sh"
-  - /home/appveyor/.rakubrew/bin/rakubrew init Bash
+      curl https://rakubrew.org/install-on-perl.sh | sh
+      /home/appveyor/.rakubrew/bin/rakubrew init Bash
 
 #  - git clone https://github.com/tadzik/rakudobrew %USERPROFILE%\rakudobrew
 #  - set PATH=%USERPROFILE%\rakudobrew\bin;%PATH%
 #  - rakudobrew build moar
-  - rakubrew build moar-blead
-  - rakubrew build-zef
-  - rakubrew list-available
-  - rakubrew rakubrew-version
-  - refreshenv
+      rakubrew build moar-blead
+      rakubrew build-zef
+      rakubrew list-available
+      rakubrew rakubrew-version
+#  - refreshenv
 
 #  - git clone https://github.com/ugexe/zef.git
 #  - cd zef
 #  - raku -I. bin/zef install .
 
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - zef --/test --deps-only install .
+      cd %APPVEYOR_BUILD_FOLDER%
+      zef --/test --deps-only install .
 
 build: off
 
