@@ -4,6 +4,7 @@ use Test;
 
 use Gnome::GObject::Value;
 use Gnome::GObject::Type;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::N::X;
 #Gnome::N::debug(:on);
