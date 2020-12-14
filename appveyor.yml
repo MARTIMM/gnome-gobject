@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.6
+version: 0.16.16.7
 image:
   - Visual Studio 2019
 
@@ -28,7 +28,7 @@ install:
   - choco feature enable -n allowEmptyChecksums
 #  - choco install rakudostar
   - choco install strawberryperl --allow-empty-checksums
- - set PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
+  - set PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
   - git clone https://github.com/tadzik/rakudobrew %USERPROFILE%\rakudobrew
   - set PATH=%USERPROFILE%\rakudobrew\bin;%PATH%
   - rakudobrew build moar
