@@ -69,9 +69,13 @@ Gnome::N::debug(:on);
   diag "gl1: $gl1";
   my gulong $gl2 = -2030;
   diag "gl2: $gl2";
+  my guint32 $gl3 = -2030;
+  diag "gl3: $gl3";
   diag "G_TYPE_LONG: " ~ G_TYPE_LONG;
 
   $v .= new( :type(G_TYPE_LONG), :value(-2030));
+  my glong $gl = $v.get-long;
+  diag "gl: $gl";
   is $v.get-long, -2030, '.get-long()';
   $v.set-long(-7786);
   is $v.get-long, -7786, '.set-long()';

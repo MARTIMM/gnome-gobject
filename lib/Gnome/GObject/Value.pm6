@@ -658,7 +658,7 @@ sub g_value_set_long ( N-GValue $value, glong $v_long )
 
 Get the contents of a C<G_TYPE_LONG> typed B<N-GValue>.
 
-  method g_value_get_long ( --> Int  )
+  method g_value_get_long ( --> Int )
 
 =end pod
 
