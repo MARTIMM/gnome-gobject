@@ -64,7 +64,8 @@ subtest 'Manipulations', {
   is $v.get-uint, 1001, '.set-uint()';
   $v.clear-object;
 
-Gnome::N::debug(:on);
+#Gnome::N::debug(:on);
+#`{{
   my glong $gl1 = -2030;
   diag "gl1: $gl1";
   my gulong $gl2 = -2030;
@@ -75,10 +76,8 @@ Gnome::N::debug(:on);
 
   sub a (--> glong) {-2030};
   diag 'sub a: ' ~ a();
-
+}}
   $v .= new( :type(G_TYPE_LONG), :value(-2030));
-  my glong $gl = $v.get-long;
-  diag "gl: $gl";
   is $v.get-long, -2030, '.get-long()';
   $v.set-long(-7786);
   is $v.get-long, -7786, '.set-long()';
@@ -89,7 +88,7 @@ Gnome::N::debug(:on);
   $v.set-ulong(65432);
   is $v.get-ulong, 65432, '.set-ulong()';
   $v.clear-object;
-Gnome::N::debug(:off);
+#Gnome::N::debug(:off);
 
   $v .= new( :type(G_TYPE_INT64), :value(-20304050607));
   is $v.get-int64, -20304050607, '.get-int64()';
@@ -121,18 +120,22 @@ Gnome::N::debug(:off);
   is $v.get-string, 'other value', '.set-string()';
   $v.clear-object;
 
-Gnome::N::debug(:on);
+#`{{
+#TODO G_TYPE_ENUM is abstract. Must use a GType of a real enumeration.
+# See https://stackoverflow.com/questions/58540419/how-do-you-set-an-enum-property-on-a-glib-object
+
   $v .= new(:init(G_TYPE_ENUM));
   $v.set-enum(0x124);
   is $v.get-enum, 0x124, '.set-enum() / .get-enum()';
   $v.clear-object;
 
+#TODO G_TYPE_FLAGS idem
   $v .= new( :type(G_TYPE_FLAGS), :value(0x20F));
   is $v.get-flags, 0x20F, '.get-flags()';
   $v.set-flags(0x80);
   is $v.get-flags, 0x80, '.set-flags()';
   $v.clear-object;
-Gnome::N::debug(:off);
+}}
 
   ok $v.type-compatible( G_TYPE_INT64, G_TYPE_INT64), '.type-compatible()';
   ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
@@ -146,7 +149,7 @@ Gnome::N::debug(:off);
   ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
 
 #  ok $v.type-transformable( G_TYPE_FLAGS, G_TYPE_INT), '.type-transformable()';
-  my Gnome::GObject::Value $v1 .= new( :type(G_TYPE_FLAGS), :value(0x20F));
+#  my Gnome::GObject::Value $v1 .= new( :type(G_TYPE_FLAGS), :value(0x20F));
   my Gnome::GObject::Value $v2 .= new( :type(G_TYPE_INT), :value(-1));
   ok $v1.transform($v2), '.transform() ok';
   is $v2.get-int, 0x20F, '.transform() int matches flags';
