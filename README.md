@@ -1,12 +1,11 @@
 ![gtk logo][logo]
-
+<!--
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-gobject?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-gobject/branch/master)
+-->
 # Gnome GObject - Data structures and utilities for C programs
 
 ![T][travis-svg] ![A][appveyor-svg] ![L][license-svg]
 
-<!--
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-gobject?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-gobject/branch/master)
--->
 [travis-svg]: https://travis-ci.org/MARTIMM/gnome-gobject.svg?branch=master
 [travis-run]: https://travis-ci.org/MARTIMM/gnome-gobject
 
@@ -17,7 +16,6 @@
 [licence-lnk]: http://www.perlfoundation.org/artistic_license_2_0
 
 # Description
-
 <!--
 # Documentation
 
@@ -36,9 +34,7 @@
 [ 🔗 Travis-ci run on master branch][travis-run]
 [ 🔗 Appveyor run on master branch][appveyor-run]
 [ 🔗 License document][licence-lnk]
-
-## Release notes
-* [Release notes][changes]
+[ 🔗 Release notes][changes]
 
 # Installation
 Do not install this package on its own. Instead install `Gnome::Gtk3`.
