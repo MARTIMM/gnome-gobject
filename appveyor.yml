@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.5
+version: 0.16.16.6
 image:
   - Visual Studio 2019
 
@@ -25,14 +25,20 @@ install:
   - set PATH=C:\msys64\usr\bin;C:\msys64\usr\lib;%PATH%
   - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-gtk3"
 
-#  - choco feature enable -n allowEmptyChecksums
+  - choco feature enable -n allowEmptyChecksums
 #  - choco install rakudostar
+  - choco install strawberryperl --allow-empty-checksums
+ - set PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
+  - git clone https://github.com/tadzik/rakudobrew %USERPROFILE%\rakudobrew
+  - set PATH=%USERPROFILE%\rakudobrew\bin;%PATH%
+  - rakudobrew build moar
+  - refreshenv
   - rakudobrew build zef
   - refreshenv
 
-  - git clone https://github.com/ugexe/zef.git
-  - cd zef
-  - raku -I. bin/zef install .
+#  - git clone https://github.com/ugexe/zef.git
+#  - cd zef
+#  - raku -I. bin/zef install .
 
   - cd %APPVEYOR_BUILD_FOLDER%
   - zef --/test --deps-only install .

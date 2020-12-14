@@ -150,9 +150,9 @@ subtest 'Manipulations', {
 
 #  ok $v.type-transformable( G_TYPE_FLAGS, G_TYPE_INT), '.type-transformable()';
 #  my Gnome::GObject::Value $v1 .= new( :type(G_TYPE_FLAGS), :value(0x20F));
-  my Gnome::GObject::Value $v2 .= new( :type(G_TYPE_INT), :value(-1));
-  ok $v1.transform($v2), '.transform() ok';
-  is $v2.get-int, 0x20F, '.transform() int matches flags';
+#  my Gnome::GObject::Value $v2 .= new( :type(G_TYPE_INT), :value(-1));
+#  ok $v1.transform($v2), '.transform() ok';
+#  is $v2.get-int, 0x20F, '.transform() int matches flags';
 }
 
 #-------------------------------------------------------------------------------
