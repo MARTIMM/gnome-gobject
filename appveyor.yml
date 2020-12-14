@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.18
+version: 0.16.16.19
 image:
   - Visual Studio 2019
 
@@ -32,15 +32,14 @@ install:
 #  - choco install strawberryperl --allow-empty-checksums
 
   - bash -lc "curl https://rakubrew.org/install-on-perl.sh | sh"
-  - bash -lc "/home/appveyor/.rakubrew/bin/rakubrew init Bash"
+  - set PATH=C:\home\appveyor\.rakubrew\bin\rakubrew
 
 #  - git clone https://github.com/tadzik/rakudobrew %USERPROFILE%\rakudobrew
 #  - set PATH=%USERPROFILE%\rakudobrew\bin;%PATH%
-#  - rakudobrew build moar
-  - bash -lc "rakubrew build moar-blead"
-  - bash -lc "rakubrew build-zef"
-  - bash -lc "rakubrew list-available"
-  - bash -lc "rakubrew rakubrew-version"
+  - rakubrew download
+  - rakubrew build-zef
+  - rakubrew list-available
+  - rakubrew rakubrew-version
 #  - refreshenv
 
 #  - git clone https://github.com/ugexe/zef.git
