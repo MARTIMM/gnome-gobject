@@ -73,6 +73,9 @@ Gnome::N::debug(:on);
   diag "gl3: $gl3";
   diag "G_TYPE_LONG: " ~ G_TYPE_LONG;
 
+  sub a (--> glong) {-2030};
+  diag 'sub a: ' ~ a();
+
   $v .= new( :type(G_TYPE_LONG), :value(-2030));
   my glong $gl = $v.get-long;
   diag "gl: $gl";

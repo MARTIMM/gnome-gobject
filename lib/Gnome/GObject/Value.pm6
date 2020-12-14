@@ -194,7 +194,6 @@ submethod BUILD ( *%options ) {
   # check if common options are handled by some parent
   elsif %options<native-object>:exists { }
 
-
   elsif ? %options<init> {
     $new-object = g_value_init( N-GValue.new, %options<init>);
   }
