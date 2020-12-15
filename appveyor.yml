@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.23
+version: 0.16.16.24
 image:
   - Visual Studio 2019
 
@@ -44,6 +44,7 @@ install:
   - cd rakudo
   - perl Configure.pl --gen-moar --gen-nqp --backends=moar
   - gmake install
+  - set PATH=C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\bin;C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\share\perl6\site\bin;%PATH%
   - cd ..
 
   # install zef from git
@@ -60,7 +61,7 @@ build: off
 test_script:
 
   # set path to use Raku, Zef and GTK libraries
-  - set PATH=C:\rakudo\install\bin;C:\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
+  - set PATH=C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\bin;C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
 
   - cd %APPVEYOR_BUILD_FOLDER%
   - zef --/test --deps-only install .
