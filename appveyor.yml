@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.27
+version: 0.16.16.28
 image:
   - Visual Studio 2019
 
@@ -45,14 +45,17 @@ install:
   - cd rakudo
   - perl Configure.pl --gen-moar --gen-nqp --backends=moar
   - gmake install
+  - cmd: dir C:\rakudo\
+  - cmd: dir C:\rakudo\install\bin
   - set PATH=C:\rakudo\install\bin;C:\rakudo\install\share\perl6\site\bin;%PATH%
+  - SET PATH=C:\rakudo\bin;C:\rakudo\share\perl6\site\bin;%PATH%
   - refreshenv
 
   # install zef from git
   - cd C:\
   - git clone https://github.com/ugexe/zef.git
   - cd zef
-  - perl6 -I. bin/zef install .
+  - raku -I. bin/zef install .
   - refreshenv
 
   # set path to use MSYS2 tools like pacman
