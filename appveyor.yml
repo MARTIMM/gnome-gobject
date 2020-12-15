@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.24
+version: 0.16.16.25
 image:
   - Visual Studio 2019
 
@@ -26,7 +26,7 @@ install:
 #  - choco feature enable -n allowEmptyChecksums
 #  - choco install rakudostar
 #  - choco install strawberryperl --allow-empty-checksums
-  - set PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
+#  - set PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
 
 #  - bash -lc "curl https://rakubrew.org/install-on-perl.sh | sh"
 #  - set PATH=C:\home\appveyor\.rakubrew\bin\rakubrew
@@ -40,28 +40,33 @@ install:
 #  - refreshenv
 
   # install raku from git
+  - cd C:\
   - git clone https://github.com/rakudo/rakudo.git
   - cd rakudo
   - perl Configure.pl --gen-moar --gen-nqp --backends=moar
   - gmake install
-  - set PATH=C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\bin;C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\share\perl6\site\bin;%PATH%
-  - cd ..
+  - set PATH=C:\rakudo\install\bin;C:\rakudo\install\share\perl6\site\bin;%PATH%
+  - refreshenv
 
   # install zef from git
+  - cd C:\
   - git clone https://github.com/ugexe/zef.git
   - cd zef
   - raku -I. bin/zef install .
+  - refreshenv
 
   # set path to use MSYS2 tools like pacman
+  - cd C:\
   - set PATH=C:\msys64\usr\bin;C:\msys64\usr\lib;%PATH%
   - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-gtk3"
+  - refreshenv
 
 build: off
 
 test_script:
 
   # set path to use Raku, Zef and GTK libraries
-  - set PATH=C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\bin;C:%APPVEYOR_BUILD_FOLDER%\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
+  - set PATH=C:\rakudo\install\bin;C:\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
 
   - cd %APPVEYOR_BUILD_FOLDER%
   - zef --/test --deps-only install .
