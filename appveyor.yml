@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.16.16.19
+version: 0.16.16.20
 image:
   - Visual Studio 2019
 
@@ -29,31 +29,37 @@ install:
 
 #  - choco feature enable -n allowEmptyChecksums
 #  - choco install rakudostar
-#  - choco install strawberryperl --allow-empty-checksums
+  - choco install strawberryperl --allow-empty-checksums
+  - set PATH=C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;%PATH%
 
-  - bash -lc "curl https://rakubrew.org/install-on-perl.sh | sh"
-  - set PATH=C:\home\appveyor\.rakubrew\bin\rakubrew
+#  - bash -lc "curl https://rakubrew.org/install-on-perl.sh | sh"
+#  - set PATH=C:\home\appveyor\.rakubrew\bin\rakubrew
 
 #  - git clone https://github.com/tadzik/rakudobrew %USERPROFILE%\rakudobrew
 #  - set PATH=%USERPROFILE%\rakudobrew\bin;%PATH%
-  - rakubrew download
-  - rakubrew build-zef
-  - rakubrew list-available
-  - rakubrew rakubrew-version
+#  - rakubrew download
+#  - rakubrew build-zef
+#  - rakubrew list-available
+#  - rakubrew rakubrew-version
 #  - refreshenv
 
-#  - git clone https://github.com/ugexe/zef.git
-#  - cd zef
-#  - raku -I. bin/zef install .
+  - git clone https://github.com/rakudo/rakudo.git
+  - perl Configure.pl --gen-moar --gen-nqp --backends=moar
+  - cd ..
 
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - zef --/test --deps-only install .
+  - git clone https://github.com/ugexe/zef.git
+  - cd zef
+  - raku -I. bin/zef install .
 
 build: off
 
 test_script:
-  # set path to use Raku and GTK libraries
-  - set PATH=%APPVEYOR_BUILD_FOLDER%\..\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
+
+  # set path to use Raku, Zef and GTK libraries
+  - set PATH=C:\rakudo\install\bin;C:\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
+
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - zef --/test --deps-only install .
   - zef --verbose install .
 #  - cd %APPVEYOR_BUILD_FOLDER%\..
 
