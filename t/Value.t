@@ -140,6 +140,8 @@ subtest 'Manipulations', {
   ok $v.type-compatible( G_TYPE_INT64, G_TYPE_INT64), '.type-compatible()';
   ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
 
+#`{{
+#TODO must use a real GType note a fake one!
   my Gnome::GObject::Type $t .= new;
   $v .= new(:init($t.gtype-get-type));
   $v.set-gtype(0xff);
@@ -147,6 +149,7 @@ subtest 'Manipulations', {
 
   ok $v.type-compatible( G_TYPE_INT64, G_TYPE_INT64), '.type-compatible()';
   ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
+}}
 
 #  ok $v.type-transformable( G_TYPE_FLAGS, G_TYPE_INT), '.type-transformable()';
 #  my Gnome::GObject::Value $v1 .= new( :type(G_TYPE_FLAGS), :value(0x20F));
