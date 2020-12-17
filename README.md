@@ -30,11 +30,11 @@
 | Gnome::GObject::Value | [Generic values][Value1] | [ Parameters and Values][Value2]
 -->
 ## Documentation
-[ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-gobject.html)
-[ 🔗 Travis-ci run on master branch][travis-run]
-[ 🔗 Appveyor run on master branch][appveyor-run]
-[ 🔗 License document][licence-lnk]
-[ 🔗 Release notes][changes]
+* [ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-gobject.html)
+* [ 🔗 Travis-ci run on master branch][travis-run]
+* [ 🔗 Appveyor run on master branch][appveyor-run]
+* [ 🔗 License document][licence-lnk]
+* [ 🔗 Release notes][changes]
 
 # Installation
 Do not install this package on its own. Instead install `Gnome::Gtk3`.
