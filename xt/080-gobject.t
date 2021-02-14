@@ -33,13 +33,13 @@ subtest 'properties of label', {
   is $label1.gtk-label-get-text, 'pqr xyz',
      'label text modified using property ';
 
-  $gv.g-value-unset;
+  $gv.clear-object;
 
   $gv .= new(:init(G_TYPE_INT));
   $label1.get-property( 'lines', $gv);
   is $gv.get-int, -1, 'default lines property set to -1';
 
-  $gv.g-value-unset;
+  $gv.clear-object;
 }
 
 #`{{

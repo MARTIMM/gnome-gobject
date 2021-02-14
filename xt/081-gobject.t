@@ -1,8 +1,8 @@
 use v6;
 use Test;
 
-use Gnome::Gtk3::GtkMain;
-use Gnome::Gtk3::GtkLabel;
+use Gnome::Gtk3::Main;
+use Gnome::Gtk3::Label;
 
 #-------------------------------------------------------------------------------
 class ThreadCode {
