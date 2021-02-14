@@ -104,7 +104,9 @@ use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 use Gnome::N::GlibToRakuTypes;
 
-use Gnome::Glib::Main;
+use Gnome::Glib::MainLoop;
+use Gnome::Glib::MainContext;
+
 use Gnome::GObject::Signal;
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
@@ -733,37 +735,28 @@ method start-thread (
 
   my Promise $p = Promise.at($start-time).then( {
 
-      my Gnome::Glib::Main $gmain .= new;
+#      my Gnome::Glib::Main $gmain .= new;
 
       # This part is important that it happens in the thread where the
       # function is invoked in that context!
-      my $gmain-context;
+      my Gnome::Glib::MainContext $gmain-context;
       if $new-context {
-        $gmain-context = $gmain.context-new;
-        $gmain.context-push-thread-default($gmain-context);
+        $gmain-context .= new;
+        $gmain-context.push-thread-default;
       }
 
       else {
-        $gmain-context = $gmain.context-get-thread-default;
+        $gmain-context .= new(:thread-default);
       }
 
       my $return-value;
-      $gmain.context-invoke-full(
-        $gmain-context, $priority,
-        -> gpointer $d {
-          CATCH { default { .message.note; .backtrace.concise.note } }
-
-          $return-value = $handler-object."$handler-name"(
-            :widget(self), :_widget(self), |%user-options
-          );
-
-          G_SOURCE_REMOVE
-        },
-        gpointer, gpointer
+      $gmain-context.invoke-full(
+        $gmain-context, $priority, $handler-object, $handler-name,
+        gpointer, Any, Str
       );
 
       if $new-context {
-        $gmain.context-pop-thread-default($gmain-context);
+        $gmain-context.pop-thread-default;
       }
 
       $return-value
