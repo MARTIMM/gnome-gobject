@@ -35,6 +35,7 @@
 * [ 🔗 Appveyor run on master branch][appveyor-run]
 * [ 🔗 License document][licence-lnk]
 * [ 🔗 Release notes][changes]
+* [ 🔗 Issues](https://github.com/MARTIMM/gnome-gtk3/issues)
 
 # Installation
 Do not install this package on its own. Instead install `Gnome::Gtk3`.
