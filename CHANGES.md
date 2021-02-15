@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-02-15 0.16.17
+  * Modified **Gnome::GObject::Object** and **Gnome::GObject::Signal** to remove the interface call from Object. Furtermore, cleanup documentation and added tests.
+  * Method `.start-tread()` is symplified. Parameter `$priority` is no longer used.
 
 * 2020-12-11 0.16.16
   * Bugfixes in **Gnome::GObject::Value**. Also in test was a wrong assumption that a long type should have a 64 bit size.
