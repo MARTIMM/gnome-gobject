@@ -79,6 +79,9 @@ subtest 'container', {
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
   $b.container-foreach( X.new, 'cb', :test<Start>, :test2<x>, :test3<y>);
 
+  # button was floating and causes an error when cleared. Sink it will
+  # increase ref or remove floats. in below call, returned object is thrown.
+  $b.ref-sink;
   $b.clear-object;
   ok !$b.is-valid, '.clear-object() object cleared';
 }
