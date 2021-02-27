@@ -130,6 +130,7 @@ my Array $builders = [];
 # check on native library initialization. must be global to all of the
 # TopLevelClassSupport classes. the
 my Bool $gui-initialized = False;
+my Bool $may-not-initialize-gui = False;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -155,31 +156,36 @@ submethod BUILD ( *%options ) {
   # (that's still a TODO). They have to inject this option in the .new()
   # method of their class. Also the child classes of those application
   # modules should inject it.
-  if not $gui-initialized #`{{and !%options<skip-init>}} {
-    # must setup gtk otherwise Raku will crash
-    my $argc = int-ptr.new;
-    $argc[0] = 1 + @*ARGS.elems;
+  $may-not-initialize-gui or= (%options<_may-not-initialize-gui> // False);
 
-    my $arg_arr = char-pptr.new;
-    my Int $arg-count = 0;
-    $arg_arr[$arg-count++] = $*PROGRAM.Str;
-    for @*ARGS -> $arg {
-      $arg_arr[$arg-count++] = $arg;
-    }
+  unless $may-not-initialize-gui {
+#note 'call init-check()';
+    if not $gui-initialized #`{{and !%options<skip-init>}} {
+      # must setup gtk otherwise Raku will crash
+      my $argc = int-ptr.new;
+      $argc[0] = 1 + @*ARGS.elems;
 
-    my $argv = char-ppptr.new;
-    $argv[0] = $arg_arr;
+      my $arg_arr = char-pptr.new;
+      my Int $arg-count = 0;
+      $arg_arr[$arg-count++] = $*PROGRAM.Str;
+      for @*ARGS -> $arg {
+        $arg_arr[$arg-count++] = $arg;
+      }
 
-    # call gtk_init_check
-    _object_init_check( $argc, $argv);
-    $gui-initialized = True;
+      my $argv = char-ppptr.new;
+      $argv[0] = $arg_arr;
 
-    # now refill the ARGS list with left over commandline arguments
-    @*ARGS = ();
-    for ^$argc[0] -> $i {
-      # skip first argument == programname
-      next unless $i;
-      @*ARGS.push: $argv[0][$i];
+      # call gtk_init_check
+      _object_init_check( $argc, $argv);
+      $gui-initialized = True;
+
+      # now refill the ARGS list with left over commandline arguments
+      @*ARGS = ();
+      for ^$argc[0] -> $i {
+        # skip first argument == programname
+        next unless $i;
+        @*ARGS.push: $argv[0][$i];
+      }
     }
   }
 
@@ -636,6 +642,7 @@ method register-signal (
 
 #      my List @converted-args = self!check-args($h0);
 #      $handler-object."$handler-name"( |@converted-args, |%named-args);
+      %named-args<_native-object> := $w;
       my $retval = $handler-object."$handler-name"( $h0, |%named-args);
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
@@ -655,6 +662,7 @@ method register-signal (
       note "w2 handler: $h0, $h1, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1);
+      %named-args<_native-object> := $w;
       my $retval = $handler-object."$handler-name"(
         $h0, $h1, |%named-args
       );
@@ -677,6 +685,7 @@ method register-signal (
         if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
+      %named-args<_native-object> := $w;
       my $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, |%named-args
       );
@@ -699,6 +708,7 @@ method register-signal (
         if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
+      %named-args<_native-object> := $w;
       my int32 $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, $h3, |%named-args
       );
@@ -723,6 +733,7 @@ method register-signal (
         if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
+      %named-args<_native-object> := $w;
       my $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, $h3, $h4, |%named-args
       );
@@ -738,13 +749,36 @@ method register-signal (
       $retval
     }
 
+    sub w6(
+      N-GObject $w, $h0, $h1, $h2, $h3, $h4, $h5, gpointer $d
+    ) is export {
+      CATCH { default { .message.note; .backtrace.concise.note } }
+
+      note "w6 handler: $h0, $h1, $h2, $h3, $h4, $h5, %named-args.gist()"
+        if $Gnome::N::x-debug;
+
+#      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4, $h5);
+      %named-args<_native-object> := $w;
+      my $retval = $handler-object."$handler-name"(
+        $h0, $h1, $h2, $h3, $h4, $h5, |%named-args
+      );
+
+      if $sh.signature.returns.gist ~~ '(Mu)' {
+        $retval = gpointer;
+      }
+
+      elsif $Gnome::N::x-debug {
+        note "w6 handler result: $retval";
+      }
+
+      $retval
+    }
+
     given $signal-type {
       # handle a widget, maybe other arguments and an ignorable data pointer
       when / w $<nbr-args> = (\d*) / {
 
-        state %shkeys = %(
-          :w0(&w0), :w1(&w1), :w2(&w2), :w3(&w3), :w4(&w4), :w5(&w5)
-        );
+        state %shkeys = %( :&w0, :&w1, :&w2, :&w3, :&w4, :&w5, :&w6);
 
         my $no = self.get-native-object-no-reffing;
         note "\nSignal type and name: $signal-type, $signal-name\nHandler: $sh.perl(),\n" if $Gnome::N::x-debug;
