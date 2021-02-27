@@ -1,4 +1,17 @@
 ## Release notes
+* 2021-02-27 0.16.18
+  * improved `.register-signal()`. It now also delivers the native object to the signal call handler in `:_native-object`. This comes in handy when Raku objects needs to be cleaned up to save some memory. If so, the handler resieves an invalid Raku object in `:_widget`. With the native object one is that able to rebuild this object like so (example of a Button signal);
+    ```
+      method some-handler (
+        …,
+        Gnome::Gtk3::Button :_widget($w) is copy,
+        N-GObject :_native-object($no)
+      ) {
+        $w .= new(:native-object($no)) unless $w.is-valid;
+        …
+      }
+    ```
+
 * 2021-02-15 0.16.17
   * Modified **Gnome::GObject::Object** and **Gnome::GObject::Signal** to remove the interface call from Object. Furtermore, cleanup documentation and added tests.
   * Method `.start-tread()` is symplified. Parameter `$priority` is no longer used.
