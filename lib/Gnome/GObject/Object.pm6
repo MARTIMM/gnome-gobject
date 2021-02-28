@@ -501,6 +501,17 @@ $signal-name; The name of the event to be handled. Each gtk object has its own s
 The following reserved named arguments are available;
   =item C<:$_widget>; The instance which registered the signal
   =item C<:$_handler-id>; The handler id which is returned from the registration
+  =item C<:$_native-object>; The native object provided by the caller. This object sometimes is usefull when the variable `$_widget` became invalid. An easy test and repair;
+  =begin code
+    method some-handler (
+      …,
+      Gnome::Gtk3::Button :_widget($button) is copy,
+      N-GObject :_native-object($no)
+    ) {
+      $button .= new(:native-object($no)) unless $w.is-valid;
+      …
+    }
+  =end code
 =end item
 
 The method returns a handler id which can be used for example to disconnect the callback later.
