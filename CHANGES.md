@@ -4,10 +4,10 @@
     ```
       method some-handler (
         …,
-        Gnome::Gtk3::Button :_widget($w) is copy,
+        Gnome::Gtk3::Button :_widget($button) is copy,
         N-GObject :_native-object($no)
       ) {
-        $w .= new(:native-object($no)) unless $w.is-valid;
+        $button .= new(:native-object($no)) unless $w.is-valid;
         …
       }
     ```
