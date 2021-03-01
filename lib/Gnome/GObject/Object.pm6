@@ -153,12 +153,11 @@ An example
 submethod BUILD ( *%options ) {
 
   # check GTK+ init except when GtkApplication / GApplication is used
-  # (that's still a TODO). They have to inject this option in the .new()
-  # method of their class. Also the child classes of those application
-  # modules should inject it.
   $may-not-initialize-gui = [or]
     $may-not-initialize-gui,
     $gui-initialized,
+    # check for Application from Gio. that one inherits from Object.
+    # Application from Gtk3 inherits from Gio, so this test is always ok.
     ?(self.^mro[0..*-3].gist ~~ m/'(Application) (Object)'/);
 
   unless $may-not-initialize-gui {
