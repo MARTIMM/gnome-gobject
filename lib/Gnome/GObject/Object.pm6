@@ -156,10 +156,12 @@ submethod BUILD ( *%options ) {
   # (that's still a TODO). They have to inject this option in the .new()
   # method of their class. Also the child classes of those application
   # modules should inject it.
-  $may-not-initialize-gui or= (%options<_may-not-initialize-gui> // False);
+  $may-not-initialize-gui = [or]
+    $may-not-initialize-gui,
+    $gui-initialized,
+    ?(self.^mro[0..*-3].gist ~~ m/'(Application) (Object)'/);
 
   unless $may-not-initialize-gui {
-#note 'call init-check()';
     if not $gui-initialized #`{{and !%options<skip-init>}} {
       # must setup gtk otherwise Raku will crash
       my $argc = int-ptr.new;
