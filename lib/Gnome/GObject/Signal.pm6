@@ -382,6 +382,7 @@ The handler_id has to be a valid signal handler id, connected to a signal of ins
 
 sub g_signal_handler_disconnect( N-GObject $widget, gulong $handler_id )
   is native(&gobject-lib)
+  is export # temporary
   { * }
 
 #-------------------------------------------------------------------------------
@@ -402,6 +403,7 @@ Returns the signal name, or NULL if the signal number was invalid.
 sub g_signal_name( guint $signal_id --> Str )
   is native(&gobject-lib)
 #  is symbol('g_signal_name')
+  is export # temporary
   { * }
 
 
