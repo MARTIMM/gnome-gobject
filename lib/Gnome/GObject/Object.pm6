@@ -918,7 +918,7 @@ The following named arguments can be used in the callback handler next to the ot
 
 Returns a C<Promise> object. If the call fails, the object is undefined.
 
-The handlers signature is at least C<:$widget> of the object on which the call was made. Furthermore all users named arguments to the call defined in C<*%user-options>. The handler may return any value which becomes the result of the C<Promise> returned from C<start-thread>.
+The handlers signature holds at least C<:$_widget> extended with all provided named arguments to the call defined in C<*%user-options>. The handler may return any value which becomes the result of the C<Promise> returned from C<start-thread>.
 
 =end pod
 
@@ -947,6 +947,7 @@ method start-thread (
       }
 
       else {
+        # when invoke is called and context is undefined, it takes the default
         $gmain-context .= new(:thread-default);
       }
 
