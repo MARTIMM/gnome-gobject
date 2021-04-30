@@ -176,6 +176,8 @@ method _convert_g_signal_connect_object (
     next if $p.name eq '%_';      # only at the end I think
     next if $p.named;             # named argument
 
+    @sub-parameter-list.push(self!convert-type($p.type));
+#`{{
     my $ha-type = $p.type;
     given $ha-type {
       when UInt {
@@ -190,14 +192,20 @@ method _convert_g_signal_connect_object (
         @sub-parameter-list.push(Parameter.new(type => gfloat));
       }
 
+      when Rat {
+        @sub-parameter-list.push(Parameter.new(type => gdouble));
+      }
+
       default {
         @sub-parameter-list.push(Parameter.new(type => $ha-type));
       }
     }
+}}
   }
 
   # finish with data pointer argument which is ignored
-  @sub-parameter-list.push(Parameter.new(type => gpointer));
+#  @sub-parameter-list.push(Parameter.new(type => gpointer));
+  @sub-parameter-list.push(self!convert-type(gpointer));
 
   # create signature from user handler, test for return value
   my Signature $sub-signature;
@@ -214,7 +222,7 @@ method _convert_g_signal_connect_object (
   else {
     $sub-signature .= new(
       :params( |@sub-parameter-list ),
-      :returns($user-handler.signature.returns)
+      :returns(self!convert-type( $user-handler.signature.returns, :type-only))
     );
   }
 
@@ -255,6 +263,27 @@ method _convert_g_signal_connect_object (
   # returns the signal id
 #note "F: $instance.perl(), $detailed-signal, $provided-handler.perl()";
   $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
+}
+
+#-------------------------------------------------------------------------------
+method !convert-type ( $type, Bool :$type-only = False --> Any ) {
+  my $converted-type;
+  given $type {
+    when Bool { $converted-type = gboolean; }
+    when UInt { $converted-type = guint; }
+    when Int { $converted-type = gint; }
+    when Num { $converted-type = gfloat; }
+    when Rat { $converted-type = gdouble; }
+    default { $converted-type = $type; }
+  }
+
+  if $type-only {
+    $converted-type
+  }
+
+  else {
+    Parameter.new(type => $converted-type)
+  }
 }
 
 #-------------------------------------------------------------------------------
