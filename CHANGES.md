@@ -1,9 +1,21 @@
 ## Release notes
+* 2021-04-30 0.16.20
+  * Doc changes in **Gnome::GObject::Object** and **Gnome::GObject::Signal**.
+  * Some more type substitutions for the callback handler registered with `.register-signal()`. Native types are the glib types which are mapped to raku native types using **Gnome::N::GlibToRakuTypes**.
+
+  Raku type | Native glib type | Native Raku type
+  ----------|------------------|-----------------
+  Bool      | gboolean         | int32
+  UInt      | guint            | uint32/uint64
+  Int       | gint             | int32/int64
+  Num       | gfloat           | num32
+  Rat       | gdouble          | num64
+
 * 2021-03-01 0.16.19
   * Modified **Gnome::GObject::Object** to check for initialization. In the past, it was always done automatically. Now, it is not always necessary when the Application module from Gtk3 and Gio is used because those modules also do that. Care must be taken that the build of the GUI must only take place after initializing the Application.
 
 * 2021-02-27 0.16.18
-  * improved `.register-signal()`. It now also delivers the native object to the signal call handler in `:_native-object`. This comes in handy when Raku objects needs to be cleaned up to save some memory. If so, the handler resieves an invalid Raku object in `:_widget`. With the native object one is that able to rebuild this object like so (example of a Button signal);
+  * Improved `.register-signal()`. It now also delivers the native object to the signal call handler in `:_native-object`. This comes in handy when Raku objects needs to be cleaned up to save some memory. If so, the handler resieves an invalid Raku object in `:_widget`. With the native object one is that able to rebuild this object like so (example of a Button signal);
     ```
       method some-handler (
         …,
