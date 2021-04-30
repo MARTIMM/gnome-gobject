@@ -22,7 +22,7 @@ subtest 'properties', {
   ok $b.is-floating, '.is-floating() is floating no ownership';
 
   my Gnome::Gtk3::Window $w .= new;
-  $w.container-add($b);
+  $w.add($b);
   ok !$b.is-floating, '.is-floating() not floating -> parent is window';
 
   my Gnome::GObject::Value $v = $b.get-property( 'label', G_TYPE_STRING);

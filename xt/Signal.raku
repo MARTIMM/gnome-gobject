@@ -111,7 +111,7 @@ $top-window.set-border-width(20);
 #$top-window.set-position(GTK_WIN_POS_MOUSE);
 
 my Gnome::Gtk3::Grid $grid .= new;
-$top-window.gtk-container-add($grid);
+$top-window.add($grid);
 
 my Gnome::Gtk3::Button $b1 .= new(:label('Long Button 1 Text Blurp'));
 $grid.gtk-grid-attach( $b1, 0, 0, 1, 1);
