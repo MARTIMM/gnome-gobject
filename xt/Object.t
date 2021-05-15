@@ -21,6 +21,16 @@ subtest 'properties', {
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
   ok $b.is-floating, '.is-floating() is floating no ownership';
 
+  my Gnome::Gtk3::Label $bl .= new(:text<a-label>);
+  $b.set-data(
+    'attached-label-data',
+    nativecast( Pointer, $bl.get-native-object-no-reffing)
+  );
+  my Gnome::Gtk3::Label $att-bl .= new(
+    :native-object( nativecast( N-GObject, $b.get-data('attached-label-data')))
+  );
+  is $att-bl.get-text, 'a-label', '.set-data() / .get-data()';
+
   my Gnome::Gtk3::Window $w .= new;
   $w.add($b);
   ok !$b.is-floating, '.is-floating() not floating -> parent is window';

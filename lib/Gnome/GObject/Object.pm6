@@ -322,6 +322,29 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:2:get-data:xt/Object.t
+=begin pod
+=head2 get-data
+
+Gets a named field from the objects table of associations. See C<set-data()> for an example.
+
+Returns: the data if found, or C<undefined> if no such data exists.
+
+  method get-data ( Str $key --> Pointer )
+
+=item Str $key; name of the key for that association
+
+=end pod
+
+method get-data ( Str $key --> Pointer ) {
+  g_object_get_data( self._f('GObject'), $key)
+}
+
+sub g_object_get_data ( N-GObject $object, Str $key --> Pointer )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 =begin pod
 =head2 get_property
 
@@ -851,6 +874,49 @@ method !check-args( *@args --> List ) {
   @args
 }
 }}
+
+#-------------------------------------------------------------------------------
+#TM:2:set-data:xt/Object.t
+=begin pod
+=head2 set-data
+
+Each object carries around a table of associations from strings to pointers.  This function lets you set an association.
+
+If the object already had an association with that name, the old association will be destroyed.
+
+  method set-data ( Str $key, Pointer $data )
+
+=item Str $key; name of the key
+=item Pointer $data; data to associate with that key
+
+=head3 Example
+
+Here is an example to show how to associate some data to an object and to retrieve it again. You must import the raku B<NativeCall> module to get access to some of the native types and routines.
+
+  my Gnome::Gtk3::Button $button .= new(:label<Start>);
+  my Gnome::Gtk3::Label $att-label .= new(:text<a-label>);
+  $button.set-data(
+    'attached-label-data',
+    nativecast( Pointer, $att-label.get-native-object-no-reffing)
+  );
+
+  …
+
+  my Gnome::Gtk3::Label $att-label2 .= new(
+    :native-object(
+      nativecast( N-GObject, $button.get-data('attached-label-data'))
+    )
+  );
+
+=end pod
+
+method set-data ( Str $key, Pointer $data ) {
+  g_object_set_data( self._f('GObject'), $key, $data);
+}
+
+sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
+  is native(&gobject-lib)
+  { * }
 
 #-------------------------------------------------------------------------------
 #TM:2:set-property:xt/Object.t
@@ -2218,50 +2284,6 @@ by I<newval>, C<0> otherwise.
 
 sub g_object_replace_qdata ( N-GObject $object, int32 $quark, Pointer $oldval, Pointer $newval, GDestroyNotify $destroy, GDestroyNotify $old_destroy )
   returns int32
-  is native(&gobject-lib)
-  { * }
-}}
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_object_get_data:
-=begin pod
-=head2 [[g_] object_] get_data
-
-Gets a named field from the objects table of associations (see C<g_object_set_data()>).
-
-Returns: (transfer none) (nullable): the data if found,
-or C<Any> if no such data exists.
-
-  method g_object_get_data ( Str $key --> Pointer  )
-
-=item Str $key; name of the key for that association
-
-=end pod
-
-sub g_object_get_data ( N-GObject $object, Str $key )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_object_set_data:
-=begin pod
-=head2 [[g_] object_] set_data
-
-Each object carries around a table of associations from
-strings to pointers.  This function lets you set an association.
-
-If the object already had an association with that name,
-the old association will be destroyed.
-
-  method g_object_set_data ( Str $key, Pointer $data )
-
-=item Str $key; name of the key
-=item Pointer $data; (nullable): data to associate with that key
-
-=end pod
-
-sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
   is native(&gobject-lib)
   { * }
 }}
