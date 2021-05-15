@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-04-30 0.16.21
+  * Add some new methods to **Gnome::GObject::Object**. The methods `.set-data()` and `.get-data()` are used to associate data to a native object.
+
 * 2021-04-30 0.16.20
   * Doc changes in **Gnome::GObject::Object** and **Gnome::GObject::Signal**.
   * Some more type substitutions for the callback handler registered with `.register-signal()`. Native types are the glib types which are mapped to raku native types using **Gnome::N::GlibToRakuTypes**.
