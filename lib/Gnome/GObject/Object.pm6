@@ -113,7 +113,7 @@ use Gnome::GObject::Value;
 #use Gnome::GObject::Param;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::GObject::Object:auth<github:MARTIMM>;
+unit class Gnome::GObject::Object:auth<github:MARTIMM>:ver<0.3.0>;
 also is Gnome::N::TopLevelClassSupport;
 also does Gnome::GObject::Signal;
 
@@ -648,7 +648,8 @@ method register-signal (
     sub w0 ( N-GObject $w, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w0 handler: %named-args.gist()" if $Gnome::N::x-debug;
+      note "w0, $handler-name for $signal-name: %named-args.gist()"
+        if $Gnome::N::x-debug;
 
       # Mu is not an accepted value for the NativeCall interface
       # _convert_g_signal_connect_object() in Signal makes it an gpointer
@@ -668,7 +669,8 @@ method register-signal (
     sub w1( N-GObject $w, $h0, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w1 handler: $h0, %named-args.gist()" if $Gnome::N::x-debug;
+      note "w1, $handler-name for $signal-name: $h0, %named-args.gist()"
+        if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args($h0);
 #      $handler-object."$handler-name"( |@converted-args, |%named-args);
@@ -689,7 +691,8 @@ method register-signal (
     sub w2( N-GObject $w, $h0, $h1, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w2 handler: $h0, $h1, %named-args.gist()" if $Gnome::N::x-debug;
+      note "w2, $handler-name for $signal-name: $h0, $h1, %named-args.gist()"
+        if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1);
       %named-args<_native-object> := $w;
@@ -711,8 +714,7 @@ method register-signal (
     sub w3( N-GObject $w, $h0, $h1, $h2, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w3 handler: $h0, $h1, $h2, %named-args.gist()"
-        if $Gnome::N::x-debug;
+      note "w3, $handler-name for $signal-name: $h0, $h1, $h2, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
       %named-args<_native-object> := $w;
@@ -734,12 +736,11 @@ method register-signal (
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w4 handler: $h0, $h1, $h2, $h3, %named-args.gist()"
-        if $Gnome::N::x-debug;
+      note "w4, $handler-name for $signal-name: $h0, $h1, $h2, $h3, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
       %named-args<_native-object> := $w;
-      my int32 $retval = $handler-object."$handler-name"(
+      my $retval = $handler-object."$handler-name"(
         $h0, $h1, $h2, $h3, |%named-args
       );
 
@@ -759,8 +760,7 @@ method register-signal (
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w5 handler: $h0, $h1, $h2, $h3, $h4, %named-args.gist()"
-        if $Gnome::N::x-debug;
+      note "w5, $handler-name for $signal-name: $h0, $h1, $h2, $h3, $h4, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
       %named-args<_native-object> := $w;
@@ -784,8 +784,7 @@ method register-signal (
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w6 handler: $h0, $h1, $h2, $h3, $h4, $h5, %named-args.gist()"
-        if $Gnome::N::x-debug;
+      note "w6, $handler-name for $signal-name: $h0, $h1, $h2, $h3, $h4, $h5, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4, $h5);
       %named-args<_native-object> := $w;
