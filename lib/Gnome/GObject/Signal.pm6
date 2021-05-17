@@ -177,30 +177,6 @@ method _convert_g_signal_connect_object (
     next if $p.named;             # named argument
 
     @sub-parameter-list.push(self!convert-type($p.type));
-#`{{
-    my $ha-type = $p.type;
-    given $ha-type {
-      when UInt {
-        @sub-parameter-list.push(Parameter.new(type => guint));
-      }
-
-      when Int {
-        @sub-parameter-list.push(Parameter.new(type => gint));
-      }
-
-      when Num {
-        @sub-parameter-list.push(Parameter.new(type => gfloat));
-      }
-
-      when Rat {
-        @sub-parameter-list.push(Parameter.new(type => gdouble));
-      }
-
-      default {
-        @sub-parameter-list.push(Parameter.new(type => $ha-type));
-      }
-    }
-}}
   }
 
   # finish with data pointer argument which is ignored
