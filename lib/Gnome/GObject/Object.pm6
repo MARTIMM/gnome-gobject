@@ -262,7 +262,6 @@ method set-native-object ( $n-native-object ) {
 }
 
 #-------------------------------------------------------------------------------
-# ? no ref/unref for a variant type
 method native-object-ref ( $n-native-object --> N-GObject ) {
   _g_object_ref($n-native-object)
 }
@@ -1083,19 +1082,23 @@ method start-thread (
 }
 
 #-------------------------------------------------------------------------------
-#TM:2:steal_data:xt/Object.t
+#TM:2:steal-data:xt/Object.t
 =begin pod
-=head2 steal_data
+=head2 steal-data
 
 Remove a specified datum from the object's data associations, without invoking the association's destroy handler.
 
 Returns: the data if found, or C<Any> if no such data exists.
 
-  method steal_data ( Str $key --> Pointer )
+  method steal-data ( Str $key --> Pointer )
 
 =item Str $key; name of the key
 
 =end pod
+
+method steal-data ( Str $key --> Pointer ) {
+  g_object_steal_data( self.get-native-object-no-reffing, $key);
+}
 
 sub g_object_steal_data ( N-GObject $object, Str $key --> Pointer )
   is native(&gobject-lib)
