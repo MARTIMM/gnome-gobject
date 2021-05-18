@@ -1,5 +1,8 @@
 ## Release notes
-* 2021-04-30 0.16.21
+* 2021-05-18 0.16.22
+  * Add `.steal-data()` method to remove object data.
+
+* 2021-05-15 0.16.21
   * Add some new methods to **Gnome::GObject::Object**. The methods `.set-data()` and `.get-data()` are used to associate data to a native object.
 
 * 2021-04-30 0.16.20
