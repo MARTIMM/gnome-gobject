@@ -873,6 +873,52 @@ method !check-args( *@args --> List ) {
   @args
 }
 }}
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_object_replace_data:
+=begin pod
+=head2 [[g_] object_] replace_data
+
+Compares the user data for the key I<key> on I<object> with
+I<oldval>, and if they are the same, replaces I<oldval> with
+I<newval>.
+
+This is like a typical atomic compare-and-exchange
+operation, for user data on an object.
+
+If the previous value was replaced then ownership of the
+old value (I<oldval>) is passed to the caller, including
+the registered destroy notify for it (passed out in I<old_destroy>).
+It’s up to the caller to free this as needed, which may
+or may not include using I<old_destroy> as sometimes replacement
+should not destroy the object in the normal way.
+
+Returns: C<1> if the existing value for I<key> was replaced
+by I<newval>, C<0> otherwise.
+
+  method g_object_replace_data (
+    Str $key, Pointer $oldval, Pointer $newval,
+    GDestroyNotify $destroy, GDestroyNotify $old_destroy
+    --> Int
+  )
+
+=item Str $key; a string, naming the user data pointer
+=item Pointer $oldval; (nullable): the old value to compare against
+=item Pointer $newval; (nullable): the new value
+=item GDestroyNotify $destroy; (nullable): a destroy notify for the new value
+=item GDestroyNotify $old_destroy; (out) (optional): destroy notify for the existing value
+
+=end pod
+
+method replace-data ( Str $key, Pointer $data ) {
+  g_object_set_data( self._f('GObject'), $key, $data);
+}
+
+sub g_object_replace_data ( N-GObject $object, Str $key, Pointer $oldval, Pointer $newval, GDestroyNotify $destroy, GDestroyNotify $old_destroy )
+  returns int32
+  is native(&gobject-lib)
+  { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:2:set-data:xt/Object.t
@@ -1035,6 +1081,25 @@ method start-thread (
 
   $p
 }
+
+#-------------------------------------------------------------------------------
+#TM:2:steal_data:xt/Object.t
+=begin pod
+=head2 steal_data
+
+Remove a specified datum from the object's data associations, without invoking the association's destroy handler.
+
+Returns: the data if found, or C<Any> if no such data exists.
+
+  method steal_data ( Str $key --> Pointer )
+
+=item Str $key; name of the key
+
+=end pod
+
+sub g_object_steal_data ( N-GObject $object, Str $key --> Pointer )
+  is native(&gobject-lib)
+  { * }
 
 #-------------------------------------------------------------------------------
 # this sub belongs to Gnome::Gtk3::Main but is needed here to avoid
@@ -2311,27 +2376,6 @@ sub g_object_set_data_full ( N-GObject $object, Str $key, Pointer $data, GDestro
   { * }
 }}
 #`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_object_steal_data:
-=begin pod
-=head2 [[g_] object_] steal_data
-
-Remove a specified datum from the object's data associations,
-without invoking the association's destroy handler.
-
-Returns: (transfer full) (nullable): the data if found, or C<Any>
-if no such data exists.
-
-  method g_object_steal_data ( Str $key --> Pointer  )
-
-=item Str $key; name of the key
-
-=end pod
-
-sub g_object_steal_data ( N-GObject $object, Str $key )
-  returns Pointer
-  is native(&gobject-lib)
-  { * }
 
 
 #-------------------------------------------------------------------------------
@@ -2375,43 +2419,6 @@ sub g_object_dup_data ( N-GObject $object, Str $key, GDuplicateFunc $dup_func, P
 }}
 
 #`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_object_replace_data:
-=begin pod
-=head2 [[g_] object_] replace_data
-
-Compares the user data for the key I<key> on I<object> with
-I<oldval>, and if they are the same, replaces I<oldval> with
-I<newval>.
-
-This is like a typical atomic compare-and-exchange
-operation, for user data on an object.
-
-If the previous value was replaced then ownership of the
-old value (I<oldval>) is passed to the caller, including
-the registered destroy notify for it (passed out in I<old_destroy>).
-It’s up to the caller to free this as needed, which may
-or may not include using I<old_destroy> as sometimes replacement
-should not destroy the object in the normal way.
-
-Returns: C<1> if the existing value for I<key> was replaced
-by I<newval>, C<0> otherwise.
-
-
-  method g_object_replace_data ( Str $key, Pointer $oldval, Pointer $newval, GDestroyNotify $destroy, GDestroyNotify $old_destroy --> Int  )
-
-=item Str $key; a string, naming the user data pointer
-=item Pointer $oldval; (nullable): the old value to compare against
-=item Pointer $newval; (nullable): the new value
-=item GDestroyNotify $destroy; (nullable): a destroy notify for the new value
-=item GDestroyNotify $old_destroy; (out) (optional): destroy notify for the existing value
-
-=end pod
-
-sub g_object_replace_data ( N-GObject $object, Str $key, Pointer $oldval, Pointer $newval, GDestroyNotify $destroy, GDestroyNotify $old_destroy )
-  returns int32
-  is native(&gobject-lib)
-  { * }
 }}
 #`{{
 #-------------------------------------------------------------------------------
