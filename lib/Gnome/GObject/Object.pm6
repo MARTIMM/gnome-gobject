@@ -345,7 +345,7 @@ sub g_object_get_data ( N-GObject $object, Str $key --> Pointer )
 
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 get_property
+=head2 get-property
 
 Gets a property of an object. The value must have been initialized to the expected type of the property (or a type to which the expected type can be transformed).
 
