@@ -15,6 +15,9 @@ use Gnome::Gtk3::Label;
 use Gnome::N::X;
 #Gnome::N::debug(:on);
 
+use BSON;
+use BSON::Document;
+
 #-------------------------------------------------------------------------------
 subtest 'properties', {
 
@@ -84,6 +87,50 @@ subtest 'object data', {
     :native-object( nativecast( N-GObject, $b.get-data('attached-label-data')))
   );
   nok $att-bl.is-valid, 'stolen object data not found';
+
+
+  # less cumbersome
+  $bl .= new(:text<a-label-2nd-attempt>);
+  $b.set-data( 'attached-label-data2', $bl.get-native-object-no-reffing);
+  my $no = $b.get-data( 'attached-label-data2', :type(N-GObject));
+  my Gnome::Gtk3::Label $att-bl2 .= new(:native-object($no));
+  is $att-bl2.get-text, 'a-label-2nd-attempt', '2nd-attempt: .set-data() / .get-data()';
+
+  # simple data
+  $bl.set-data( 'my-text-key', 'my important text');
+  is $bl.get-data( 'my-text-key', :type(Str)), 'my important text',
+    'simple types Str: .set-data() / .get-data()';
+
+  $bl.set-data( 'my-num-key', 0.23e-1);
+  is $bl.get-data( 'my-num-key', :type(Num)), 23e-3,
+    'simple types Num: .set-data() / .get-data()';
+
+# Problem with buf is that there should be a length added to its data. Returning
+# the data must make use of this data. So leave it to the user. Idea: use
+# BSON::Document. First 4 bytes is the length of a BSON document!
+#  # simple data Buf
+#  $bl.set-data( 'my-buf-key', Buf.new(0xef, 0xfe));
+#  my Buf $buf = $bl.get-data( 'my-buf-key', :type(Buf));
+#  is $buf[1], 0xfe, 'simple types Buf: .set-data() / .get-data()';
+  my BSON::Document $bson .= new: (
+    :int-number(-10),
+    :num-number(-2.34e-3),
+    strings => BSON::Document.new(( :s1<abc>, :s2<def>, :s3<xyz> ))
+  );
+  note $bson.perl;
+  my Buf $enc-bson = $bson.encode;
+  $bl.set-data( 'my-buf-key', $enc-bson);
+
+  my CArray[uint8] $ca8 = nativecast(
+    CArray[uint8], $bl.get-data('my-buf-key')
+  );
+  my Buf $l-ca8 .= new($ca8[0..3]);
+  my Int $doc-size = decode-int32( $l-ca8, 0);
+  my Buf $b-ca8 .= new($ca8[0..($doc-size-1)]);
+  my BSON::Document $bson2 .= new($b-ca8);
+  is $bson2<int-number>, -10, 'bson Int';
+  is $bson2<num-number>, -234e-5, 'bson Num';
+  is $bson2<strings><s2>, 'def', 'bson Str';
 }
 
 #-------------------------------------------------------------------------------
