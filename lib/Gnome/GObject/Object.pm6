@@ -320,6 +320,130 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
   True
 }
 
+#`{{ a different way to get native object properties (get does not work!)
+#-------------------------------------------------------------------------------
+# TM:0:get:
+=begin pod
+=head2 get
+
+Gets properties of an object.
+
+In general, a copy is made of the property contents and the caller is responsible for freeing the memory in the appropriate manner for the type, for instance by calling C<g_free()> or C<g_object_unref()>.
+
+Here is an example of using C<get()> to get the contents of three properties: an integer, a string and an object:
+
+  method some-click-event-handler (
+    Gnome::Gtk3::Button :_widget($button)
+  ) {
+    # get the properties stored else where on the button
+    my Int $intval;
+    my Str $strval;
+    my N-GObject $objval;   # is an Entry object
+
+    $button.get(
+      "int-property", $intval,
+      "str-property", $strval,
+      "obj-property", $objval,
+    );
+
+    # Do something with intval, strval, objval
+    …
+
+    (objval);
+
+The method is defined as;
+
+  method get ( Pointer $object, Hash $properties )
+
+=item Str $first_property_name; name of the first property to get @...: return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
+
+=end pod
+
+
+method get ( *%properties ) {
+
+  my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
+
+  my @pl = ( );                                                 # arguments
+
+  for %properties.keys -> $key {
+    @parameter-list.push: Parameter.new(:type(Str));            # prop name
+
+    @pl.push: $key;                                             # name arg
+
+    # prop type and value
+    given %properties{$key} {
+      when Int {
+        @parameter-list.push: Parameter.new(:type(CArray[int64]));
+        my $v = CArray[int64].new;
+        @pl.push: $v;
+      }
+
+      when Num {
+        @parameter-list.push: Parameter.new(:type(CArray[num64]));
+        my $v = CArray[num64].new;
+        @pl.push: $v;
+      }
+
+      when Str {
+        @parameter-list.push: Parameter.new(:type(CArray[Str]));
+#        my $v = CArray[Str].new;
+        @pl.push: CArray[Str].new;
+      }
+
+      when Bool {
+        @parameter-list.push: Parameter.new(:type(CArray[gboolean]));
+        my $v = CArray[gboolean].new;
+        @pl.push: $v;
+      }
+
+      when N-GObject {
+        @parameter-list.push: Parameter.new(:type(CArray[N-GObject]));
+        my $v = CArray[N-GObject].new;
+        @pl.push: $v;
+      }
+
+      default {
+        die X::Gnome.new(
+          :message("Type {.^name} for key $key not supported")
+        );
+      }
+    }
+  }
+
+  # to finish the list with 0
+  @parameter-list.push: Parameter.new(type => Pointer);
+
+  # create signature
+  my Signature $signature .= new(
+    :params(|@parameter-list),
+    :returns(int32)
+  );
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gtk-lib, 'g_object_get', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+note "f: ", $f.perl;
+note "fa: ", @pl.join(', ');
+  $f( self.get-native-object-no-reffing, |@pl, Nil);
+note "ret: ", @pl.join(', ');
+
+  my @ret-values = ();
+  for @pl -> $key, $v {
+    @ret-values.push: $v[0];
+  }
+
+  @ret-values
+}
+
+
+#sub g_object_get ( Pointer $object, Str $first_property_name, Any $any = Any )
+#  is native(&gobject-lib)
+#  { * }
+}}
+
 #-------------------------------------------------------------------------------
 #TM:2:get-data:xt/Object.t
 =begin pod
@@ -395,7 +519,7 @@ The following is used when a Value object is available.
 
 =item Str $property_name; the name of the property to get.
 =item Int $gtype; the type of the value, e.g. G_TYPE_INT.
-=item N-GValue $value; The value is stored in a Value object. It is used to get the type of the object.
+=item N-GValue $value; The value is stored in a N-GValue object. It is used to get the type of the object.
 
 The methods always return a B<Gnome::GObject::Value> with the result.
 
@@ -406,7 +530,9 @@ The methods always return a B<Gnome::GObject::Value> with the result.
 
 =end pod
 
-multi method get-property( gchar-ptr $property_name, Int $gtype ) {
+multi method get-property(
+  gchar-ptr $property_name, Int $gtype --> Gnome::GObject::Value
+) {
   my Gnome::GObject::Value $v .= new(:init($gtype));
   my N-GValue $nv = $v.get-native-object-no-reffing;
   _g_object_get_property(
@@ -947,6 +1073,100 @@ sub g_object_replace_data ( N-GObject $object, Str $key, Pointer $oldval, Pointe
   { * }
 }}
 
+#`{{ a different way to set native object properties (set seems to work!)
+#-------------------------------------------------------------------------------
+# TM:1:set:
+=begin pod
+=head2 set
+
+Sets properties on an object.
+
+Note that the "notify" signals are queued and only emitted (in reverse order) after all properties have been set.
+=comment See C<g_object_freeze_notify()>.
+
+  method object-set ( Str $prop_name, Str $prop_value )
+
+=item Pointer $object; (type GObject.Object): a I<GObject>
+=item Str $first_property_name; name of the first property to set @...: value for the first property, followed optionally by more name/value pairs, followed by C<Any>
+
+=end pod
+
+method set ( *%properties ) {
+
+  my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
+
+  my @pl = ( );                                                 # arguments
+
+  for %properties.kv -> $key, $v {
+    @parameter-list.push: Parameter.new(:type(Str));            # prop name
+
+    @pl.push: $key;                                             # name arg
+
+    # prop type and value
+    given %properties{$key} {
+      when Int {
+        @parameter-list.push: Parameter.new(:type(int64));
+        @pl.push: $v;
+      }
+
+      when Num {
+        @parameter-list.push: Parameter.new(:type(num64));
+        @pl.push: $v;
+      }
+
+      when Str {
+        @parameter-list.push: Parameter.new(:type(Str));
+        @pl.push: $v;
+      }
+
+      when Bool {
+        @parameter-list.push: Parameter.new(:type(gboolean));
+        @pl.push: $v;
+      }
+
+      when N-GObject {
+        @parameter-list.push: Parameter.new(:type(N-GObject));
+        @pl.push: $v;
+      }
+
+      default {
+        die X::Gnome.new(
+          :message("Type {.^name} for key $key not supported")
+        );
+      }
+    }
+  }
+
+  # to finish the list with 0
+  @parameter-list.push: Parameter.new(type => Pointer);
+
+  # create signature
+  my Signature $signature .= new(
+    :params(|@parameter-list),
+    :returns(int32)
+  );
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gtk-lib, 'g_object_set', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+note "f: ", $f.perl;
+note "fa: ", @pl.join(', ');
+  $f( self.get-native-object-no-reffing, |@pl, Nil);
+}
+
+
+#  g_object_set(
+#    self.get-native-object-no-reffing, $prop-name, $prop-value, Nil
+#  );
+
+#sub g_object_set (
+#  N-GObject $object, Str $prop-name, Str $prop-value, Pointer $end
+#) is native(&gobject-lib)
+#  { * }
+}}
+
 #-------------------------------------------------------------------------------
 #TM:2:set-data:xt/Object.t
 =begin pod
@@ -1275,7 +1495,6 @@ sub _g_object_unref ( N-GObject $object )
 
 =finish
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_initially_unowned_get_type:
 =begin pod
@@ -1289,116 +1508,8 @@ sub g_initially_unowned_get_type (  )
   returns int32
   is native(&gobject-lib)
   { * }
-}}
 
 #`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_object_get:
-=begin pod
-=head2 [g_] object_get
-
-Gets properties of an object.
-
-In general, a copy is made of the property contents and the caller
-is responsible for freeing the memory in the appropriate manner for
-the type, for instance by calling C<g_free()> or C<g_object_unref()>.
-
-Here is an example of using C<g_object_get()> to get the contents
-of three properties: an integer, a string and an object:
-|[<!-- language="C" -->
-gint intval;
-gchar *strval;
-GObject *objval;
-
-g_object_get (my_object,
-"int-property", &intval,
-"str-property", &strval,
-"obj-property", &objval,
-NULL);
-
-// Do something with intval, strval, objval
-
-g_free (strval);
-g_object_unref (objval);
-]|
-
-  method g_object_get ( Pointer $object, Str $first_property_name )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-=item Str $first_property_name; name of the first property to get @...: return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
-
-=end pod
-
-
-sub g_object_get ( N-GObject $object, *@properties --> List ) {
-
-  my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
-
-  my @pl = ();
-  for @properties -> $p {
-    @parameter-list.push: Parameter.new(:type(Str));
-    @parameter-list.push: Parameter.new(:type(N-TypesMap));
-
-    @pl.push: $p;
-    @pl.push: N-TypesMap.new;
-  }
-
-
-  # to finish the list with 0
-  @parameter-list.push: Parameter.new(type => int32);
-
-  # create signature
-  my Signature $signature .= new(
-    :params( |@parameter-list),
-    :returns(int32)
-  );
-
-  # get a pointer to the sub, then cast it to a sub with the proper
-  # signature. after that, the sub can be called, returning a value.
-  state $ptr = cglobal( &gtk-lib, 'g_object_get', Pointer);
-  my Callable $f = nativecast( $signature, $ptr);
-
-note "f: ", $f.perl;
-note "fa: ", ($object, |@pl, 0).join(', ');
-  $f( $object, |@pl, 0);
-
-  my @ret-values = ();
-  for @pl -> $p, $v {
-    @ret-values.push: $v;
-  }
-
-  @ret-values
-}
-}}
-
-#sub g_object_get ( Pointer $object, Str $first_property_name, Any $any = Any )
-#  is native(&gobject-lib)
-#  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_object_set:
-=begin pod
-=head2 [g_] object_set
-
-Sets properties on an object.
-
-Note that the "notify" signals are queued and only emitted (in reverse order) after all properties have been set. See C<g_object_freeze_notify()>.
-
-  method g_object_set (
-    Gnome::GObject::Object $object, Str $prop_name, Str $prop_value
-  )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-=item Str $first_property_name; name of the first property to set @...: value for the first property, followed optionally by more name/value pairs, followed by C<Any>
-
-=end pod
-
-sub g_object_set (
-  N-GObject $object, Str $prop-name, Str $prop-value, int32 $end = 0
-) is native(&gobject-lib)
-  { * }
-
 #-------------------------------------------------------------------------------
 #TM:0:g_object_setv:
 =begin pod
