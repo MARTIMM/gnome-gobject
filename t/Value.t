@@ -6,7 +6,7 @@ use Gnome::GObject::Value;
 use Gnome::GObject::Type;
 use Gnome::N::GlibToRakuTypes;
 
-use Gnome::N::X;
+#use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
@@ -29,6 +29,12 @@ subtest 'ISA test', {
 
   $v.clear-object;
   nok $v.is-valid, '.clear-object()';
+}
+
+#-------------------------------------------------------------------------------
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
 }
 
 #-------------------------------------------------------------------------------
@@ -141,7 +147,7 @@ subtest 'Manipulations', {
   ok $v.type-transformable( G_TYPE_INT, G_TYPE_INT64), '.type-transformable()';
 
 #`{{
-#TODO must use a real GType note a fake one!
+#TODO must use a real GType not a fake one!
   my Gnome::GObject::Type $t .= new;
   $v .= new(:init($t.gtype-get-type));
   $v.set-gtype(0xff);
