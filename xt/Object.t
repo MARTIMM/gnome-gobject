@@ -61,6 +61,20 @@ subtest 'properties', {
 }}
 }
 
+#`{{ set works but get doesn't
+#-------------------------------------------------------------------------------
+subtest 'set, get', {
+  my Gnome::Gtk3::Button $b .= new(:label<Start>);
+  $b.set( :label<pep-toet>, :use-underline(True));
+  is $b.get-label, 'pep-toet', '.set()';
+
+  my Str $ret-lbl .= new;
+  my Bool $ret-use .= new;
+  $b.get( :label($ret-lbl), :use-underline($ret-use));
+  note " $ret-lbl, $ret-use";
+}
+}}
+
 #-------------------------------------------------------------------------------
 subtest 'object data', {
   my Gnome::Gtk3::Button $b .= new(:label<Start>);
