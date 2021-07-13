@@ -1,4 +1,8 @@
 ## Release notes
+* 2021-07-13 0.16.24
+  * Improve docs of **Gnome::GObject::Type** and add methods.
+  * Idem for **Gnome::GObject::Value**.
+
 * 2021-06-17 0.16.23
   * Improve `.get-data()` and `.set-data()` in **Gnome::GObject::Object**.
 
