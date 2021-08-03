@@ -320,87 +320,208 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
   True
 }
 
-#`{{ a different way to get native object properties (get does not work!)
 #-------------------------------------------------------------------------------
-# TM:0:get:
+#TM:2:get-data:xt/Object.t
 =begin pod
-=head2 get
+=head2 get-data
+
+Gets a named field from the objects table of associations. See C<set-data()> for several examples.
+
+Returns: the data if found, or C<undefined> if no such data exists.
+
+  method get-data ( Str $key, $type, Str :$widget-class --> Any )
+
+=item Str $key; name of the key for that association
+=item $type; specification of the type of data to return.
+
+=end pod
+
+method get-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
+
+  my $data;
+  my $odata = g_object_get_data( self._f('GObject'), $key);
+  given $type.^name {
+
+    when 'int8' {
+      my CArray[int8] $d = nativecast( CArray[int8], $odata);
+      $data = $d[0];
+    }
+
+    when /uint8 || byte/ {
+      my CArray[byte] $d = nativecast( CArray[byte], $odata);
+      $data = $d[0];
+    }
+
+    when 'int16' {
+      my CArray[int16] $d = nativecast( CArray[int16], $odata);
+      $data = $d[0];
+    }
+
+    when 'uint16' {
+      my CArray[uint16] $d = nativecast( CArray[uint16], $odata);
+      $data = $d[0];
+    }
+
+    when 'int32' {
+      my CArray[int32] $d = nativecast( CArray[int32], $odata);
+      $data = $d[0];
+    }
+
+    when 'uint32' {
+      my CArray[uint32] $d = nativecast( CArray[uint32], $odata);
+      $data = $d[0];
+    }
+
+    # (g)int might be shorter but placed in longest possible, doesn't harm
+    when 'int64' {
+      my CArray[int64] $d = nativecast( CArray[int64], $odata);
+      $data = $d[0];
+    }
+
+    when 'uint64' {
+      my CArray[uint64] $d = nativecast( CArray[uint64], $odata);
+      $data = $d[0];
+    }
+
+    when 'num32' {
+      my CArray[num32] $d = nativecast( CArray[num32], $odata);
+      $data = $d[0];
+    }
+
+    when 'num64' {
+      my CArray[] $d = nativecast( CArray[], $odata);
+      $data = $d[0];
+    }
+
+    when 'Pointer' {
+      $data = $odata;
+    }
+
+    when 'Buf' {
+      $data = nativecast( CArray[byte], $odata);
+    }
+
+    when 'Int' {
+      my CArray[int32] $d = nativecast( CArray[int32], $odata);
+      $data = $d[0];
+    }
+
+    when 'Num' {
+      my CArray[num32] $d = nativecast( CArray[num32], $odata);
+      $data = $d[0];
+    }
+
+    when 'Str' {
+      my CArray[Str] $d = nativecast( CArray[Str], $odata);
+      $data = $d[0];
+    }
+
+    when 'Bool' {
+      my CArray[gboolean] $d = nativecast( CArray[gboolean], $odata);
+      $data = $d[0];
+    }
+
+    when 'N-GObject' {
+      my CArray[N-GObject] $d = nativecast( CArray[N-GObject], $odata);
+      if ?$widget-class {
+        require ::($widget-class);
+        my $class = ::($widget-class);
+        $data = $class.new(:native-object($d[0]));
+      }
+
+      else {
+        $data = $d[0].defined
+          ?? self._wrap-native-type-from-no($d[0])
+          !! N-GObject;
+      }
+    }
+
+    default {
+      die X::Gnome.new(:message("Type of key '$key' not supported"));
+    }
+  }
+
+  $data
+}
+
+sub g_object_get_data ( N-GObject $object, Str $key --> Pointer )
+  is native(&gobject-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:get-properties:xt/Object.t
+=begin pod
+=head2 get-properties
 
 Gets properties of an object.
 
 In general, a copy is made of the property contents and the caller is responsible for freeing the memory in the appropriate manner for the type, for instance by calling C<g_free()> or C<g_object_unref()>.
 
-Here is an example of using C<get()> to get the contents of three properties: an integer, a string and an object:
-
-  method some-click-event-handler (
-    Gnome::Gtk3::Button :_widget($button)
-  ) {
-    # get the properties stored else where on the button
-    my Int $intval;
-    my Str $strval;
-    my N-GObject $objval;   # is an Entry object
-
-    $button.get(
-      "int-property", $intval,
-      "str-property", $strval,
-      "obj-property", $objval,
-    );
-
-    # Do something with intval, strval, objval
-    …
-
-    (objval);
-
 The method is defined as;
 
-  method get ( Pointer $object, Hash $properties )
+  method get-properties ( $prop-name, $prop-value-type, … --> List )
 
-=item Str $first_property_name; name of the first property to get @...: return location for the first property, followed optionally by more name/return location pairs, followed by C<Any>
+=item Str $prop-name; name of a property to set.
+=item $prop-value-type; The type of the property to receive. It can be any of Str, Int, Num, Bool, int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark, GType, gboolean, gchar, guchar, gdouble, gfloat, gint, gint8, gint16, gint32, gint64, glong, gshort, guint, guint8, guint16, guint32, guint64, gulong, gushort, gsize, gssize, gpointer or time_t. Int is converted to int32 and Num to num32. You must use B<Gnome::N::GlibToRakuTypes> to have the g* types and time_t.
 
+See C<.set()> for an example.
 =end pod
 
-
-method get ( *%properties ) {
+method get-properties ( *@properties --> List ) {
 
   my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
-
   my @pl = ( );                                                 # arguments
 
-  for %properties.keys -> $key {
+  for @properties -> $key, $v-type {
     @parameter-list.push: Parameter.new(:type(Str));            # prop name
-
     @pl.push: $key;                                             # name arg
 
-    # prop type and value
-    given %properties{$key} {
+    # prop type of value
+    given $v-type {
       when Int {
-        @parameter-list.push: Parameter.new(:type(CArray[int64]));
-        my $v = CArray[int64].new;
-        @pl.push: $v;
+        @parameter-list.push: Parameter.new(:type(CArray[int32]));
+        @pl.push: CArray[int32].new(0);
       }
 
       when Num {
-        @parameter-list.push: Parameter.new(:type(CArray[num64]));
-        my $v = CArray[num64].new;
-        @pl.push: $v;
+        @parameter-list.push: Parameter.new(:type(CArray[num32]));
+        @pl.push: CArray[num32].new(0);
       }
 
       when Str {
         @parameter-list.push: Parameter.new(:type(CArray[Str]));
-#        my $v = CArray[Str].new;
-        @pl.push: CArray[Str].new;
+        @pl.push: CArray[Str].new('');
       }
 
       when Bool {
         @parameter-list.push: Parameter.new(:type(CArray[gboolean]));
-        my $v = CArray[gboolean].new;
-        @pl.push: $v;
+        @pl.push: CArray[gboolean].new(0);
+      }
+#`{{
+      when any(
+        int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark,
+        GType, gboolean, gchar, guchar, gdouble, gfloat,
+        gint, gint8, gint16, gint32, gint64, glong, gshort, byte,
+        guint, guint8, guint16, guint32, guint64, gulong, gushort,
+        gsize, gssize, gpointer, time_t
+      ) {
+        @parameter-list.push: Parameter.new(
+          :type(CArray[$v-type.WHAT])
+        );
+        @pl.push: CArray[$v-type{$key}.WHAT].new(0);
+      }
+}}
+      when any(
+        int8, int16, int32, int64, uint8, uint16, uint32, uint64,
+        num32, num64, byte
+      ) {
+        @parameter-list.push: Parameter.new(:type(CArray[$v-type.WHAT]));
+        @pl.push: CArray[$v-type.WHAT].new(0);
       }
 
       when N-GObject {
         @parameter-list.push: Parameter.new(:type(CArray[N-GObject]));
-        my $v = CArray[N-GObject].new;
-        @pl.push: $v;
+        @pl.push: CArray[N-GObject].new(N-GObject);
       }
 
       default {
@@ -425,10 +546,7 @@ method get ( *%properties ) {
   state $ptr = cglobal( &gtk-lib, 'g_object_get', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-note "f: ", $f.perl;
-note "fa: ", @pl.join(', ');
   $f( self.get-native-object-no-reffing, |@pl, Nil);
-note "ret: ", @pl.join(', ');
 
   my @ret-values = ();
   for @pl -> $key, $v {
@@ -437,63 +555,6 @@ note "ret: ", @pl.join(', ');
 
   @ret-values
 }
-
-
-#sub g_object_get ( Pointer $object, Str $first_property_name, Any $any = Any )
-#  is native(&gobject-lib)
-#  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:2:get-data:xt/Object.t
-=begin pod
-=head2 get-data
-
-Gets a named field from the objects table of associations. See C<set-data()> for several examples.
-
-Returns: the data if found, or C<undefined> if no such data exists.
-
-  method get-data ( Str $key, :$type = Pointer --> Any )
-
-=item Str $key; name of the key for that association
-=item $type; specification of the type of data to return. By default C<Pointer>. Supported types are C<Int>, C<Num> and C<Str>.
-
-=end pod
-
-method get-data ( Str $key, :$type = Pointer --> Any ) {
-  my $data;
-  my $odata = g_object_get_data( self._f('GObject'), $key);
-  given $type {
-    when Pointer {
-      $data = $odata;
-    }
-
-    when Int {
-      my CArray[int64] $d = nativecast( CArray[int64], $odata);
-      $data = $d[0];
-    }
-
-    when Str {
-      my CArray[Str] $d = nativecast( CArray[Str], $odata);
-      $data = $d[0];
-    }
-
-    when Num {
-      my CArray[num64] $d = nativecast( CArray[num64], $odata);
-      $data = $d[0];
-    }
-
-    default {
-      $data = nativecast( $type, $odata)
-    }
-  }
-
-  $data
-}
-
-sub g_object_get_data ( N-GObject $object, Str $key --> Pointer )
-  is native(&gobject-lib)
-  { * }
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -542,7 +603,9 @@ multi method get-property(
   $v
 }
 
-multi method get-property( gchar-ptr $property_name, $value is copy ) {
+multi method get-property(
+  gchar-ptr $property_name, $value is copy --> Gnome::GObject::Value
+) {
   $value .= get-native-object-no-reffing unless $value ~~ N-GValue;
 
   my Gnome::GObject::Value $v .= new(:init($value.g-type));
@@ -1073,100 +1136,6 @@ sub g_object_replace_data ( N-GObject $object, Str $key, Pointer $oldval, Pointe
   { * }
 }}
 
-#`{{ a different way to set native object properties (set seems to work!)
-#-------------------------------------------------------------------------------
-# TM:1:set:
-=begin pod
-=head2 set
-
-Sets properties on an object.
-
-Note that the "notify" signals are queued and only emitted (in reverse order) after all properties have been set.
-=comment See C<g_object_freeze_notify()>.
-
-  method object-set ( Str $prop_name, Str $prop_value )
-
-=item Pointer $object; (type GObject.Object): a I<GObject>
-=item Str $first_property_name; name of the first property to set @...: value for the first property, followed optionally by more name/value pairs, followed by C<Any>
-
-=end pod
-
-method set ( *%properties ) {
-
-  my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
-
-  my @pl = ( );                                                 # arguments
-
-  for %properties.kv -> $key, $v {
-    @parameter-list.push: Parameter.new(:type(Str));            # prop name
-
-    @pl.push: $key;                                             # name arg
-
-    # prop type and value
-    given %properties{$key} {
-      when Int {
-        @parameter-list.push: Parameter.new(:type(int64));
-        @pl.push: $v;
-      }
-
-      when Num {
-        @parameter-list.push: Parameter.new(:type(num64));
-        @pl.push: $v;
-      }
-
-      when Str {
-        @parameter-list.push: Parameter.new(:type(Str));
-        @pl.push: $v;
-      }
-
-      when Bool {
-        @parameter-list.push: Parameter.new(:type(gboolean));
-        @pl.push: $v;
-      }
-
-      when N-GObject {
-        @parameter-list.push: Parameter.new(:type(N-GObject));
-        @pl.push: $v;
-      }
-
-      default {
-        die X::Gnome.new(
-          :message("Type {.^name} for key $key not supported")
-        );
-      }
-    }
-  }
-
-  # to finish the list with 0
-  @parameter-list.push: Parameter.new(type => Pointer);
-
-  # create signature
-  my Signature $signature .= new(
-    :params(|@parameter-list),
-    :returns(int32)
-  );
-
-  # get a pointer to the sub, then cast it to a sub with the proper
-  # signature. after that, the sub can be called, returning a value.
-  state $ptr = cglobal( &gtk-lib, 'g_object_set', Pointer);
-  my Callable $f = nativecast( $signature, $ptr);
-
-note "f: ", $f.perl;
-note "fa: ", @pl.join(', ');
-  $f( self.get-native-object-no-reffing, |@pl, Nil);
-}
-
-
-#  g_object_set(
-#    self.get-native-object-no-reffing, $prop-name, $prop-value, Nil
-#  );
-
-#sub g_object_set (
-#  N-GObject $object, Str $prop-name, Str $prop-value, Pointer $end
-#) is native(&gobject-lib)
-#  { * }
-}}
-
 #-------------------------------------------------------------------------------
 #TM:2:set-data:xt/Object.t
 =begin pod
@@ -1248,19 +1217,45 @@ method set-data ( Str $key, $data ) {
   my $d;
   given $data {
     when Int {
-      $d = CArray[int64].new($data);
+      $d = CArray[int32].new($data);
+    }
+
+    when Num {
+      $d = CArray[num32].new($data);
     }
 
     when Str {
       $d = CArray[Str].new($data);
     }
 
-    when Num {
-      $d = CArray[num64].new($data);
+    when Bool {
+      $d = CArray[gboolean].new($data);
+    }
+
+    when any(
+      int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark,
+      GType, gboolean, gchar, guchar, gdouble, gfloat,
+      gint, gint8, gint16, gint32, gint64, glong, gshort, byte,
+      guint, guint8, guint16, guint32, guint64, gulong, gushort,
+      gsize, gssize, gpointer, time_t
+    ) {
+      $d = CArray[$data.WHAT].new($data);
+    }
+
+    when Buf {
+      $d = CArray[byte].new($data);
+    }
+
+    when Gnome::GObject::Object {
+      $d = CArray[N-GObject].new($data.get-native-object);
+    }
+
+    when N-GObject {
+      $d = CArray[N-GObject].new($data);
     }
 
     default {
-      $d = $data;
+      die X::Gnome.new(:message("Type of key '$key' not supported"));
     }
   }
 
@@ -1271,6 +1266,116 @@ method set-data ( Str $key, $data ) {
 sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
   is native(&gobject-lib)
   { * }
+
+#-------------------------------------------------------------------------------
+#TM:2:set-properties:xt/Object.t
+=begin pod
+=head2 set-properties
+
+Sets properties on an object.
+
+Note that the "notify" signals are queued and only emitted (in reverse order) after all properties have been set.
+=comment See C<g_object_freeze_notify()>.
+
+  method set-properties ( Str $prop-name, $prop-value, … )
+
+=item Str $prop-name; name of a property to set.
+=item $prop-value; The value of the property to set. Its type can be any of Str, Int, Num, Bool, int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark, GType, gboolean, gchar, guchar, gdouble, gfloat, gint, gint8, gint16, gint32, gint64, glong, gshort, guint, guint8, guint16, guint32, guint64, gulong, gushort, gsize, gssize, gpointer or time_t. Int is converted to int32 and Num to num32. You must use B<Gnome::N::GlibToRakuTypes> to have the g* types and time_t.
+
+=head3 Example
+
+A button has e.g. the properties C<label> and C<use-underline>. To set those and retrieve them, do the following
+
+  $button.set-properties( :label<_Start>, :use-underline(True));
+  …
+
+  method my-button-click-event-handler (
+    Gnome::Gtk3::Button :_widget($button)
+  ) {
+    # Get the properties set elsewhere on the button
+    my @rv = $button.get-properties( 'label', Str, 'use-underline', Bool);
+
+    # Do something with intval, strval, objval
+    say @rv[0];   # _Start
+    say @rv[1];   # 1
+    …
+
+Note that boolean values from C are integers which are 0 or 1.
+
+=end pod
+
+method set-properties ( *%properties ) {
+
+  my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
+  my @pl = ( );                                                 # arguments
+
+  for %properties.kv -> $key, $v {
+    @parameter-list.push: Parameter.new(:type(Str));            # prop name
+    @pl.push: $key;                                             # name arg
+
+    # prop type of value
+    given $v {
+      when Int {
+        @parameter-list.push: Parameter.new(:type(int32));      # 32bit common?
+        @pl.push: $v;                                           # value arg
+      }
+
+      when Num {
+        @parameter-list.push: Parameter.new(:type(num32));      # 32bit common?
+        @pl.push: $v;
+      }
+
+      when Str {
+        @parameter-list.push: Parameter.new(:type(Str));
+        @pl.push: $v;
+      }
+
+      when Bool {
+        @parameter-list.push: Parameter.new(:type(gboolean));
+        @pl.push: $v;
+      }
+
+      when any(
+        int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark,
+        GType, gboolean, gchar, guchar, gdouble, gfloat,
+        gint, gint8, gint16, gint32, gint64, glong, gshort, byte,
+        guint, guint8, guint16, guint32, guint64, gulong, gushort,
+        gsize, gssize, gpointer, time_t
+      ) {
+        @parameter-list.push: Parameter.new(:type($v.WHAT));
+        @pl.push: $v;
+      }
+
+      when N-GObject {
+        @parameter-list.push: Parameter.new(:type(N-GObject));
+        @pl.push: $v;
+      }
+
+      default {
+        die X::Gnome.new(
+          :message("Type {.^name} for key $key not supported")
+        );
+      }
+    }
+  }
+
+  # to finish the list with 0
+  @parameter-list.push: Parameter.new(type => Pointer);
+
+  # create signature
+  my Signature $signature .= new(
+    :params(|@parameter-list),
+    :returns(int32)
+  );
+
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gtk-lib, 'g_object_set', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+  $f( self.get-native-object-no-reffing, |@pl, Nil);
+}
 
 #-------------------------------------------------------------------------------
 #TM:2:set-property:xt/Object.t
@@ -1406,8 +1511,119 @@ Returns: the data if found, or C<Any> if no such data exists.
 
 =end pod
 
+#`{{
 method steal-data ( Str $key --> Pointer ) {
   g_object_steal_data( self.get-native-object-no-reffing, $key);
+}
+}}
+
+
+method steal-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
+
+  my $data;
+  my $odata = g_object_steal_data( self._f('GObject'), $key);
+  given $type.^name {
+
+    when 'int8' {
+      my CArray[int8] $d = nativecast( CArray[int8], $odata);
+      $data = $d[0];
+    }
+
+    when /uint8 || byte/ {
+      my CArray[byte] $d = nativecast( CArray[byte], $odata);
+      $data = $d[0];
+    }
+
+    when 'int16' {
+      my CArray[int16] $d = nativecast( CArray[int16], $odata);
+      $data = $d[0];
+    }
+
+    when 'uint16' {
+      my CArray[uint16] $d = nativecast( CArray[uint16], $odata);
+      $data = $d[0];
+    }
+
+    when 'int32' {
+      my CArray[int32] $d = nativecast( CArray[int32], $odata);
+      $data = $d[0];
+    }
+
+    when 'uint32' {
+      my CArray[uint32] $d = nativecast( CArray[uint32], $odata);
+      $data = $d[0];
+    }
+
+    # (g)int might be shorter but placed in longest possible, doesn't harm
+    when 'int64' {
+      my CArray[int64] $d = nativecast( CArray[int64], $odata);
+      $data = $d[0];
+    }
+
+    when 'uint64' {
+      my CArray[uint64] $d = nativecast( CArray[uint64], $odata);
+      $data = $d[0];
+    }
+
+    when 'num32' {
+      my CArray[num32] $d = nativecast( CArray[num32], $odata);
+      $data = $d[0];
+    }
+
+    when 'num64' {
+      my CArray[] $d = nativecast( CArray[], $odata);
+      $data = $d[0];
+    }
+
+    when 'Pointer' {
+      $data = $odata;
+    }
+
+    when 'Buf' {
+      $data = nativecast( CArray[byte], $odata);
+    }
+
+    when 'Int' {
+      my CArray[int32] $d = nativecast( CArray[int32], $odata);
+      $data = $d[0];
+    }
+
+    when 'Num' {
+      my CArray[num32] $d = nativecast( CArray[num32], $odata);
+      $data = $d[0];
+    }
+
+    when 'Str' {
+      my CArray[Str] $d = nativecast( CArray[Str], $odata);
+      $data = $d[0];
+    }
+
+    when 'Bool' {
+      my CArray[gboolean] $d = nativecast( CArray[gboolean], $odata);
+      $data = $d[0];
+    }
+
+    when 'N-GObject' {
+      my CArray[N-GObject] $d = nativecast( CArray[N-GObject], $odata);
+      if ?$widget-class {
+        require ::($widget-class);
+        my $class = ::($widget-class);
+        $data = $class.new(:native-object($d[0]));
+      }
+
+      else {
+        $data = $d[0].defined
+          ?? self._wrap-native-type-from-no($d[0])
+          !! N-GObject;
+      }
+    }
+
+    default {
+      die X::Gnome.new(:message("Type of key '$key' not supported"));
+    }
+  }
+
+  $data
 }
 
 sub g_object_steal_data ( N-GObject $object, Str $key --> Pointer )
