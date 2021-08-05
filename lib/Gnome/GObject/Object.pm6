@@ -332,7 +332,8 @@ Returns: the data if found, or C<undefined> if no such data exists.
   method get-data ( Str $key, $type, Str :$widget-class --> Any )
 
 =item Str $key; name of the key for that association
-=item $type; specification of the type of data to return.
+=item $type; specification of the type of data to return. The recognized types are; int*, uint*, num*, Buf, (U)Int, Num, Str, Bool and N-GObject. the native int and uint type are taken as int64 and uint64 respectively. In the case of N-GObject the method will try to create a raku object. When it was undefined, this is not possible and it will return an undefined N-GObject. The N-GObject type can be helped by specifying the named argument C<widget-class>. This should be a name of a raku class like for instance B<Gnome::Gtk3::Label>. When the return value was undefined, the result object will always have the raku class type but the call to <.is-valid()> returns False. Note that Int, UInt, and Num is transformed to their 32 bit representations.
+=item Str :$widget-class; Create this object.
 
 =end pod
 
@@ -372,13 +373,14 @@ method get-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
       $data = $d[0];
     }
 
-    # (g)int might be shorter but placed in longest possible, doesn't harm
-    when 'int64' {
+    # int might be shorter but placed in longest possible, doesn't harm
+    when /int '64'?/ {
       my CArray[int64] $d = nativecast( CArray[int64], $odata);
       $data = $d[0];
     }
 
-    when 'uint64' {
+    # int might be shorter but placed in longest possible, doesn't harm
+    when /uint '64'?/ {
       my CArray[uint64] $d = nativecast( CArray[uint64], $odata);
       $data = $d[0];
     }
@@ -399,6 +401,11 @@ method get-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
 
     when 'Buf' {
       $data = nativecast( CArray[byte], $odata);
+    }
+
+    when 'UInt' {
+      my CArray[int32] $d = nativecast( CArray[uint32], $odata);
+      $data = $d[0];
     }
 
     when 'Int' {
@@ -462,7 +469,7 @@ The method is defined as;
   method get-properties ( $prop-name, $prop-value-type, … --> List )
 
 =item Str $prop-name; name of a property to set.
-=item $prop-value-type; The type of the property to receive. It can be any of Str, Int, Num, Bool, int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark, GType, gboolean, gchar, guchar, gdouble, gfloat, gint, gint8, gint16, gint32, gint64, glong, gshort, guint, guint8, guint16, guint32, guint64, gulong, gushort, gsize, gssize, gpointer or time_t. Int is converted to int32 and Num to num32. You must use B<Gnome::N::GlibToRakuTypes> to have the g* types and time_t.
+=item $prop-value-type; The type of the property to receive. It can be any of Str, Int, UInt, Num, Bool, int*, uint*, num*. (U)Int is converted to (u)int32 and Num to num32.
 
 See C<.set()> for an example.
 =end pod
@@ -472,54 +479,89 @@ method get-properties ( *@properties --> List ) {
   my @parameter-list = ( Parameter.new(:type(N-GObject)), );    # object
   my @pl = ( );                                                 # arguments
 
-  for @properties -> $key, $v-type {
+  for @properties -> Str $key, $v-type {
     @parameter-list.push: Parameter.new(:type(Str));            # prop name
     @pl.push: $key;                                             # name arg
 
     # prop type of value
-    given $v-type {
-      when Int {
+    given $v-type.^name {
+
+      when 'int8' {
+        @parameter-list.push: Parameter.new(:type(CArray[int8]));
+        @pl.push: CArray[int8].new(0);
+      }
+
+      when /uint8 || byte/ {
+        @parameter-list.push: Parameter.new(:type(CArray[byte]));
+        @pl.push: CArray[byte].new(0);
+      }
+
+      when 'int16' {
+        @parameter-list.push: Parameter.new(:type(CArray[int16]));
+        @pl.push: CArray[int16].new(0);
+      }
+
+      when 'uint16' {
+        @parameter-list.push: Parameter.new(:type(CArray[uint16]));
+        @pl.push: CArray[uint16].new(0);
+      }
+
+      when 'int32' {
         @parameter-list.push: Parameter.new(:type(CArray[int32]));
         @pl.push: CArray[int32].new(0);
       }
 
-      when Num {
-        @parameter-list.push: Parameter.new(:type(CArray[num32]));
-        @pl.push: CArray[num32].new(0);
+      when 'uint32' {
+        @parameter-list.push: Parameter.new(:type(CArray[uint32]));
+        @pl.push: CArray[uint32].new(0);
       }
 
-      when Str {
+      when /int '64'?/ {
+        @parameter-list.push: Parameter.new(:type(CArray[int64]));
+        @pl.push: CArray[int64].new(0);
+      }
+
+      when /uint '64'?/ {
+        @parameter-list.push: Parameter.new(:type(CArray[uint64]));
+        @pl.push: CArray[uint64].new(0);
+      }
+
+      when 'num32' {
+        @parameter-list.push: Parameter.new(:type(CArray[num32]));
+        @pl.push: CArray[num32].new(0e0);
+      }
+
+      when 'num64' {
+        @parameter-list.push: Parameter.new(:type(CArray[num64]));
+        @pl.push: CArray[num64].new(0e0);
+      }
+
+      when 'Int' {
+        @parameter-list.push: Parameter.new(:type(CArray[int32]));
+        @pl.push: CArray[int32].new(0);
+      }
+
+      when 'UInt' {
+        @parameter-list.push: Parameter.new(:type(CArray[uint32]));
+        @pl.push: CArray[uint32].new(0);
+      }
+
+      when 'Num' {
+        @parameter-list.push: Parameter.new(:type(CArray[num32]));
+        @pl.push: CArray[num32].new(0e0);
+      }
+
+      when 'Str' {
         @parameter-list.push: Parameter.new(:type(CArray[Str]));
         @pl.push: CArray[Str].new('');
       }
 
-      when Bool {
+      when 'Bool' {
         @parameter-list.push: Parameter.new(:type(CArray[gboolean]));
         @pl.push: CArray[gboolean].new(0);
       }
-#`{{
-      when any(
-        int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark,
-        GType, gboolean, gchar, guchar, gdouble, gfloat,
-        gint, gint8, gint16, gint32, gint64, glong, gshort, byte,
-        guint, guint8, guint16, guint32, guint64, gulong, gushort,
-        gsize, gssize, gpointer, time_t
-      ) {
-        @parameter-list.push: Parameter.new(
-          :type(CArray[$v-type.WHAT])
-        );
-        @pl.push: CArray[$v-type{$key}.WHAT].new(0);
-      }
-}}
-      when any(
-        int8, int16, int32, int64, uint8, uint16, uint32, uint64,
-        num32, num64, byte
-      ) {
-        @parameter-list.push: Parameter.new(:type(CArray[$v-type.WHAT]));
-        @pl.push: CArray[$v-type.WHAT].new(0);
-      }
 
-      when N-GObject {
+      when 'N-GObject' {
         @parameter-list.push: Parameter.new(:type(CArray[N-GObject]));
         @pl.push: CArray[N-GObject].new(N-GObject);
       }
@@ -1148,7 +1190,7 @@ If the object already had an association with that name, the old association wil
   method set-data ( Str $key, $data )
 
 =item Str $key; name of the key.
-=item $data; data to associate with that key. Supported types are C<Num>, C<Int> and C<Str>. All other types must be converted to a pointer using nativecast.
+=item $data; data to associate with that key. Supported types are int*, uint*, num*, Pointer, Buf, Int, Num, Str, Bool and N-GObject. A raku widget object such as Gnome::Gdk3::Screen can also be given. The native object is retrieved from the raku widget and then stored as a N-GObject. Further is it important to note that Int, UInt, and Num is transformed to their 32 bit representations.
 
 =head3 Example 1
 
@@ -1156,101 +1198,145 @@ Here is an example to show how to associate some data to an object and to retrie
 
   my Gnome::Gtk3::Button $button .= new(:label<Start>);
   my Gnome::Gtk3::Label $att-label .= new(:text<a-label>);
-  $button.set-data(
-    'attached-label-data',
-    nativecast( Pointer, $att-label.get-native-object-no-reffing)
-  );
+  $button.set-data( 'attached-label-data', $att-label);
 
   …
 
-  my Gnome::Gtk3::Label $att-label2 .= new(
-    :native-object(
-      nativecast( N-GObject, $button.get-data('attached-label-data'))
-    )
-  );
+  my Gnome::Gtk3::Label $att-label2 =
+    $button.get-data( 'attached-label-data', N-GObject);
 
+or, if you want to be sure, add the C<widget-class> named argument;
+
+  my Gnome::Gtk3::Label $att-label2 = $button.get-data(
+    'attached-label-data', N-GObject,
+    :widget-class<Gnome::Gtk3::Label>
+  );
 
 =head3 Example 2
 
-After some improvements it is now possible to provide your data as is. The next example shows what is possible;
+Other types can be used as well to store data. The next example shows what is possible;
 
   $button.set-data( 'my-text-key', 'my important text');
+  $button.set-data( 'my-uint32-key', my uint32 $x = 12345);
 
   …
 
-  my Str $text = $button.get-data( 'my-text-key', :type(Str));
+  my Str $text = $button.get-data( 'my-text-key', Str);
+  my Int $number = $button.get-data( 'my-uint32-key', uint32);
 
 
 =head3 Example 3
 
-An elaborate example of more complex data can implemented using BSON. This is an implementation of a JSON like structure but is serialized into a binary representation. It is used for transport to and from a mongodb server.
+An elaborate example of more complex data can can be used with BSON. This is an implementation of a JSON like structure but is serialized into a binary representation. It is used for transport to and from a mongodb server. An important thing to know is that the BSON representation carries its length in the first 4 bytes.
 
+  # Create the data structure
   my BSON::Document $bson .= new: (
     :int-number(-10),
     :num-number(-2.34e-3),
     strings => BSON::Document.new(( :s1<abc>, :s2<def>, :s3<xyz> ))
   );
+
+  # And store it on a label
+  my Gnome::Gtk3::Label $bl .= new(:text<a-label>);
   $bl.set-data( 'my-buf-key', $bson.encode);
 
   …
 
-  # Convert Pointer to CArray of bytes
-  my CArray[uint8] $ca8 = nativecast(
-    CArray[uint8], $bl.get-data('my-buf-key')
-  );
+  # Later, we want to access the data again,
+  # First, convert Pointer to CArray of bytes
+  my CArray[byte] $ca8 = $bl.get-data( 'my-buf-key', Buf);
 
-  # Get the length from the first 4 bytes
+  # Then, get the length from the first 4 bytes
   my Buf $l-ca8 .= new($ca8[0..3]);
   my Int $doc-size = decode-int32( $l-ca8, 0);
 
-  # Get all bytes into the Buf and convert it to a BSON document
+  # And get all bytes into the Buf and convert it back to a BSON document
   my BSON::Document $bson2 .= new(Buf.new($ca8[0..($doc-size-1)]));
 
   # Now you can use the data again.
-  is $bson2<int-number>, -10, 'bson Int';
-  is $bson2<num-number>, -234e-5, 'bson Num';
-  is $bson2<strings><s2>, 'def', 'bson Str';
+  say $bson2<int-number>;  # -10
+  say $bson2<num-number>;  # -234e-5
+  say $bson2<strings><s2>; # 'def'
 
 =end pod
 
-method set-data ( Str $key, $data ) {
+method set-data ( Str $key, $data is copy ) {
+
+  # if $data is a raku widget (Gnome::GObject::Object), get the native object
+  $data .= get-native-object if $data.^can('get-native-object');
+
   my $d;
-  given $data {
-    when Int {
-      $d = CArray[int32].new($data);
+  given $data.^name {
+
+    when 'int8' {
+      $d = CArray[int8].new($data);
     }
 
-    when Num {
-      $d = CArray[num32].new($data);
-    }
-
-    when Str {
-      $d = CArray[Str].new($data);
-    }
-
-    when Bool {
-      $d = CArray[gboolean].new($data);
-    }
-
-    when any(
-      int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark,
-      GType, gboolean, gchar, guchar, gdouble, gfloat,
-      gint, gint8, gint16, gint32, gint64, glong, gshort, byte,
-      guint, guint8, guint16, guint32, guint64, gulong, gushort,
-      gsize, gssize, gpointer, time_t
-    ) {
-      $d = CArray[$data.WHAT].new($data);
-    }
-
-    when Buf {
+    when /uint8 || byte/ {
       $d = CArray[byte].new($data);
     }
 
-    when Gnome::GObject::Object {
-      $d = CArray[N-GObject].new($data.get-native-object);
+    when 'int16' {
+      $d = CArray[int16].new($data);
     }
 
-    when N-GObject {
+    when 'uint16' {
+      $d = CArray[uint16].new($data);
+    }
+
+    when 'int32' {
+      $d = CArray[int32].new($data);
+    }
+
+    when 'uint32' {
+      $d = CArray[uint32].new($data);
+    }
+
+    when /int '64'?/ {
+      $d = CArray[int64].new($data);
+    }
+
+    when /uint '64'?/ {
+      $d = CArray[uint64].new($data);
+    }
+
+    when 'num32' {
+      $d = CArray[num32].new($data);
+    }
+
+    when 'num64' {
+      $d = CArray[num64].new($data);
+    }
+
+    when 'Pointer' {
+      $d = CArray[Pointer].new($data);
+    }
+
+    when 'Buf' {
+      $d = CArray[byte].new($data);
+    }
+
+    when 'Int' {
+      $d = CArray[int32].new($data);
+    }
+
+    when 'Num' {
+      $d = CArray[num32].new($data);
+    }
+
+    when 'Str' {
+      $d = CArray[Str].new($data);
+    }
+
+    when 'Bool' {
+      $d = CArray[gboolean].new($data);
+    }
+
+#    when Gnome::GObject::Object {
+#      $d = CArray[N-GObject].new($data.get-native-object);
+#    }
+
+    when 'N-GObject' {
       $d = CArray[N-GObject].new($data);
     }
 
@@ -1286,6 +1372,7 @@ Note that the "notify" signals are queued and only emitted (in reverse order) af
 
 A button has e.g. the properties C<label> and C<use-underline>. To set those and retrieve them, do the following
 
+  my Gnome::Gtk3::Button $b .= new(:label<?>);
   $button.set-properties( :label<_Start>, :use-underline(True));
   …
 
@@ -1313,42 +1400,69 @@ method set-properties ( *%properties ) {
     @parameter-list.push: Parameter.new(:type(Str));            # prop name
     @pl.push: $key;                                             # name arg
 
-    # prop type of value
-    given $v {
-      when Int {
+    @pl.push: $v;                                               # value arg
+
+    # prop type of value arg
+    given $v.^name {
+
+      when 'int8' {
+        @parameter-list.push: Parameter.new(:type(CArray[int8]));
+      }
+
+      when /uint8 || byte/ {
+        @parameter-list.push: Parameter.new(:type(CArray[byte]));
+      }
+
+      when 'int16' {
+        @parameter-list.push: Parameter.new(:type(CArray[int16]));
+      }
+
+      when 'uint16' {
+        @parameter-list.push: Parameter.new(:type(CArray[uint16]));
+      }
+
+      when 'int32' {
+        @parameter-list.push: Parameter.new(:type(CArray[int32]));
+      }
+
+      when 'uint32' {
+        @parameter-list.push: Parameter.new(:type(CArray[uint32]));
+      }
+
+      when /int '64'?/ {
+        @parameter-list.push: Parameter.new(:type(CArray[int64]));
+      }
+
+      when /uint '64'?/ {
+        @parameter-list.push: Parameter.new(:type(CArray[uint64]));
+      }
+
+      when 'num32' {
+        @parameter-list.push: Parameter.new(:type(CArray[num32]));
+      }
+
+      when 'num64' {
+        @parameter-list.push: Parameter.new(:type(CArray[num64]));
+      }
+
+      when 'Int' {
         @parameter-list.push: Parameter.new(:type(int32));      # 32bit common?
-        @pl.push: $v;                                           # value arg
       }
 
-      when Num {
+      when 'Num' {
         @parameter-list.push: Parameter.new(:type(num32));      # 32bit common?
-        @pl.push: $v;
       }
 
-      when Str {
+      when 'Str' {
         @parameter-list.push: Parameter.new(:type(Str));
-        @pl.push: $v;
       }
 
-      when Bool {
+      when 'Bool' {
         @parameter-list.push: Parameter.new(:type(gboolean));
-        @pl.push: $v;
       }
 
-      when any(
-        int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark,
-        GType, gboolean, gchar, guchar, gdouble, gfloat,
-        gint, gint8, gint16, gint32, gint64, glong, gshort, byte,
-        guint, guint8, guint16, guint32, guint64, gulong, gushort,
-        gsize, gssize, gpointer, time_t
-      ) {
-        @parameter-list.push: Parameter.new(:type($v.WHAT));
-        @pl.push: $v;
-      }
-
-      when N-GObject {
+      when 'N-GObject' {
         @parameter-list.push: Parameter.new(:type(N-GObject));
-        @pl.push: $v;
       }
 
       default {

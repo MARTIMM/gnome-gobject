@@ -14,6 +14,7 @@ use Gnome::GObject::Value;
 use Gnome::Gtk3::Window;
 use Gnome::Gtk3::Button;
 use Gnome::Gtk3::Label;
+use Gnome::Gtk3::Adjustment;
 
 use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -61,8 +62,21 @@ subtest 'properties', {
 
     # Now try the opposite of .set-properties().
     my @rv = $button.get-properties( 'label', Str, 'use-underline', Bool);
-    is @rv[0], 'pep-toet', '.get-properties(): label = pep-toet';
-    is @rv[1], 1, '.get-properties(): use-underline = 1';
+    is-deeply @rv, [ 'pep-toet', 1], '.get-properties(): Str, Bool';
+
+    # Other types
+    my Gnome::Gtk3::Adjustment $adj .= new(
+      :value(10), :lower(-100), :upper(100), :step-increment(1),
+      :page-increment(2), :page-size(5)
+    );
+
+    @rv = $adj.get-properties(
+      'value', gdouble, 'lower', num64, 'upper', num64,
+      'step-increment', gdouble, 'page-increment', gdouble,
+      'page-size', num64
+    );
+    is-deeply @rv, [ 10e0, -100e0, 100e0, 1e0, 2e0, 5e0],
+      '.get-properties(): Num, num64, gdouble';
   }
 }
 
@@ -91,9 +105,9 @@ subtest 'object data', {
   # less cumbersome
   $bl .= new(:text<a-label-2nd-attempt>);
   $b.set-data( 'attached-label-data2', $bl);
-  my $no = $b.get-data( 'attached-label-data2', N-GObject);
-  $bl .= new(:native-object($no));
-  is $bl.get-text, 'a-label-2nd-attempt', '2nd-attempt: .set-data() / .get-data()';
+  $bl = $b.get-data( 'attached-label-data2', N-GObject);
+  is $bl.get-text, 'a-label-2nd-attempt',
+     '2nd-attempt: .set-data() / .get-data()';
 
   # simple data
   $bl.set-data( 'my-text-key', 'my important text');
@@ -118,16 +132,22 @@ subtest 'object data', {
     strings => BSON::Document.new(( :s1<abc>, :s2<def>, :s3<xyz> ))
   );
   diag $bson.perl;
-  # Encode and set the data in the Label object
-  my Buf $enc-bson = $bson.encode;
-  $bl.set-data( 'my-buf-key', $enc-bson);
 
+  # Encode and set the data in the Label object
+  $bl.set-data( 'my-buf-key', $bson.encode);
+
+  # Get data back
   my CArray[byte] $ca8 = $bl.get-data( 'my-buf-key', Buf);
 
+  # Get length from data
   my Buf $l-ca8 .= new($ca8[0..3]);
   my Int $doc-size = decode-int32( $l-ca8, 0);
+
+  # Get Buf data and decode to BSON document
   my Buf $b-ca8 .= new($ca8[0..($doc-size-1)]);
   my BSON::Document $bson2 .= new($b-ca8);
+
+  # Use it
   is $bson2<int-number>, -10, 'bson Int';
   is-approx $bson2<num-number>, -234e-5, 'bson Num';
   is $bson2<strings><s2>, 'def', 'bson Str';
