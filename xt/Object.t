@@ -129,28 +129,21 @@ subtest 'object data', {
   my BSON::Document $bson .= new: (
     :int-number(-10),
     :num-number(-2.34e-3),
-    strings => BSON::Document.new(( :s1<abc>, :s2<def>, :s3<xyz> ))
+    :strings( :s1<abc>, :s2<def>, :s3<xyz>)
   );
-  diag $bson.perl;
+#note $bson.raku;
 
   # Encode and set the data in the Label object
   $bl.set-data( 'my-buf-key', $bson.encode);
 
   # Get data back
-  my CArray[byte] $ca8 = $bl.get-data( 'my-buf-key', Buf);
-
-  # Get length from data
-  my Buf $l-ca8 .= new($ca8[0..3]);
-  my Int $doc-size = decode-int32( $l-ca8, 0);
-
-  # Get Buf data and decode to BSON document
-  my Buf $b-ca8 .= new($ca8[0..($doc-size-1)]);
-  my BSON::Document $bson2 .= new($b-ca8);
+  my BSON::Document $bson2 .= new($bl.get-data( 'my-buf-key', Buf));
 
   # Use it
-  is $bson2<int-number>, -10, 'bson Int';
-  is-approx $bson2<num-number>, -234e-5, 'bson Num';
-  is $bson2<strings><s2>, 'def', 'bson Str';
+  is-deeply
+    ( $bson2<int-number>, $bson2<num-number>, $bson2<strings><s2>),
+    ( -10, -234e-5, 'def'),
+    'complex data BSON::document: .set-data() / .get-data()';
 }
 
 #-------------------------------------------------------------------------------
