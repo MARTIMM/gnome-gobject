@@ -341,8 +341,8 @@ method get-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
 
   my $data;
   my $odata = g_object_get_data( self._f('GObject'), $key);
-  given $type.^name {
 
+  given $type.^name {
     when 'int8' {
       my CArray[int8] $d = nativecast( CArray[int8], $odata);
       $data = $d[0];
@@ -1337,8 +1337,10 @@ method set-data ( Str $key, $data is copy ) {
     }
   }
 
-  $d = nativecast( Pointer, $d) unless $data ~~ Pointer;
-  g_object_set_data( self._f('GObject'), $key, $d);
+  g_object_set_data(
+    self._f('GObject'), $key,
+    $data ~~ Pointer ?? $data !! nativecast( Pointer, $d)
+  );
 }
 
 sub g_object_set_data ( N-GObject $object, Str $key, Pointer $data )
