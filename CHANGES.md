@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-09-20 0.18.0
+  * Add new methods to **Gnome::GObject::Object**. The methods `.set-data()` and `.get-data()` are added and improved.
+
 * 2021-08-01 0.17.0
   * Add new methods to **Gnome::GObject::Object**. The methods `.set-properties()` and `.get-properties()` are alternative ways to set properties on objects using methods `get-property()` and `set-property()`.
 
