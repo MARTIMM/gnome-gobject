@@ -556,7 +556,7 @@ method get-properties ( *@properties --> List ) {
         @pl.push: CArray[Str].new('');
       }
 
-      when 'Bool' {
+      when /Bool || gboolean/ {
         @parameter-list.push: Parameter.new(:type(CArray[gboolean]));
         @pl.push: CArray[gboolean].new(0);
       }
@@ -1451,7 +1451,7 @@ method set-properties ( *%properties ) {
         @parameter-list.push: Parameter.new(:type(Str));
       }
 
-      when 'Bool' {
+      when /Bool || gboolean/ {
         @parameter-list.push: Parameter.new(:type(gboolean));
       }
 
