@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-09-23 0.18.1
+  * Add gboolean to type checks in `set-data()` and `get-data()`.
+
 * 2021-09-20 0.18.0
   * Add new methods to **Gnome::GObject::Object**. The methods `.set-data()` and `.get-data()` are added and improved.
 
