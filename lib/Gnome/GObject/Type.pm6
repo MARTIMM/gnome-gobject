@@ -742,8 +742,8 @@ Check if an instance is of type C<$iface-gtype>. Returns True if it is.
     N-GObject $instance, UInt $iface_gtype --> Bool
   )
 
-=item GTypeInstance $instance;
-=item N-GObject $iface_type;
+=item N-GObject $instance;
+=item UInt $iface_type;
 =end pod
 
 method check-instance-is-a (
