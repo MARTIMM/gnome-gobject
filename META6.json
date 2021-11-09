@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gnome GObject Interface, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib", "gobject"],
 
@@ -10,6 +10,7 @@
 
   "provides": {
     "Gnome::GObject::Boxed": "lib/Gnome/GObject/Boxed.pm6",
+    "Gnome::GObject::Closure": "lib/Gnome/GObject/Closure.pm6",
     "Gnome::GObject::InitiallyUnowned": "lib/Gnome/GObject/InitiallyUnowned.pm6",
     "Gnome::GObject::Object": "lib/Gnome/GObject/Object.pm6",
     "Gnome::GObject::Signal": "lib/Gnome/GObject/Signal.pm6",

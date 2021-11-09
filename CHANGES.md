@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-11-09 0.19.0
+  * Added a module which is kept very minimal. Just enough to get other modules working like **Gnome::Gtk3::AccelGroup**.
+
 * 2021-09-23 0.18.1
   * Add gboolean to type checks in `set-data()` and `get-data()`.
 
