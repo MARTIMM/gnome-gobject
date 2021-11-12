@@ -320,7 +320,8 @@ submethod BUILD ( *%options ) {
           },
           gpointer,
           -> gpointer $d, N-GClosure $c {
-            note 'destroy: ', $d.raku, ', ', $c.raku;
+            note 'destroy: closure info is ', $c.closure-info.base(2)
+              if $Gnome::N::x-debug;
           }
         );
       }
