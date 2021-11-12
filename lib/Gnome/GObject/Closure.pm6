@@ -266,11 +266,14 @@ class N-GVaClosureMarshal is export is repr('CStruct') {
 =head1 Methods
 =head2 new
 
-=head3 default, no options
+=head3 :handler-object, :handler-name
 
-Create a new Closure object.
+Create a new Closure object. Minimizing the Closure to only setting of a callback method. The C<$handler-name> is the method which is defined in the user object C<$handler-object>. Optionally the user can provide some arguments to the handler.
 
-  multi method new ( )
+  multi method new (
+    Any:D :$handler-object!, Str:D :$handler-name!,
+    :%handler-opts
+  )
 
 
 =head3 :native-object
@@ -316,7 +319,9 @@ submethod BUILD ( *%options ) {
             }
           },
           gpointer,
-          -> gpointer, N-GClosure { }
+          -> gpointer $d, N-GClosure $c {
+            note 'destroy: ', $d.raku, ', ', $c.raku;
+          }
         );
       }
 
@@ -847,7 +852,6 @@ method g-cclosure-new ( GCallback $callback_func, Pointer $user_data, GClosureNo
 sub _g_cclosure_new (
   Callable $callback_func ( ), gpointer $user_data,
   Callable $destroy_data ( gpointer $data, N-GClosure $closure)
-#  GClosureNotify $destroy_data
   --> N-GClosure
 ) is native(&gobject-lib)
   is symbol('g_cclosure_new')

@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gnome GObject Interface, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.19.0",
+  "version": "0.19.1",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib", "gobject"],
 
