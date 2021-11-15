@@ -1,4 +1,8 @@
 use v6;
+
+# Note that this test cannot be placed in ./t directory because of
+# dependencies on Gtk modules to test out properties of those classes
+
 #use lib '../gnome-gtk3/lib';
 #use lib '../gnome-native/lib';
 use NativeCall;
@@ -10,9 +14,12 @@ use Gnome::N::GlibToRakuTypes;
 
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
+use Gnome::GObject::Closure;
 
 use Gnome::Gtk3::Window;
 use Gnome::Gtk3::Button;
+use Gnome::Gtk3::Image;
+use Gnome::Gtk3::Enums;
 use Gnome::Gtk3::Label;
 use Gnome::Gtk3::Adjustment;
 
@@ -56,6 +63,11 @@ subtest 'properties', {
   #-----------------------------------------------------------------------------
   subtest 'set-properties, get-properties', {
     my Gnome::Gtk3::Button $button .= new(:label<Start>);
+    my Gnome::Gtk3::Image $image .= new(
+      :icon-name<audio-off>, :size(GTK_ICON_SIZE_BUTTON)
+    );
+    $image.set-name('bttnimg');
+    $button.set-image($image);
 
     # Overwrite label and set underline
     $button.set-properties( :label<pep-toet>, :use-underline(True));
@@ -63,6 +75,10 @@ subtest 'properties', {
     # Now try the opposite of .set-properties().
     my @rv = $button.get-properties( 'label', Str, 'use-underline', Bool);
     is-deeply @rv, [ 'pep-toet', 1], '.get-properties(): Str, Bool';
+
+    $button.set-properties(:use-underline(0));
+    @rv = $button.get-properties( 'use-underline', Int);
+    is-deeply @rv, [ 0,], '.get-properties(): Int';
 
     # Other types
     my Gnome::Gtk3::Adjustment $adj .= new(
@@ -77,6 +93,15 @@ subtest 'properties', {
     );
     is-deeply @rv, [ 10e0, -100e0, 100e0, 1e0, 2e0, 5e0],
       '.get-properties(): Num, num64, gdouble';
+
+    @rv = $button.get-properties( 'image', N-GObject);
+    is Gnome::Gtk3::Image.new(:native-object(@rv[0])).get-name, 'bttnimg',
+      '.get-properties(): N-GObject';
+
+    # no such property 'abc'
+    # (Object.t:253680): GLib-GObject-WARNING **: 21:21:50.970: g_object_get_is_valid_property: object class 'GtkAdjustment' has no property named 'abc'
+    @rv = $adj.get-properties( 'abc', N-GClosure);
+    nok @rv[0].defined, '.get-properties(): \'abc\' property undefined';
   }
 }
 

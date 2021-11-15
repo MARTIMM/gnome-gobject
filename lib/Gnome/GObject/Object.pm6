@@ -110,6 +110,7 @@ use Gnome::Glib::MainContext;
 use Gnome::GObject::Signal;
 use Gnome::GObject::Type;
 use Gnome::GObject::Value;
+use Gnome::GObject::Closure;
 #use Gnome::GObject::Param;
 
 #-------------------------------------------------------------------------------
@@ -561,16 +562,30 @@ method get-properties ( *@properties --> List ) {
         @pl.push: CArray[gboolean].new(0);
       }
 
+#`{{
       when 'N-GObject' {
         @parameter-list.push: Parameter.new(:type(CArray[N-GObject]));
         @pl.push: CArray[N-GObject].new(N-GObject);
       }
 
+      when / '::N-GClosure' $/ {
+        @parameter-list.push: Parameter.new(:type(CArray[N-GClosure]));
+        @pl.push: CArray[N-GClosure].new(N-GClosure);
+      }
+}}
+
+      default {
+        @parameter-list.push: Parameter.new(:type(CArray[$v-type]));
+        @pl.push: CArray[$v-type].new($v-type);
+      }
+
+#`{{
       default {
         die X::Gnome.new(
-          :message("Type {.^name} for key $key not supported")
+          :message("Type '{$v-type.raku}' for key '$key' not supported")
         );
       }
+}}
     }
   }
 
@@ -1439,12 +1454,19 @@ method set-properties ( *%properties ) {
         @parameter-list.push: Parameter.new(:type(CArray[num64]));
       }
 
+      when 'UInt' {
+        # 32bit more common?
+        @parameter-list.push: Parameter.new(:type(uint32));
+      }
+
       when 'Int' {
-        @parameter-list.push: Parameter.new(:type(int32));      # 32bit common?
+        # 32bit more common?
+        @parameter-list.push: Parameter.new(:type(int32));
       }
 
       when 'Num' {
-        @parameter-list.push: Parameter.new(:type(num32));      # 32bit common?
+        # 32bit more common?
+        @parameter-list.push: Parameter.new(:type(num32));
       }
 
       when 'Str' {
@@ -1455,6 +1477,7 @@ method set-properties ( *%properties ) {
         @parameter-list.push: Parameter.new(:type(gboolean));
       }
 
+#`{{
       when 'N-GObject' {
         @parameter-list.push: Parameter.new(:type(N-GObject));
       }
@@ -1463,6 +1486,11 @@ method set-properties ( *%properties ) {
         die X::Gnome.new(
           :message("Type {.^name} for key $key not supported")
         );
+      }
+}}
+
+      default {
+        @parameter-list.push: Parameter.new(:type($v.WHAT));
       }
     }
   }
