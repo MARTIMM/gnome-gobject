@@ -1,8 +1,11 @@
 ## Release notes
+* 2021-11-15 0.19.2
+  * Adding a type test and change a part of methods `.get-properties()` and `.set-properties()`.
+
 * 2021-11-11 0.19.1
   * Missing documentation on new().
   * Callback must return info.
-  
+
 * 2021-11-09 0.19.0
   * Added a module which is kept very minimal. Just enough to get other modules working like **Gnome::Gtk3::AccelGroup**.
 
