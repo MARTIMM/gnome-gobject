@@ -143,6 +143,10 @@ subtest 'object data', {
   is $bl.get-data( 'my-gulong-key', gulong), 1_000_000_000,
     'simple types gulong: .set-data() / .get-data()';
 
+  $bl.set-data( 'my-rat-key', 1/3);
+  is $bl.get-data( 'my-rat-key', Rat), 1/3,
+    'simple types Rat: .set-data() / .get-data()';
+
   $bl.set-data( 'my-num-key', 0.23e-1);
   is-approx $bl.get-data( 'my-num-key', Num), 23e-3,
     'simple types Num: .set-data() / .get-data()';

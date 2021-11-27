@@ -414,6 +414,11 @@ method get-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
       $data = $d[0];
     }
 
+    when 'Rat' {
+      my CArray[num64] $d = nativecast( CArray[num64], $odata);
+      $data = $d[0].Rat;
+    }
+
     when 'Num' {
       my CArray[num32] $d = nativecast( CArray[num32], $odata);
       $data = $d[0];
@@ -445,7 +450,7 @@ method get-data ( Str $key, Any $type, Str :$widget-class --> Any ) {
     }
 
     default {
-      die X::Gnome.new(:message("Type of key '$key' not supported"));
+      die X::Gnome.new(:message("Type '$data.^name()' for key '$key' not supported"));
     }
   }
 
@@ -1331,6 +1336,10 @@ method set-data ( Str $key, $data is copy ) {
       $d = CArray[num32].new($data);
     }
 
+    when 'Rat' {
+      $d = CArray[num64].new($data.Num);
+    }
+
     when 'Str' {
       $d = CArray[Str].new($data);
     }
@@ -1348,7 +1357,7 @@ method set-data ( Str $key, $data is copy ) {
     }
 
     default {
-      die X::Gnome.new(:message("Type of key '$key' not supported"));
+      die X::Gnome.new(:message("Type '$data.^name()' for key '$key' not supported"));
     }
   }
 
