@@ -720,7 +720,7 @@ No warning will be issued if instance is NULL, and NULL will be returned.
 =end pod
 
 method check-instance-cast (
-  N-GObject $instance is copy, UInt $iface_gtype --> N-GObject
+  $instance is copy, UInt $iface_gtype --> N-GObject
 ) {
   $instance .= get-native-object-no-reffing unless $instance ~~ N-GObject;
   g_type_check_instance_cast( $instance, $iface_gtype)
@@ -747,7 +747,7 @@ Check if an instance is of type C<$iface-gtype>. Returns True if it is.
 =end pod
 
 method check-instance-is-a (
-  N-GObject $instance is copy, UInt $iface_gtype --> Bool
+  $instance is copy, UInt $iface_gtype --> Bool
 ) {
   $instance .= get-native-object-no-reffing unless $instance ~~ N-GObject;
   g_type_check_instance_is_a( $instance, $iface_gtype).Bool
