@@ -206,7 +206,7 @@ submethod BUILD ( *%options ) {
   elsif ? %options<build-id> {
     my N-GObject $native-object;
     note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
-    my Array $builders = self.get-builders;
+    my Array $builders = self._get-builders;
     for @$builders -> $builder {
 
       # this action does not increase object refcount, do it here.
@@ -275,13 +275,13 @@ method native-object-unref ( $n-native-object ) {
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method set-builder ( $builder ) {
+method _set-builder ( $builder ) {
   $builders.push($builder);
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method get-builders ( --> Array ) {
+method _get-builders ( --> Array ) {
   $builders
 }
 

@@ -1,6 +1,7 @@
 ## Release notes
 * 2021-12-08 0.19.3
   * Bugfix; removed a type on argument in Type module
+  * Prefix '_' `.get-builders()` and `.set-builder()` because they are for internal use.
 
 * 2021-11-15 0.19.2
   * Adding a type test and change a part of methods `.get-properties()` and `.set-properties()`.
