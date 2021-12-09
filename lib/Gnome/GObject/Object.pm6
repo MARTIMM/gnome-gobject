@@ -128,6 +128,10 @@ my Bool $signals-added = False;
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
 
+# When a builder is set with a name set to ___Test_Builder__ it means that
+# the Gnome::T module is used and the builder is created there.
+my Bool $test-mode = False;
+
 # check on native library initialization. must be global to all of the
 # TopLevelClassSupport classes. the
 my Bool $gui-initialized = False;
@@ -199,8 +203,32 @@ submethod BUILD ( *%options ) {
 #    );
 #  }
 
-  # test if native object has been set
-  if self.is-valid { }
+  # test if native object is set by Gnome::N:TopLevelSupportClass
+  if self.is-valid {
+    # If test mode is triggered by Gnome::T
+    if $test-mode {
+      my $no = self.get-native-object-no-reffing;
+      my Gnome::GObject::Type $t .= new;
+
+      # only when buildable then based on Widget -> widget path and gui-able
+      if $t.check-instance-is-a( $no, $t.from-name('GtkBuildable')) {
+
+        # just pick first builder. this should be correct if Gnome::T
+        # is started as early as possible
+        my $builder = $builders[0];
+
+        # create an id for use in builder to find the object
+        my Str $widget-path = $t.name-from-instance($no);
+        $widget-path ~= _path_to_string(_get_path($no));
+
+        # add object to builder
+        $builder.expose-object( $widget-path, $no);
+
+        note "set gobject build-id to: $widget-path" if $Gnome::N::x-debug;
+      }
+    }
+  }
+
   elsif %options<native-object>:exists { }
 
   elsif ? %options<build-id> {
@@ -209,7 +237,7 @@ submethod BUILD ( *%options ) {
     my Array $builders = self._get-builders;
     for @$builders -> $builder {
 
-      # this action does not increase object refcount, do it here.
+      #TODO this action does not increase object refcount, do it here.
       $native-object = $builder.get-object(%options<build-id>) // N-GObject;
       #TODO self.g_object_ref(); ?
       last if ?$native-object;
@@ -277,6 +305,12 @@ method native-object-unref ( $n-native-object ) {
 # no pod. user does not have to know about it.
 method _set-builder ( $builder ) {
   $builders.push($builder);
+
+  # When a builder is set with a key _SET_TEST_BUILDER_ set to
+  # ___Test_Builder__ it means that the Gnome::T module is used
+  # and the builder is created there.
+  $test-mode = True
+    if $builders.get-data( '_SET_TEST_BUILDER_', Str) ~~ '___Test_Builder__';
 }
 
 #-------------------------------------------------------------------------------
@@ -1784,6 +1818,19 @@ sub _object_init_check (
   --> int32
 ) is native(&gtk-lib)
   is symbol('gtk_init_check')
+  { * }
+
+#-------------------------------------------------------------------------------
+sub _path_to_string ( N-GObject $path --> Str )
+  is native(&gtk-lib)
+  is symbol('gtk_widget_path_to_string')
+  { * }
+
+#-------------------------------------------------------------------------------
+sub _get_path (
+  N-GObject $widget --> N-GObject
+) is native(&gtk-lib)
+  is symbol('gtk_widget_get_path')
   { * }
 
 #-------------------------------------------------------------------------------
