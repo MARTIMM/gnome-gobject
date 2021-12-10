@@ -124,6 +124,7 @@ my Bool $signals-added = False;
 
 #has Gnome::GObject::Signal $!g-signal;
 
+#`{{ Moved to TopLevelClassSupport
 # type is Gnome::Gtk3::Builder. Cannot load module because of circular dep.
 # attribute is set by GtkBuilder via set-builder(). There might be more than one
 my Array $builders = [];
@@ -131,6 +132,7 @@ my Array $builders = [];
 # When a builder is set with a name set to ___Test_Builder__ it means that
 # the Gnome::T module is used and the builder is created there.
 my Bool $test-mode = False;
+}}
 
 # check on native library initialization. must be global to all of the
 # TopLevelClassSupport classes. the
@@ -204,13 +206,18 @@ submethod BUILD ( *%options ) {
 #  }
 
   # test if native object is set by Gnome::N:TopLevelSupportClass
+#note "Object valid: ", self.is-valid;
   if self.is-valid {
+#`{{
     # If test mode is triggered by Gnome::T
+note "Test mode: $test-mode";
     if $test-mode {
       my $no = self.get-native-object-no-reffing;
+note "native object: ", $no.raku;
       my Gnome::GObject::Type $t .= new;
 
       # only when buildable then based on Widget -> widget path and gui-able
+note "instance is GtkBuildable: ", $t.check-instance-is-a( $no, $t.from-name('GtkBuildable'));
       if $t.check-instance-is-a( $no, $t.from-name('GtkBuildable')) {
 
         # just pick first builder. this should be correct if Gnome::T
@@ -220,6 +227,7 @@ submethod BUILD ( *%options ) {
         # create an id for use in builder to find the object
         my Str $widget-path = $t.name-from-instance($no);
         $widget-path ~= _path_to_string(_get_path($no));
+note "widget path: $widget-path";
 
         # add object to builder
         $builder.expose-object( $widget-path, $no);
@@ -227,10 +235,21 @@ submethod BUILD ( *%options ) {
         note "set gobject build-id to: $widget-path" if $Gnome::N::x-debug;
       }
     }
+}}
   }
 
   elsif %options<native-object>:exists { }
 
+  #`{{
+    note: thought about moving this test to Widget because the interface
+    Buildable is hooked up there. This is not correct, because, after studying
+    the Buider code, I saw that gtk_builder_expose_object() makes use of
+    object_set_name() before inserting the object in a hash table.
+    object_set_name() makes use of gtk_buildable_set_name() if the object
+    inherits from Widget, otherwise it uses the g_object_set_data_full() to set
+    the id onto the native object. This means that every object inheriting from
+    here (=Object) can have an id set and thus retrieved here.
+  }}
   elsif ? %options<build-id> {
     my N-GObject $native-object;
     note "gobject build-id: %options<build-id>" if $Gnome::N::x-debug;
@@ -301,6 +320,7 @@ method native-object-unref ( $n-native-object ) {
   _g_object_unref($n-native-object)
 }
 
+#`{{ Moved to TopLevelClassSupport
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method _set-builder ( $builder ) {
@@ -310,7 +330,7 @@ method _set-builder ( $builder ) {
   # ___Test_Builder__ it means that the Gnome::T module is used
   # and the builder is created there.
   $test-mode = True
-    if $builders.get-data( '_SET_TEST_BUILDER_', Str) ~~ '___Test_Builder__';
+    if $builder.get-data( '_SET_TEST_BUILDER_', Str) ~~ '___Test_Builder__';
 }
 
 #-------------------------------------------------------------------------------
@@ -318,6 +338,7 @@ method _set-builder ( $builder ) {
 method _get-builders ( --> Array ) {
   $builders
 }
+}}
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
@@ -1820,6 +1841,7 @@ sub _object_init_check (
   is symbol('gtk_init_check')
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 sub _path_to_string ( N-GObject $path --> Str )
   is native(&gtk-lib)
@@ -1832,6 +1854,7 @@ sub _get_path (
 ) is native(&gtk-lib)
   is symbol('gtk_widget_get_path')
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_object_ref:
