@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-12-12 0.19.4
+  * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
+
 * 2021-12-08 0.19.3
   * Bugfix; removed a type on argument in Type module.
   * Prefix '_' to `.get-builders()` and `.set-builder()` because they are for internal use.
