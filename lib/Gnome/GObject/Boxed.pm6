@@ -56,7 +56,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-#  self.set-class-name-of-sub('GBoxed');
+#  self._set-class-name-of-sub('GBoxed');
 #  $s = callsame unless ?$s;
 
   $s;

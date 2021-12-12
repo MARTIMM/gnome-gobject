@@ -293,7 +293,7 @@ method _fallback ( $native-sub --> Callable ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  self.set-class-name-of-sub('GObject');
+  self._set-class-name-of-sub('GObject');
 
   $s
 }

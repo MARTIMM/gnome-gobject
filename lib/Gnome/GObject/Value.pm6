@@ -307,7 +307,7 @@ submethod BUILD ( *%options ) {
 #note"Value: ", self.get-native-object.perl(), ', ', self.is-valid;
 
   # only after creating the native-object, the gtype is known
-  self.set-class-info('GValue');
+  self._set-class-info('GValue');
 }
 
 #-------------------------------------------------------------------------------
@@ -319,7 +319,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  self.set-class-name-of-sub('GValue');
+  self._set-class-name-of-sub('GValue');
   $s = callsame unless ?$s;
 
   $s;
