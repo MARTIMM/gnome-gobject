@@ -116,7 +116,7 @@ Connects a callback function to a signal for a particular object.
 
 method connect-object ( Str $detailed-signal, Callable $handler --> Int ) {
   g_signal_connect_object(
-    self.get-native-object-no-reffing, $detailed-signal, $handler
+    self._get-native-object-no-reffing, $detailed-signal, $handler
   )
 }
 
@@ -321,7 +321,7 @@ method emit-by-name (
   Str $detailed_signal, *@handler-arguments, *%options --> Any
 ) {
   g_signal_emit_by_name(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
     $detailed_signal, |@handler-arguments, |%options
   )
 }
@@ -343,8 +343,8 @@ sub g_signal_emit_by_name (
   my @new-args = ();
   for @handler-arguments -> $arg {
     my $a = $arg;
-    $a .= get-native-object-no-reffing
-        if $a.^can('get-native-object-no-reffing');
+    $a .= _get-native-object-no-reffing
+        if $a.^can('_get-native-object-no-reffing');
 
     my $t = $parameters.elems ?? shift $parameters !! $a.WHAT;
     @parameterList.push(Parameter.new(type => $t));

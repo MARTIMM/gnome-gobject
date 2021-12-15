@@ -19,7 +19,7 @@ use Gnome::Gtk3::Enums;
 #-------------------------------------------------------------------------------
 my Gnome::GObject::Value $v .= new(:init(G_TYPE_STRING));
 my Gnome::Gtk3::Label $l1 .= new(:text<Start>);
-gtk_label_set_ellipsize( $l1.get-native-object-no-reffing, 2);
+gtk_label_set_ellipsize( $l1._get-native-object-no-reffing, 2);
 
 my Gnome::GObject::Value $gv .= new(:init(G_TYPE_ENUM));
 $l1.get-property( 'ellipsize', $gv);
@@ -27,7 +27,7 @@ is $gv.get-enum, 2, '.get-enum()';
 
 $gv.set-enum(1);
 $l1.set-property( 'ellipsize', $gv);
-is gtk_label_get_ellipsize($l1.get-native-object-no-reffing), 1, '.set-enum()';
+is gtk_label_get_ellipsize($l1._get-native-object-no-reffing), 1, '.set-enum()';
 
 
 

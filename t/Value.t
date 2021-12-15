@@ -23,7 +23,7 @@ subtest 'ISA test', {
 
   $v.g_value_reset;
   nok ?$v.get-string, '.g_value_reset()';
-  is $v.get-native-object.g-type, G_TYPE_STRING,
+  is $v._get-native-object.g-type, G_TYPE_STRING,
       'native object type still string';
   ok $v.is-valid, '.is-valid() True after reset';
 

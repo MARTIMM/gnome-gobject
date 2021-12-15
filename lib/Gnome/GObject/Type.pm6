@@ -484,7 +484,7 @@ Adds a B<Gnome::GObject::TypeClassCacheFunc> to be called before the reference c
 method add-class-cache-func ( Pointer $cache_data, GTypeClassCacheFunc $cache_func ) {
 
   g_type_add_class_cache_func(
-    self.get-native-object-no-reffing, $cache_data, $cache_func
+    self._get-native-object-no-reffing, $cache_data, $cache_func
   );
 }
 
@@ -510,7 +510,7 @@ This function should be called in the type's C<get-type()> function after the ty
 method add-class-private ( UInt $private_size ) {
 
   g_type_add_class_private(
-    self.get-native-object-no-reffing, $private_size
+    self._get-native-object-no-reffing, $private_size
   );
 }
 
@@ -534,7 +534,7 @@ sub g_type_add_class_private (
 method add-instance-private ( UInt $private_size --> Int ) {
 
   g_type_add_instance_private(
-    self.get-native-object-no-reffing, $private_size
+    self._get-native-object-no-reffing, $private_size
   )
 }
 
@@ -561,7 +561,7 @@ This function is useful when you want to check an invariant that depends on the 
 method add-interface-check ( Pointer $check_data, GTypeInterfaceCheckFunc $check_func ) {
 
   g_type_add_interface_check(
-    self.get-native-object-no-reffing, $check_data, $check_func
+    self._get-native-object-no-reffing, $check_data, $check_func
   );
 }
 
@@ -584,11 +584,11 @@ Adds the dynamic I<interface-type> to I<instantiable-type>. The information cont
 =end pod
 
 method add-interface-dynamic ( $interface_type is copy, $plugin is copy ) {
-  $interface_type .= get-native-object-no-reffing unless $interface_type ~~ N-GObject;
-  $plugin .= get-native-object-no-reffing unless $plugin ~~ N-GObject;
+  $interface_type .= _get-native-object-no-reffing unless $interface_type ~~ N-GObject;
+  $plugin .= _get-native-object-no-reffing unless $plugin ~~ N-GObject;
 
   g_type_add_interface_dynamic(
-    self.get-native-object-no-reffing, $interface_type, $plugin
+    self._get-native-object-no-reffing, $interface_type, $plugin
   );
 }
 
@@ -611,10 +611,10 @@ Adds the static I<interface-type> to I<instantiable-type>. The information conta
 =end pod
 
 method add-interface-static ( $interface_type is copy, GInterfaceInfo $info ) {
-  $interface_type .= get-native-object-no-reffing unless $interface_type ~~ N-GObject;
+  $interface_type .= _get-native-object-no-reffing unless $interface_type ~~ N-GObject;
 
   g_type_add_interface_static(
-    self.get-native-object-no-reffing, $interface_type, $info
+    self._get-native-object-no-reffing, $interface_type, $info
   );
 }
 
@@ -637,10 +637,10 @@ sub g_type_add_interface_static (
 =end pod
 
 method check-class-cast ( GTypeClass $g_class, $is_a_type is copy --> GTypeClass ) {
-  $is_a_type .= get-native-object-no-reffing unless $is_a_type ~~ N-GObject;
+  $is_a_type .= _get-native-object-no-reffing unless $is_a_type ~~ N-GObject;
 
   g_type_check_class_cast(
-    self.get-native-object-no-reffing, $g_class, $is_a_type
+    self._get-native-object-no-reffing, $g_class, $is_a_type
   )
 }
 
@@ -663,10 +663,10 @@ sub g_type_check_class_cast (
 =end pod
 
 method check-class-is-a ( GTypeClass $g_class, $is_a_type is copy --> Bool ) {
-  $is_a_type .= get-native-object-no-reffing unless $is_a_type ~~ N-GObject;
+  $is_a_type .= _get-native-object-no-reffing unless $is_a_type ~~ N-GObject;
 
   g_type_check_class_is_a(
-    self.get-native-object-no-reffing, $g_class, $is_a_type
+    self._get-native-object-no-reffing, $g_class, $is_a_type
   ).Bool
 }
 
@@ -692,7 +692,7 @@ Returns: C<True> if I<instance> is valid, C<False> otherwise
 method check-instance ( GTypeInstance $instance --> Bool ) {
 
   g_type_check_instance(
-    self.get-native-object-no-reffing, $instance
+    self._get-native-object-no-reffing, $instance
   ).Bool
 }
 
@@ -722,7 +722,7 @@ No warning will be issued if instance is NULL, and NULL will be returned.
 method check-instance-cast (
   $instance is copy, UInt $iface_gtype --> N-GObject
 ) {
-  $instance .= get-native-object-no-reffing unless $instance ~~ N-GObject;
+  $instance .= _get-native-object-no-reffing unless $instance ~~ N-GObject;
   g_type_check_instance_cast( $instance, $iface_gtype)
 }
 
@@ -749,7 +749,7 @@ Check if an instance is of type C<$iface-gtype>. Returns True if it is.
 method check-instance-is-a (
   $instance is copy, UInt $iface_gtype --> Bool
 ) {
-  $instance .= get-native-object-no-reffing unless $instance ~~ N-GObject;
+  $instance .= _get-native-object-no-reffing unless $instance ~~ N-GObject;
   g_type_check_instance_is_a( $instance, $iface_gtype).Bool
 }
 
@@ -773,10 +773,10 @@ sub g_type_check_instance_is_a (
 =end pod
 
 method check-instance-is-fundamentally-a ( GTypeInstance $instance, $fundamental_type is copy --> Bool ) {
-  $fundamental_type .= get-native-object-no-reffing unless $fundamental_type ~~ N-GObject;
+  $fundamental_type .= _get-native-object-no-reffing unless $fundamental_type ~~ N-GObject;
 
   g_type_check_instance_is_fundamentally_a(
-    self.get-native-object-no-reffing, $instance, $fundamental_type
+    self._get-native-object-no-reffing, $instance, $fundamental_type
   ).Bool
 }
 
@@ -798,10 +798,10 @@ sub g_type_check_instance_is_fundamentally_a (
 =end pod
 
 method check-value ( $value is copy --> Bool ) {
-  $value .= get-native-object-no-reffing unless $value ~~ N-GObject;
+  $value .= _get-native-object-no-reffing unless $value ~~ N-GObject;
 
   g_type_check_value(
-    self.get-native-object-no-reffing, $value
+    self._get-native-object-no-reffing, $value
   ).Bool
 }
 
@@ -824,11 +824,11 @@ sub g_type_check_value (
 =end pod
 
 method check-value-holds ( $value is copy, $type is copy --> Bool ) {
-  $value .= get-native-object-no-reffing unless $value ~~ N-GObject;
-  $type .= get-native-object-no-reffing unless $type ~~ N-GObject;
+  $value .= _get-native-object-no-reffing unless $value ~~ N-GObject;
+  $type .= _get-native-object-no-reffing unless $type ~~ N-GObject;
 
   g_type_check_value_holds(
-    self.get-native-object-no-reffing, $value, $type
+    self._get-native-object-no-reffing, $value, $type
   ).Bool
 }
 
@@ -854,7 +854,7 @@ Returns: (array length=n-children) : Newly allocated and 0-terminated array of c
 method children ( guInt-ptr $n_children --> N-GObject ) {
 
   g_type_children(
-    self.get-native-object-no-reffing, $n_children
+    self._get-native-object-no-reffing, $n_children
   )
 }
 
@@ -879,7 +879,7 @@ sub g_type_children (
 method class-adjust-private-offset ( Pointer $g_class ) {
 
   g_type_class_adjust_private_offset(
-    self.get-native-object-no-reffing, $g_class, my gint $private_size_or_offset
+    self._get-native-object-no-reffing, $g_class, my gint $private_size_or_offset
   );
 }
 
@@ -909,7 +909,7 @@ Returns: the offset, in bytes
 method class-get-instance-private-offset ( Pointer $g_class --> Int ) {
 
   g_type_class_get_instance_private_offset(
-    self.get-native-object-no-reffing, $g_class
+    self._get-native-object-no-reffing, $g_class
   )
 }
 
@@ -932,10 +932,10 @@ sub g_type_class_get_instance_private_offset (
 =end pod
 
 method class-get-private ( GTypeClass $klass, $private_type is copy --> Pointer ) {
-  $private_type .= get-native-object-no-reffing unless $private_type ~~ N-GObject;
+  $private_type .= _get-native-object-no-reffing unless $private_type ~~ N-GObject;
 
   g_type_class_get_private(
-    self.get-native-object-no-reffing, $klass, $private_type
+    self._get-native-object-no-reffing, $klass, $private_type
   )
 }
 
@@ -960,7 +960,7 @@ Returns: (type GObject.TypeClass) : the B<Gnome::GObject::TypeClass> structure f
 method class-peek ( --> Pointer ) {
 
   g_type_class_peek(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -988,7 +988,7 @@ Returns: (type GObject.TypeClass) : the parent class of I<g-class>
 method class-peek-parent ( Pointer $g_class --> Pointer ) {
 
   g_type_class_peek_parent(
-    self.get-native-object-no-reffing, $g_class
+    self._get-native-object-no-reffing, $g_class
   )
 }
 
@@ -1013,7 +1013,7 @@ Returns: (type GObject.TypeClass) : the B<Gnome::GObject::TypeClass> structure f
 method class-peek-static ( --> Pointer ) {
 
   g_type_class_peek_static(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1038,7 +1038,7 @@ Returns: (type GObject.TypeClass) : the B<Gnome::GObject::TypeClass> structure f
 method class-ref ( --> Pointer ) {
 
   g_type_class_ref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1062,7 +1062,7 @@ Decrements the reference count of the class structure being passed in. Once the 
 method class-unref ( Pointer $g_class ) {
 
   g_type_class_unref(
-    self.get-native-object-no-reffing, $g_class
+    self._get-native-object-no-reffing, $g_class
   );
 }
 
@@ -1086,7 +1086,7 @@ A variant of C<class-unref()> for use in B<Gnome::GObject::TypeClassCacheFunc> i
 method class-unref-uncached ( Pointer $g_class ) {
 
   g_type_class_unref_uncached(
-    self.get-native-object-no-reffing, $g_class
+    self._get-native-object-no-reffing, $g_class
   );
 }
 
@@ -1115,7 +1115,7 @@ Returns: an allocated and initialized instance, subject to further treatment by 
 method create-instance ( --> GTypeInstance ) {
 
   g_type_create_instance(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1140,7 +1140,7 @@ Returns: (type GObject.TypeInterface) : the default vtable for the interface, or
 method default-interface-peek ( --> Pointer ) {
 
   g_type_default_interface_peek(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1167,7 +1167,7 @@ Returns: (type GObject.TypeInterface) : the default vtable for the interface; ca
 method default-interface-ref ( --> Pointer ) {
 
   g_type_default_interface_ref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1191,7 +1191,7 @@ Decrements the reference count for the type corresponding to the interface defau
 method default-interface-unref ( Pointer $g_iface ) {
 
   g_type_default_interface_unref(
-    self.get-native-object-no-reffing, $g_iface
+    self._get-native-object-no-reffing, $g_iface
   );
 }
 
@@ -1240,7 +1240,7 @@ In theory, simply calling the type's C<-get-type()> method (or using the corresp
 method ensure ( ) {
 
   g_type_ensure(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1266,7 +1266,7 @@ Like C<create-instance()>, this function is reserved for implementors of fundame
 method free-instance ( GTypeInstance $instance ) {
 
   g_type_free_instance(
-    self.get-native-object-no-reffing, $instance
+    self._get-native-object-no-reffing, $instance
   );
 }
 
@@ -1316,7 +1316,7 @@ Returns: fundamental type ID
 method fundamental ( --> N-GObject ) {
 
   g_type_fundamental(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1341,7 +1341,7 @@ Returns: the next available fundamental type ID to be registered, or 0 if the ty
 method fundamental-next ( --> N-GObject ) {
 
   g_type_fundamental_next(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1366,7 +1366,7 @@ Returns: the number of instances allocated of the given type; if instance counts
 method get-instance-count ( --> Int ) {
 
   g_type_get_instance_count(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1391,7 +1391,7 @@ Returns: the corresponding plugin if I<type> is a dynamic type, C<undefined> oth
 method get-plugin ( --> N-GObject ) {
 
   g_type_get_plugin(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1419,7 +1419,7 @@ Returns: the data, or C<undefined> if no data was found
 method get-qdata ( UInt $quark --> Pointer ) {
 
   g_type_get_qdata(
-    self.get-native-object-no-reffing, $quark
+    self._get-native-object-no-reffing, $quark
   )
 }
 
@@ -1444,7 +1444,7 @@ Returns: An unsigned int, representing the state of type registrations
 method get-type-registration-serial ( --> UInt ) {
 
   g_type_get_type_registration_serial(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1488,10 +1488,10 @@ sub g_gtype_get_type (  --> GType )
 =end pod
 
 method instance-get-private ( GTypeInstance $instance, $private_type is copy --> Pointer ) {
-  $private_type .= get-native-object-no-reffing unless $private_type ~~ N-GObject;
+  $private_type .= _get-native-object-no-reffing unless $private_type ~~ N-GObject;
 
   g_type_instance_get_private(
-    self.get-native-object-no-reffing, $instance, $private_type
+    self._get-native-object-no-reffing, $instance, $private_type
   )
 }
 
@@ -1513,10 +1513,10 @@ Adds I<prerequisite-type> to the list of prerequisites of I<interface-type>. Thi
 =end pod
 
 method interface-add-prerequisite ( $prerequisite_type is copy ) {
-  $prerequisite_type .= get-native-object-no-reffing unless $prerequisite_type ~~ N-GObject;
+  $prerequisite_type .= _get-native-object-no-reffing unless $prerequisite_type ~~ N-GObject;
 
   g_type_interface_add_prerequisite(
-    self.get-native-object-no-reffing, $prerequisite_type
+    self._get-native-object-no-reffing, $prerequisite_type
   );
 }
 
@@ -1540,10 +1540,10 @@ Returns: the B<Gnome::GObject::TypePlugin> for the dynamic interface I<interface
 =end pod
 
 method interface-get-plugin ( $interface_type is copy --> N-GObject ) {
-  $interface_type .= get-native-object-no-reffing unless $interface_type ~~ N-GObject;
+  $interface_type .= _get-native-object-no-reffing unless $interface_type ~~ N-GObject;
 
   g_type_interface_get_plugin(
-    self.get-native-object-no-reffing, $interface_type
+    self._get-native-object-no-reffing, $interface_type
   )
 }
 
@@ -1568,10 +1568,10 @@ Returns: (type GObject.TypeInterface) : the B<Gnome::GObject::TypeInterface> str
 =end pod
 
 method interface-peek ( Pointer $instance_class, $iface_type is copy --> Pointer ) {
-  $iface_type .= get-native-object-no-reffing unless $iface_type ~~ N-GObject;
+  $iface_type .= _get-native-object-no-reffing unless $iface_type ~~ N-GObject;
 
   g_type_interface_peek(
-    self.get-native-object-no-reffing, $instance_class, $iface_type
+    self._get-native-object-no-reffing, $instance_class, $iface_type
   )
 }
 
@@ -1597,7 +1597,7 @@ Returns:  (type GObject.TypeInterface): the corresponding B<Gnome::GObject::Type
 method interface-peek-parent ( Pointer $g_iface --> Pointer ) {
 
   g_type_interface_peek_parent(
-    self.get-native-object-no-reffing, $g_iface
+    self._get-native-object-no-reffing, $g_iface
   )
 }
 
@@ -1623,7 +1623,7 @@ Returns: (array length=n-prerequisites) : a newly-allocated zero-terminated arra
 method interface-prerequisites ( guInt-ptr $n_prerequisites --> N-GObject ) {
 
   g_type_interface_prerequisites(
-    self.get-native-object-no-reffing, $n_prerequisites
+    self._get-native-object-no-reffing, $n_prerequisites
   )
 }
 
@@ -1649,7 +1649,7 @@ Returns: (array length=n-interfaces) : Newly allocated and 0-terminated array of
 method interfaces ( guInt-ptr $n_interfaces --> N-GObject ) {
 
   g_type_interfaces(
-    self.get-native-object-no-reffing, $n_interfaces
+    self._get-native-object-no-reffing, $n_interfaces
   )
 }
 
@@ -1720,7 +1720,7 @@ sub g_type_name (
 method name-from-class ( GTypeClass $g_class --> Str ) {
 
   g_type_name_from_class(
-    self.get-native-object-no-reffing, $g_class
+    self._get-native-object-no-reffing, $g_class
   )
 }
 
@@ -1767,10 +1767,10 @@ Returns: immediate child of I<root-type> and anchestor of I<leaf-type>
 =end pod
 
 method next-base ( $root_type is copy --> N-GObject ) {
-  $root_type .= get-native-object-no-reffing unless $root_type ~~ N-GObject;
+  $root_type .= _get-native-object-no-reffing unless $root_type ~~ N-GObject;
 
   g_type_next_base(
-    self.get-native-object-no-reffing, $root_type
+    self._get-native-object-no-reffing, $root_type
   )
 }
 
@@ -1865,10 +1865,10 @@ Returns: the new type identifier or B<Gnome::GObject::-TYPE-INVALID> if registra
 =end pod
 
 method register-dynamic ( Str $type_name, $plugin is copy, GTypeFlags $flags --> N-GObject ) {
-  $plugin .= get-native-object-no-reffing unless $plugin ~~ N-GObject;
+  $plugin .= _get-native-object-no-reffing unless $plugin ~~ N-GObject;
 
   g_type_register_dynamic(
-    self.get-native-object-no-reffing, $type_name, $plugin, $flags
+    self._get-native-object-no-reffing, $type_name, $plugin, $flags
   )
 }
 
@@ -1897,7 +1897,7 @@ Returns: the predefined type identifier
 method register-fundamental ( Str $type_name, GTypeInfo $info, GTypeFundamentalInfo $finfo, GTypeFlags $flags --> N-GObject ) {
 
   g_type_register_fundamental(
-    self.get-native-object-no-reffing, $type_name, $info, $finfo, $flags
+    self._get-native-object-no-reffing, $type_name, $info, $finfo, $flags
   )
 }
 
@@ -1925,7 +1925,7 @@ Returns: the new type identifier
 method register-static ( Str $type_name, GTypeInfo $info, GTypeFlags $flags --> N-GObject ) {
 
   g_type_register_static(
-    self.get-native-object-no-reffing, $type_name, $info, $flags
+    self._get-native-object-no-reffing, $type_name, $info, $flags
   )
 }
 
@@ -1956,7 +1956,7 @@ Returns: the new type identifier
 method register-static-simple ( Str $type_name, UInt $class_size, GClassInitFunc $class_init, UInt $instance_size, GInstanceInitFunc $instance_init, GTypeFlags $flags --> N-GObject ) {
 
   g_type_register_static_simple(
-    self.get-native-object-no-reffing, $type_name, $class_size, $class_init, $instance_size, $instance_init, $flags
+    self._get-native-object-no-reffing, $type_name, $class_size, $class_init, $instance_size, $instance_init, $flags
   )
 }
 
@@ -1981,7 +1981,7 @@ Removes a previously installed B<Gnome::GObject::TypeClassCacheFunc>. The cache 
 method remove-class-cache-func ( Pointer $cache_data, GTypeClassCacheFunc $cache_func ) {
 
   g_type_remove_class_cache_func(
-    self.get-native-object-no-reffing, $cache_data, $cache_func
+    self._get-native-object-no-reffing, $cache_data, $cache_func
   );
 }
 
@@ -2006,7 +2006,7 @@ Removes an interface check function added with C<add-interface-check()>.
 method remove-interface-check ( Pointer $check_data, GTypeInterfaceCheckFunc $check_func ) {
 
   g_type_remove_interface_check(
-    self.get-native-object-no-reffing, $check_data, $check_func
+    self._get-native-object-no-reffing, $check_data, $check_func
   );
 }
 
@@ -2031,7 +2031,7 @@ Attaches arbitrary data to a type.
 method set-qdata ( UInt $quark, Pointer $data ) {
 
   g_type_set_qdata(
-    self.get-native-object-no-reffing, $quark, $data
+    self._get-native-object-no-reffing, $quark, $data
   );
 }
 
@@ -2058,7 +2058,7 @@ Returns: location of the B<Gnome::GObject::TypeValueTable> associated with I<typ
 method value-table-peek ( --> GTypeValueTable ) {
 
   g_type_value_table_peek(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 

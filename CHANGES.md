@@ -154,9 +154,9 @@
 * 2020-01-16 0.15.10:
   * Remove `:D` on type in call to `set-native-object()` to prevent program to crash. If statement in code added to prevent saving undefined objects.
   * Remove test in Boxed.BUILD to accept empty options hash as being `:empty`.
-  * `native-gboxed()` and `set-native-gboxed()` are deprecated in Boxed in favor of `set-native-object()` and `get-native-object()`.
+  * `native-gboxed()` and `set-native-gboxed()` are deprecated in Boxed in favor of `set-native-object()` and `_get-native-object()`.
   * Object now checks for `:native-object` and deprecates the use of `:widget`.
-  *  `native-gobject()` and `set-native-gobject()` are deprecated in Object in favor of `set-native-object()` and `get-native-object()`.
+  *  `native-gobject()` and `set-native-gobject()` are deprecated in Object in favor of `set-native-object()` and `_get-native-object()`.
   * Remove test in Object.BUILD to accept empty options hash as being `:empty`.
 
 * 2020-01-10 0.15.9:

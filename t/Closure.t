@@ -35,7 +35,7 @@ unless %*ENV<raku_test_all>:exists {
 
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
-#  my N-GClosure $no = $c.get-native-object;
+#  my N-GClosure $no = $c._get-native-object;
 #  diag 'Bin: ' ~ $no.closure-info.base(2);
 #  nok $no.in-marshal, '.in-marshal()';
 #  ok $no.is-invalid, '.is-invalid()';
@@ -43,7 +43,7 @@ subtest 'Manipulations', {
   $c.invalidate;
   nok $c.is-valid, '.invalidate()';
 
-#  $no = $c.get-native-object;
+#  $no = $c._get-native-object;
 #  diag 'Bin: ' ~ $no.closure-info.base(2);
 #  ok $no.in-marshal, '.in-marshal()';
 #  ok $no.is-invalid, '.is-invalid()';

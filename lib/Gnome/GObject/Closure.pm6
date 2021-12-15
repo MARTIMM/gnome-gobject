@@ -352,7 +352,7 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -387,7 +387,7 @@ Registers a finalization notifier which will be called when the reference count 
 method add-finalize-notifier ( Pointer $notify_data, GClosureNotify $notify_func ) {
 
   g_closure_add_finalize_notifier(
-    self.get-native-object-no-reffing, $notify_data, $notify_func
+    self._get-native-object-no-reffing, $notify_data, $notify_func
   );
 }
 
@@ -414,7 +414,7 @@ Registers an invalidation notifier which will be called when the I<closure> is i
 method add-invalidate-notifier ( Pointer $notify_data, GClosureNotify $notify_func ) {
 
   g_closure_add_invalidate_notifier(
-    self.get-native-object-no-reffing, $notify_data, $notify_func
+    self._get-native-object-no-reffing, $notify_data, $notify_func
   );
 }
 
@@ -443,7 +443,7 @@ Adds a pair of notifiers which get invoked before and after the closure callback
 method add-marshal-guards ( Pointer $pre_marshal_data, GClosureNotify $pre_marshal_notify, Pointer $post_marshal_data, GClosureNotify $post_marshal_notify ) {
 
   g_closure_add_marshal_guards(
-    self.get-native-object-no-reffing, $pre_marshal_data, $pre_marshal_notify, $post_marshal_data, $post_marshal_notify
+    self._get-native-object-no-reffing, $pre_marshal_data, $pre_marshal_notify, $post_marshal_data, $post_marshal_notify
   );
 }
 
@@ -473,11 +473,11 @@ Normally this function is not passed explicitly to C<g-signal-new()>, but used a
 =end pod
 
 method g-cclosure-marshal-generic ( $return_gvalue is copy, UInt $n_param_values, $param_values is copy, Pointer $invocation_hint, Pointer $marshal_data ) {
-  $return_gvalue .= get-native-object-no-reffing unless $return_gvalue ~~ N-GObject;
-  $param_values .= get-native-object-no-reffing unless $param_values ~~ N-GObject;
+  $return_gvalue .= _get-native-object-no-reffing unless $return_gvalue ~~ N-GObject;
+  $param_values .= _get-native-object-no-reffing unless $param_values ~~ N-GObject;
 
   g_cclosure_marshal_generic(
-    self.get-native-object-no-reffing, $return_gvalue, $n_param_values, $param_values, $invocation_hint, $marshal_data
+    self._get-native-object-no-reffing, $return_gvalue, $n_param_values, $param_values, $invocation_hint, $marshal_data
   );
 }
 
@@ -506,11 +506,11 @@ A generic B<Gnome::GObject::VaClosureMarshal> function implemented via [libffi](
 =end pod
 
 method g-cclosure-marshal-generic-va ( $return_value is copy, Pointer $instance, va_list $args_list, Pointer $marshal_data, Int() $n_params, $param_types is copy ) {
-  $return_value .= get-native-object-no-reffing unless $return_value ~~ N-GObject;
-  $param_types .= get-native-object-no-reffing unless $param_types ~~ N-GObject;
+  $return_value .= _get-native-object-no-reffing unless $return_value ~~ N-GObject;
+  $param_types .= _get-native-object-no-reffing unless $param_types ~~ N-GObject;
 
   g_cclosure_marshal_generic_va(
-    self.get-native-object-no-reffing, $return_value, $instance, $args_list, $marshal_data, $n_params, $param_types
+    self._get-native-object-no-reffing, $return_value, $instance, $args_list, $marshal_data, $n_params, $param_types
   );
 }
 
@@ -537,10 +537,10 @@ Returns: a floating reference to a new B<Gnome::GObject::CClosure>
 =end pod
 
 method g-signal-type-cclosure-new ( $itype is copy, UInt $struct_offset --> N-GObject ) {
-  $itype .= get-native-object-no-reffing unless $itype ~~ N-GObject;
+  $itype .= _get-native-object-no-reffing unless $itype ~~ N-GObject;
 
   g_signal_type_cclosure_new(
-    self.get-native-object-no-reffing, $itype, $struct_offset
+    self._get-native-object-no-reffing, $itype, $struct_offset
   )
 }
 
@@ -564,7 +564,7 @@ Note that C<g-closure-invalidate()> will also be called when the reference count
 =end pod
 
 method invalidate ( ) {
-  my N-GClosure $no = self.get-native-object-no-reffing;
+  my N-GClosure $no = self._get-native-object-no-reffing;
   g_closure_invalidate($no);
   _g_closure_sink($no);
   _g_closure_ref($no);
@@ -593,10 +593,10 @@ Invokes the closure, i.e. executes the callback represented by the I<closure>.
 =end pod
 
 method invoke (  ) {
-  $param_values .= get-native-object-no-reffing unless $param_values ~~ N-GObject;
+  $param_values .= _get-native-object-no-reffing unless $param_values ~~ N-GObject;
 
   g_closure_invoke(
-    self.get-native-object-no-reffing, N-GValue, $n_param_values, $param_values, $invocation_hint
+    self._get-native-object-no-reffing, N-GValue, $n_param_values, $param_values, $invocation_hint
   );
 }
 
@@ -624,7 +624,7 @@ Returns: The I<closure> passed in, for convenience
 method ref ( --> N-GObject ) {
 
   g_closure_ref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 }}
@@ -654,7 +654,7 @@ Notice that notifiers are automatically removed after they are run.
 method remove-finalize-notifier ( Pointer $notify_data, GClosureNotify $notify_func ) {
 
   g_closure_remove_finalize_notifier(
-    self.get-native-object-no-reffing, $notify_data, $notify_func
+    self._get-native-object-no-reffing, $notify_data, $notify_func
   );
 }
 
@@ -682,7 +682,7 @@ Notice that notifiers are automatically removed after they are run.
 method remove-invalidate-notifier ( Pointer $notify_data, GClosureNotify $notify_func ) {
 
   g_closure_remove_invalidate_notifier(
-    self.get-native-object-no-reffing, $notify_data, $notify_func
+    self._get-native-object-no-reffing, $notify_data, $notify_func
   );
 }
 
@@ -707,7 +707,7 @@ Sets the marshaller of I<closure>. The `marshal-data` of I<marshal> provides a w
 method set-marshal ( GClosureMarshal $marshal ) {
 
   g_closure_set_marshal(
-    self.get-native-object-no-reffing, $marshal
+    self._get-native-object-no-reffing, $marshal
   );
 }
 
@@ -734,7 +734,7 @@ For example, class closures for signals (see C<g-signal-type-cclosure-new()>) re
 method set-meta-marshal ( Pointer $marshal_data, GClosureMarshal $meta_marshal ) {
 
   g_closure_set_meta_marshal(
-    self.get-native-object-no-reffing, $marshal_data, $meta_marshal
+    self._get-native-object-no-reffing, $marshal_data, $meta_marshal
   );
 }
 
@@ -785,7 +785,7 @@ Because C<g-closure-sink()> may decrement the reference count of a closure (if i
 
 method sink ( ) {
   g_closure_sink(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}
@@ -811,7 +811,7 @@ Decrements the reference count of a closure after it was previously incremented 
 method unref ( ) {
 
   g_closure_unref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}
@@ -882,7 +882,7 @@ Returns: a floating reference to a new B<Gnome::GObject::CClosure>
 method g-cclosure-new-swap ( GCallback $callback_func, Pointer $user_data, GClosureNotify $destroy_data --> N-GObject ) {
 
   g_cclosure_new_swap(
-    self.get-native-object-no-reffing, $callback_func, $user_data, $destroy_data
+    self._get-native-object-no-reffing, $callback_func, $user_data, $destroy_data
   )
 }
 

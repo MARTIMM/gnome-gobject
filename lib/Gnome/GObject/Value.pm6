@@ -282,7 +282,7 @@ submethod BUILD ( *%options ) {
 #`{{
   elsif ?%options<native-object> {
     $new-object = %options<native-object>;
-    $new-object .= get-native-object if $new-object ~~ Gnome::GObject::Value;
+    $new-object .= _get-native-object if $new-object ~~ Gnome::GObject::Value;
   }
 }}
 
@@ -297,14 +297,14 @@ submethod BUILD ( *%options ) {
   if $new-object.defined {
 #`{{
     if self.is-valid {
-      g_value_unset(self.get-native-object);
+      g_value_unset(self._get-native-object);
 #      self.set-valid(False);
     }
 }}
-    self.set-native-object($new-object);
+    self._set-native-object($new-object);
   }
 
-#note"Value: ", self.get-native-object.perl(), ', ', self.is-valid;
+#note"Value: ", self._get-native-object.perl(), ', ', self.is-valid;
 
   # only after creating the native-object, the gtype is known
   self._set-class-info('GValue');
@@ -354,14 +354,14 @@ Copies the value of this Value object.
 =end pod
 
 method copy ( --> N-GValue ) {
-  my N-GValue $src_value = self.get-native-object-no-reffing;
+  my N-GValue $src_value = self._get-native-object-no-reffing;
   my N-GValue $dest_value .= new(:init($src_value.g-type));
   g_value_copy( $src_value, $dest_value);
   $dest_value
 }
 
 method copy-rk ( --> Gnome::GObject::Value ) {
-  my N-GValue $src_value = self.get-native-object-no-reffing;
+  my N-GValue $src_value = self._get-native-object-no-reffing;
   my N-GValue $dest_value .= new(:init($src_value.g-type));
   g_value_copy( $src_value, $dest_value);
   Gnome::GObject::Value.new(:native-object($dest_value))
@@ -389,7 +389,7 @@ Returns: a newly allocated copy of the string content of I<value>
 method dup-string ( --> Str ) {
 
   g_value_dup_string(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -414,7 +414,7 @@ Returns: variant contents of I<value> (may be C<undefined>); should be unreffed 
 method dup-variant ( --> N-GValue ) {
 
   g_value_dup_variant(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -444,10 +444,10 @@ enum-complete-type-info (type, info, values); } ]|
 =end pod
 
 method enum-complete-type-info ( $g_enum_type is copy, GTypeInfo $info, GEnumValue $const_values ) {
-  $g_enum_type .= get-native-object-no-reffing unless $g_enum_type ~~ N-GValue;
+  $g_enum_type .= _get-native-object-no-reffing unless $g_enum_type ~~ N-GValue;
 
   g_enum_complete_type_info(
-    self.get-native-object-no-reffing, $g_enum_type, $info, $const_values
+    self._get-native-object-no-reffing, $g_enum_type, $info, $const_values
   );
 }
 
@@ -474,7 +474,7 @@ Returns: the B<Gnome::GObject::EnumValue> for I<value>, or C<undefined> if I<val
 method enum-get-value ( GEnumClass $enum_class, Int() $value --> GEnumValue ) {
 
   g_enum_get_value(
-    self.get-native-object-no-reffing, $enum_class, $value
+    self._get-native-object-no-reffing, $enum_class, $value
   )
 }
 
@@ -501,7 +501,7 @@ Returns: the B<Gnome::GObject::EnumValue> with name I<name>, or C<undefined> if 
 method enum-get-value-by-name ( GEnumClass $enum_class, Str $name --> GEnumValue ) {
 
   g_enum_get_value_by_name(
-    self.get-native-object-no-reffing, $enum_class, $name
+    self._get-native-object-no-reffing, $enum_class, $name
   )
 }
 
@@ -528,7 +528,7 @@ Returns: the B<Gnome::GObject::EnumValue> with nickname I<nick>, or C<undefined>
 method enum-get-value-by-nick ( GEnumClass $enum_class, Str $nick --> GEnumValue ) {
 
   g_enum_get_value_by_nick(
-    self.get-native-object-no-reffing, $enum_class, $nick
+    self._get-native-object-no-reffing, $enum_class, $nick
   )
 }
 
@@ -557,7 +557,7 @@ Returns: The new type identifier.
 method enum-register-static ( Str $name, GEnumValue $const_static_values --> N-GValue ) {
 
   g_enum_register_static(
-    self.get-native-object-no-reffing, $name, $const_static_values
+    self._get-native-object-no-reffing, $name, $const_static_values
   )
 }
 
@@ -584,10 +584,10 @@ Returns: a newly-allocated text string
 =end pod
 
 method enum-to-string ( $g_enum_type is copy, Int() $value --> Str ) {
-  $g_enum_type .= get-native-object-no-reffing unless $g_enum_type ~~ N-GValue;
+  $g_enum_type .= _get-native-object-no-reffing unless $g_enum_type ~~ N-GValue;
 
   g_enum_to_string(
-    self.get-native-object-no-reffing, $g_enum_type, $value
+    self._get-native-object-no-reffing, $g_enum_type, $value
   )
 }
 
@@ -614,7 +614,7 @@ Returns: C<True> if I<value> will fit inside a pointer value.
 method fits-pointer ( --> Bool ) {
 
   g_value_fits_pointer(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool
 }
 
@@ -640,10 +640,10 @@ This function is meant to be called from the C<complete-type-info()> function of
 =end pod
 
 method flags-complete-type-info ( $g_flags_type is copy, GTypeInfo $info, GFlagsValue $const_values ) {
-  $g_flags_type .= get-native-object-no-reffing unless $g_flags_type ~~ N-GValue;
+  $g_flags_type .= _get-native-object-no-reffing unless $g_flags_type ~~ N-GValue;
 
   g_flags_complete_type_info(
-    self.get-native-object-no-reffing, $g_flags_type, $info, $const_values
+    self._get-native-object-no-reffing, $g_flags_type, $info, $const_values
   );
 }
 
@@ -670,7 +670,7 @@ Returns: the first B<Gnome::GObject::FlagsValue> which is set in I<value>, or C<
 method flags-get-first-value ( GFlagsClass $flags_class, UInt $value --> GFlagsValue ) {
 
   g_flags_get_first_value(
-    self.get-native-object-no-reffing, $flags_class, $value
+    self._get-native-object-no-reffing, $flags_class, $value
   )
 }
 
@@ -697,7 +697,7 @@ Returns: the B<Gnome::GObject::FlagsValue> with name I<name>, or C<undefined> if
 method flags-get-value-by-name ( GFlagsClass $flags_class, Str $name --> GFlagsValue ) {
 
   g_flags_get_value_by_name(
-    self.get-native-object-no-reffing, $flags_class, $name
+    self._get-native-object-no-reffing, $flags_class, $name
   )
 }
 
@@ -724,7 +724,7 @@ Returns: the B<Gnome::GObject::FlagsValue> with nickname I<nick>, or C<undefined
 method flags-get-value-by-nick ( GFlagsClass $flags_class, Str $nick --> GFlagsValue ) {
 
   g_flags_get_value_by_nick(
-    self.get-native-object-no-reffing, $flags_class, $nick
+    self._get-native-object-no-reffing, $flags_class, $nick
   )
 }
 
@@ -753,7 +753,7 @@ Returns: The new type identifier.
 method flags-register-static ( Str $name, GFlagsValue $const_static_values --> N-GValue ) {
 
   g_flags_register_static(
-    self.get-native-object-no-reffing, $name, $const_static_values
+    self._get-native-object-no-reffing, $name, $const_static_values
   )
 }
 
@@ -780,10 +780,10 @@ Returns: a newly-allocated text string
 =end pod
 
 method flags-to-string ( $flags_type is copy, UInt $value --> Str ) {
-  $flags_type .= get-native-object-no-reffing unless $flags_type ~~ N-GValue;
+  $flags_type .= _get-native-object-no-reffing unless $flags_type ~~ N-GValue;
 
   g_flags_to_string(
-    self.get-native-object-no-reffing, $flags_type, $value
+    self._get-native-object-no-reffing, $flags_type, $value
   )
 }
 
@@ -809,7 +809,7 @@ Returns: boolean contents of I<value>
 method get-boolean ( --> Bool ) {
 
   g_value_get_boolean(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool
 }
 
@@ -834,7 +834,7 @@ Returns: double contents of I<value>
 method get-double ( --> Num ) {
 
   g_value_get_double(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -855,7 +855,7 @@ Get the contents of a C<G-TYPE-ENUM> B<Gnome::GObject::Value>.
 =end pod
 
 method get-enum ( --> Int ) {
-  g_value_get_enum(self.get-native-object-no-reffing)
+  g_value_get_enum(self._get-native-object-no-reffing)
 }
 
 sub g_value_get_enum (
@@ -877,7 +877,7 @@ Returns: flags contents of I<value>
 =end pod
 
 method get-flags ( --> UInt ) {
-  g_value_get_flags(self.get-native-object-no-reffing)
+  g_value_get_flags(self._get-native-object-no-reffing)
 }
 
 sub g_value_get_flags (
@@ -899,7 +899,7 @@ Returns: float contents of I<value>
 =end pod
 
 method get-float ( --> Num ) {
-  g_value_get_float(self.get-native-object-no-reffing)
+  g_value_get_float(self._get-native-object-no-reffing)
 }
 
 sub g_value_get_float (
@@ -921,7 +921,7 @@ Returns: the B<Gnome::GObject::Type> stored in I<value>
 =end pod
 
 method get-gtype ( --> N-GValue ) {
-  g_value_get_gtype(self.get-native-object-no-reffing)
+  g_value_get_gtype(self._get-native-object-no-reffing)
 }
 
 sub g_value_get_gtype (
@@ -945,7 +945,7 @@ Returns: integer contents of I<value>
 method get-int ( --> Int ) {
 
   g_value_get_int(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -970,7 +970,7 @@ Returns: 64bit integer contents of I<value>
 method get-int64 ( --> Int ) {
 
   g_value_get_int64(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -995,7 +995,7 @@ Returns: long integer contents of I<value>
 method get-long ( --> Int ) {
 
   g_value_get_long(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1020,7 +1020,7 @@ Returns: pointer contents of I<value>
 method get-pointer ( --> Pointer ) {
 
   g_value_get_pointer(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1045,7 +1045,7 @@ Returns: signed 8 bit integer contents of I<value>
 method get-schar ( --> Int ) {
 
   g_value_get_schar(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1070,7 +1070,7 @@ Returns: string content of I<value>
 method get-string ( --> Str ) {
 
   g_value_get_string(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1095,7 +1095,7 @@ Returns: unsigned character contents of I<value>
 method get-uchar ( --> UInt ) {
 
   g_value_get_uchar(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1120,7 +1120,7 @@ Returns: unsigned integer contents of I<value>
 method get-uint ( --> UInt ) {
 
   g_value_get_uint(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1145,7 +1145,7 @@ Returns: unsigned 64bit integer contents of I<value>
 method get-uint64 ( --> UInt ) {
 
   g_value_get_uint64(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1170,7 +1170,7 @@ Returns: unsigned long integer contents of I<value>
 method get-ulong ( --> UInt ) {
 
   g_value_get_ulong(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1195,7 +1195,7 @@ Returns: variant contents of I<value> (may be C<undefined>)
 method get-variant ( --> N-GValue ) {
 
   g_value_get_variant(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1236,7 +1236,7 @@ Note: The I<value> will be initialised with the exact type of I<instance>. If yo
 method init-from-instance ( Pointer $instance ) {
 
   g_value_init_from_instance(
-    self.get-native-object-no-reffing, $instance
+    self._get-native-object-no-reffing, $instance
   );
 }
 
@@ -1261,7 +1261,7 @@ Returns: the value contents as pointer
 method peek-pointer ( --> Pointer ) {
 
   g_value_peek_pointer(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1287,7 +1287,7 @@ Returns: a new C<G-TYPE-POINTER> derived type id for I<name>.
 method pointer-type-register-static ( Str $name --> N-GValue ) {
 
   g_pointer_type_register_static(
-    self.get-native-object-no-reffing, $name
+    self._get-native-object-no-reffing, $name
   )
 }
 
@@ -1311,11 +1311,11 @@ Registers a value transformation function for use in C<transform()>. A previousl
 =end pod
 
 method register-transform-func ( $src_type is copy, $dest_type is copy, GValueTransform $transform_func ) {
-  $src_type .= get-native-object-no-reffing unless $src_type ~~ N-GValue;
-  $dest_type .= get-native-object-no-reffing unless $dest_type ~~ N-GValue;
+  $src_type .= _get-native-object-no-reffing unless $src_type ~~ N-GValue;
+  $dest_type .= _get-native-object-no-reffing unless $dest_type ~~ N-GValue;
 
   g_value_register_transform_func(
-    self.get-native-object-no-reffing, $src_type, $dest_type, $transform_func
+    self._get-native-object-no-reffing, $src_type, $dest_type, $transform_func
   );
 }
 
@@ -1339,7 +1339,7 @@ Returns: the B<Gnome::GObject::Value> structure that has been passed in
 =end pod
 
 method reset ( --> N-GValue ) {
-  g_value_reset( self.get-native-object-no-reffing )
+  g_value_reset( self._get-native-object-no-reffing )
 }
 
 sub g_value_reset (
@@ -1362,7 +1362,7 @@ Set the contents of a C<G-TYPE-BOOLEAN> B<Gnome::GObject::Value> to I<v-boolean>
 method set-boolean ( Bool $v_boolean ) {
 
   g_value_set_boolean(
-    self.get-native-object-no-reffing, $v_boolean
+    self._get-native-object-no-reffing, $v_boolean
   );
 }
 
@@ -1386,7 +1386,7 @@ Set the contents of a C<G-TYPE-DOUBLE> B<Gnome::GObject::Value> to I<v-double>.
 method set-double ( Num() $v_double ) {
 
   g_value_set_double(
-    self.get-native-object-no-reffing, $v_double
+    self._get-native-object-no-reffing, $v_double
   );
 }
 
@@ -1410,7 +1410,7 @@ Set the contents of a C<G-TYPE-ENUM> B<Gnome::GObject::Value> to I<v-enum>.
 method set-enum ( Int() $v_enum ) {
 
   g_value_set_enum(
-    self.get-native-object-no-reffing, $v_enum
+    self._get-native-object-no-reffing, $v_enum
   );
 }
 
@@ -1434,7 +1434,7 @@ Set the contents of a C<G-TYPE-FLAGS> B<Gnome::GObject::Value> to I<v-flags>.
 method set-flags ( UInt $v_flags ) {
 
   g_value_set_flags(
-    self.get-native-object-no-reffing, $v_flags
+    self._get-native-object-no-reffing, $v_flags
   );
 }
 
@@ -1458,7 +1458,7 @@ Set the contents of a C<G-TYPE-FLOAT> B<Gnome::GObject::Value> to I<v-float>.
 method set-float ( Num() $v_float ) {
 
   g_value_set_float(
-    self.get-native-object-no-reffing, $v_float
+    self._get-native-object-no-reffing, $v_float
   );
 }
 
@@ -1480,10 +1480,10 @@ Set the contents of a C<G-TYPE-GTYPE> B<Gnome::GObject::Value> to I<v-gtype>.
 =end pod
 
 method set-gtype ( $v_gtype is copy ) {
-  $v_gtype .= get-native-object-no-reffing unless $v_gtype ~~ N-GValue;
+  $v_gtype .= _get-native-object-no-reffing unless $v_gtype ~~ N-GValue;
 
   g_value_set_gtype(
-    self.get-native-object-no-reffing, $v_gtype
+    self._get-native-object-no-reffing, $v_gtype
   );
 }
 
@@ -1508,7 +1508,7 @@ Sets I<value> from an instantiatable type via the value-table's C<collect-value(
 method set-instance ( Pointer $instance ) {
 
   g_value_set_instance(
-    self.get-native-object-no-reffing, $instance
+    self._get-native-object-no-reffing, $instance
   );
 }
 
@@ -1533,7 +1533,7 @@ Set the contents of a C<G-TYPE-INT> B<Gnome::GObject::Value> to I<v-int>.
 method set-int ( Int() $v_int ) {
 
   g_value_set_int(
-    self.get-native-object-no-reffing, $v_int
+    self._get-native-object-no-reffing, $v_int
   );
 }
 
@@ -1557,7 +1557,7 @@ Set the contents of a C<G-TYPE-INT64> B<Gnome::GObject::Value> to I<v-int64>.
 method set-int64 ( Int() $v_int64 ) {
 
   g_value_set_int64(
-    self.get-native-object-no-reffing, $v_int64
+    self._get-native-object-no-reffing, $v_int64
   );
 }
 
@@ -1579,7 +1579,7 @@ Set the contents of a C<G-TYPE-LONG> B<Gnome::GObject::Value> to I<v-long>.
 =end pod
 
 method set-long ( Int() $v_long ) {
-  g_value_set_long( self.get-native-object-no-reffing, $v_long);
+  g_value_set_long( self._get-native-object-no-reffing, $v_long);
 }
 
 sub g_value_set_long (
@@ -1600,7 +1600,7 @@ Set the contents of a pointer B<Gnome::GObject::Value> to I<v-pointer>.
 =end pod
 
 method set-pointer ( Pointer $v_pointer ) {
-  g_value_set_pointer( self.get-native-object-no-reffing, $v_pointer);
+  g_value_set_pointer( self._get-native-object-no-reffing, $v_pointer);
 }
 
 sub g_value_set_pointer (
@@ -1621,7 +1621,7 @@ Set the contents of a C<G-TYPE-CHAR> B<Gnome::GObject::Value> to I<v-char>.
 =end pod
 
 method set-schar ( Int() $v_char ) {
-  g_value_set_schar( self.get-native-object-no-reffing, $v_char);
+  g_value_set_schar( self._get-native-object-no-reffing, $v_char);
 }
 
 sub g_value_set_schar (
@@ -1645,7 +1645,7 @@ Set the contents of a C<G-TYPE-STRING> B<Gnome::GObject::Value> to I<v-string>. 
 method set-static-string ( Str $v_string ) {
 
   g_value_set_static_string(
-    self.get-native-object-no-reffing, $v_string
+    self._get-native-object-no-reffing, $v_string
   );
 }
 
@@ -1670,7 +1670,7 @@ Set the contents of a C<G-TYPE-STRING> B<Gnome::GObject::Value> to I<v-string>.
 method set-string ( Str $v_string ) {
 
   g_value_set_string(
-    self.get-native-object-no-reffing, $v_string
+    self._get-native-object-no-reffing, $v_string
   );
 }
 
@@ -1694,7 +1694,7 @@ Set the contents of a C<G-TYPE-UCHAR> B<Gnome::GObject::Value> to I<v-uchar>.
 method set-uchar ( UInt $v_uchar ) {
 
   g_value_set_uchar(
-    self.get-native-object-no-reffing, $v_uchar
+    self._get-native-object-no-reffing, $v_uchar
   );
 }
 
@@ -1718,7 +1718,7 @@ Set the contents of a C<G-TYPE-UINT> B<Gnome::GObject::Value> to I<v-uint>.
 method set-uint ( UInt $v_uint ) {
 
   g_value_set_uint(
-    self.get-native-object-no-reffing, $v_uint
+    self._get-native-object-no-reffing, $v_uint
   );
 }
 
@@ -1742,7 +1742,7 @@ Set the contents of a C<G-TYPE-UINT64> B<Gnome::GObject::Value> to I<v-uint64>.
 method set-uint64 ( UInt $v_uint64 ) {
 
   g_value_set_uint64(
-    self.get-native-object-no-reffing, $v_uint64
+    self._get-native-object-no-reffing, $v_uint64
   );
 }
 
@@ -1766,7 +1766,7 @@ Set the contents of a C<G-TYPE-ULONG> B<Gnome::GObject::Value> to I<v-ulong>.
 method set-ulong ( UInt $v_ulong ) {
 
   g_value_set_ulong(
-    self.get-native-object-no-reffing, $v_ulong
+    self._get-native-object-no-reffing, $v_ulong
   );
 }
 
@@ -1788,10 +1788,10 @@ Set the contents of a variant B<Gnome::GObject::Value> to I<variant>. If the var
 =end pod
 
 method set-variant ( $variant is copy ) {
-  $variant .= get-native-object-no-reffing unless $variant ~~ N-GValue;
+  $variant .= _get-native-object-no-reffing unless $variant ~~ N-GValue;
 
   g_value_set_variant(
-    self.get-native-object-no-reffing, $variant
+    self._get-native-object-no-reffing, $variant
   );
 }
 
@@ -1817,7 +1817,7 @@ Returns: Newly allocated string.
 method strdup-value-contents ( --> Str ) {
 
   g_strdup_value_contents(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -1842,7 +1842,7 @@ Sets the contents of a C<G-TYPE-STRING> B<Gnome::GObject::Value> to I<v-string>.
 method take-string ( Str $v_string ) {
 
   g_value_take_string(
-    self.get-native-object-no-reffing, $v_string
+    self._get-native-object-no-reffing, $v_string
   );
 }
 
@@ -1870,10 +1870,10 @@ This is an internal function introduced mainly for C marshallers.
 =end pod
 
 method take-variant ( $variant is copy ) {
-  $variant .= get-native-object-no-reffing unless $variant ~~ N-GValue;
+  $variant .= _get-native-object-no-reffing unless $variant ~~ N-GValue;
 
   g_value_take_variant(
-    self.get-native-object-no-reffing, $variant
+    self._get-native-object-no-reffing, $variant
   );
 }
 
@@ -1897,8 +1897,8 @@ Returns: Whether a transformation rule was found and could be applied. Upon fail
 =end pod
 
 method transform ( $dest_value is copy --> Bool ) {
-  $dest_value .= get-native-object-no-reffing unless $dest_value ~~ N-GValue;
-  g_value_transform( self.get-native-object-no-reffing, $dest_value).Bool
+  $dest_value .= _get-native-object-no-reffing unless $dest_value ~~ N-GValue;
+  g_value_transform( self._get-native-object-no-reffing, $dest_value).Bool
 }
 
 sub g_value_transform (
@@ -1967,7 +1967,7 @@ Clears the current value in I<value> (if any) and "unsets" the type, this releas
 =end pod
 
 method unset ( ) {
-  g_value_unset(self.get-native-object-no-reffing);
+  g_value_unset(self._get-native-object-no-reffing);
 }
 }}
 
@@ -1993,10 +1993,10 @@ Returns: the B<Gnome::GObject::Value> structure that has been passed in
 =end pod
 
 method init ( $g_type is copy --> N-GValue ) {
-  $g_type .= get-native-object-no-reffing unless $g_type ~~ N-GValue;
+  $g_type .= _get-native-object-no-reffing unless $g_type ~~ N-GValue;
 
   g_value_init(
-    self.get-native-object-no-reffing, $g_type
+    self._get-native-object-no-reffing, $g_type
   )
 }
 }}

@@ -32,7 +32,7 @@ unless %*ENV<raku_test_all>:exists {
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
   my Gnome::Gtk3::Button $b .= new(:label<stop>);
-  my N-GObject $n-button = $b.get-native-object-no-reffing;
+  my N-GObject $n-button = $b._get-native-object-no-reffing;
   isa-ok $n-button, N-GObject;
 
 #note $n-button;

@@ -212,7 +212,7 @@ submethod BUILD ( *%options ) {
     # If test mode is triggered by Gnome::T
 note "Test mode: $test-mode";
     if $test-mode {
-      my $no = self.get-native-object-no-reffing;
+      my $no = self._get-native-object-no-reffing;
 note "native object: ", $no.raku;
       my Gnome::GObject::Type $t .= new;
 
@@ -266,7 +266,7 @@ note "widget path: $widget-path";
       note "store native object: ", self.^name, ', ', $native-object
         if $Gnome::N::x-debug;
 
-      self.set-native-object($native-object);
+      self._set-native-object($native-object);
     }
 
     else {
@@ -299,7 +299,7 @@ method _fallback ( $native-sub --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
-method set-native-object ( $n-native-object ) {
+method _set-native-object ( $n-native-object ) {
   if ? $n-native-object {
     # when object is set, create signal object too
     #$!g-signal .= new(:g-object($n-native-object));
@@ -663,7 +663,7 @@ method get-properties ( *@properties --> List ) {
   state $ptr = cglobal( &gtk-lib, 'g_object_get', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-  $f( self.get-native-object-no-reffing, |@pl, Nil);
+  $f( self._get-native-object-no-reffing, |@pl, Nil);
 
   my @ret-values = ();
   for @pl -> $key, $v {
@@ -712,9 +712,9 @@ multi method get-property(
   gchar-ptr $property_name, Int $gtype --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($gtype));
-  my N-GValue $nv = $v.get-native-object-no-reffing;
+  my N-GValue $nv = $v._get-native-object-no-reffing;
   _g_object_get_property(
-    self.get-native-object-no-reffing, $property_name, $nv
+    self._get-native-object-no-reffing, $property_name, $nv
   );
 
   $v
@@ -723,13 +723,13 @@ multi method get-property(
 multi method get-property(
   gchar-ptr $property_name, $value is copy --> Gnome::GObject::Value
 ) {
-  $value .= get-native-object-no-reffing unless $value ~~ N-GValue;
+  $value .= _get-native-object-no-reffing unless $value ~~ N-GValue;
 
   my Gnome::GObject::Value $v .= new(:init($value.g-type));
   _g_object_get_property(
-    self.get-native-object-no-reffing, $property_name, $value
+    self._get-native-object-no-reffing, $property_name, $value
   );
-  $v.set-native-object($value);
+  $v._set-native-object($value);
 
   $v
 }
@@ -746,9 +746,9 @@ multi sub g_object_get_property (
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-object;
+  my N-GValue $nv = $v._get-native-object;
   _g_object_get_property( $object, $property_name, $nv);
-#  $v.set-native-object($nv);
+#  $v._set-native-object($nv);
 
   $v
 }
@@ -760,7 +760,7 @@ multi sub g_object_get_property (
 ) {
   my Gnome::GObject::Value $v .= new(:init($nv.g-type));
   _g_object_get_property( $object, $property_name, $nv);
-  $v.set-native-object($nv);
+  $v._set-native-object($nv);
 
   $v
 }
@@ -772,9 +772,9 @@ multi sub g_object_get_property (
   --> Gnome::GObject::Value
 ) {
   my Gnome::GObject::Value $v .= new(:init($type));
-  my N-GValue $nv = $v.get-native-object;
+  my N-GValue $nv = $v._get-native-object;
   _g_object_get_property( $object, $property_name, $nv);
-  $v.set-native-object($nv);
+  $v._set-native-object($nv);
 
   $v
 }
@@ -801,7 +801,7 @@ Returns: C<True> if I<object> has a floating reference
 
 =end pod
 method is-floating ( --> Bool ) {
-  g_object_is_floating(self.get-native-object-no-reffing).Bool
+  g_object_is_floating(self._get-native-object-no-reffing).Bool
 }
 
 sub g_object_is_floating ( N-GObject $object --> gboolean )
@@ -826,7 +826,7 @@ Returns: N-GObject
 =end pod
 
 method ref-sink ( --> N-GObject ) {
-  g_object_ref_sink(self.get-native-object-no-reffing)
+  g_object_ref_sink(self._get-native-object-no-reffing)
 }
 
 sub g_object_ref_sink ( N-GObject $object --> N-GObject )
@@ -1142,7 +1142,7 @@ method register-signal (
 
         state %shkeys = %( :&w0, :&w1, :&w2, :&w3, :&w4, :&w5, :&w6);
 
-        my $no = self.get-native-object-no-reffing;
+        my $no = self._get-native-object-no-reffing;
         note "\nSignal type and name: $signal-type, $signal-name\nHandler: $sh.perl(),\n" if $Gnome::N::x-debug;
 
 #        $handler-id = $!g-signal._convert_g_signal_connect_object(
@@ -1330,7 +1330,7 @@ An elaborate example of more complex data can be used with BSON. This is an impl
 method set-data ( Str $key, $data is copy ) {
 
   # if $data is a raku widget (Gnome::GObject::Object), get the native object
-  $data .= get-native-object if $data.^can('get-native-object');
+  $data .= _get-native-object if $data.^can('_get-native-object');
 
   my $d;
   given $data.^name {
@@ -1404,7 +1404,7 @@ method set-data ( Str $key, $data is copy ) {
     }
 
 #    when Gnome::GObject::Object {
-#      $d = CArray[N-GObject].new($data.get-native-object);
+#      $d = CArray[N-GObject].new($data._get-native-object);
 #    }
 
     when 'N-GObject' {
@@ -1574,7 +1574,7 @@ method set-properties ( *%properties ) {
   state $ptr = cglobal( &gtk-lib, 'g_object_set', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-  $f( self.get-native-object-no-reffing, |@pl, Nil);
+  $f( self._get-native-object-no-reffing, |@pl, Nil);
 }
 
 #-------------------------------------------------------------------------------
@@ -1592,10 +1592,10 @@ Sets a property on an object.
 =end pod
 
 method set-property ( gchar-ptr $property_name, $value is copy ) {
-  $value .= get-native-object-no-reffing unless $value ~~ N-GValue;
+  $value .= _get-native-object-no-reffing unless $value ~~ N-GValue;
 
   g_object_set_property(
-    self.get-native-object-no-reffing, $property_name, $value
+    self._get-native-object-no-reffing, $property_name, $value
   );
 }
 
@@ -1713,7 +1713,7 @@ Returns: the data if found, or C<Any> if no such data exists.
 
 #`{{
 method steal-data ( Str $key --> Pointer ) {
-  g_object_steal_data( self.get-native-object-no-reffing, $key);
+  g_object_steal_data( self._get-native-object-no-reffing, $key);
 }
 }}
 
@@ -1970,7 +1970,7 @@ method g-object-setv ( Array $names, Array $values ) {
     $v[$i] = $values[$i];
   }
 
-  _g_object_setv( self.get-native-object, $l, $n, $v)
+  _g_object_setv( self._get-native-object, $l, $n, $v)
 }
 
 sub _g_object_setv (
