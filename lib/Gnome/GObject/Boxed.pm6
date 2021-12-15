@@ -8,9 +8,10 @@ A mechanism to wrap opaque C structures registered by the type system
 
 =head1 Description
 
-GBoxed is a generic wrapper mechanism for arbitrary C structures. The only thing the type system needs to know about the structures is how to copy and  free them, beyond that they are treated as opaque chunks of memory.
+B<Gnome::GObject::Boxed> is a generic wrapper mechanism for arbitrary C structures. The only thing the type system needs to know about the structures is how to copy and  free them, beyond that they are treated as opaque chunks of memory.
 
-Boxed types are useful for simple value-holder structures like rectangles or points. They can also be used for wrapping structures defined in non-GObject based libraries.
+Boxed types are useful for simple value-holder structures like rectangles or points.
+=comment They can also be used for wrapping structures defined in non-GObject based libraries.
 
 =begin comment
 Boxed types are useful for simple value-holder structures like rectangles or points. They can also be used for wrapping structures defined in non-GObject based libraries. They allow arbitrary structures to be handled in a uniform way, allowing uniform copying (or referencing) and freeing (or unreferencing) of them, and uniform representation of the type of the contained structure. In turn, this allows any type which can be boxed to be set as the data in a GValue, which allows for polymorphic handling of a much wider range of data types, and hence usage of such types as GObject property values.
@@ -44,9 +45,10 @@ use Gnome::N::TopLevelClassSupport;
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gboxed.h
 # https://developer.gnome.org/gobject/stable/gobject-Boxed-Types.html
-unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
+unit class Gnome::GObject::Boxed:auth<github:MARTIMM>:ver<0.2.0>;
 also is Gnome::N::TopLevelClassSupport;
 
+#`{{
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 method _fallback ( $native-sub is copy --> Callable ) {
@@ -62,32 +64,7 @@ method _fallback ( $native-sub is copy --> Callable ) {
   $s;
 }
 
-#-------------------------------------------------------------------------------
-#TODO destroy when overwritten?
-method native-gboxed ( Any:D $g-boxed --> Any ) {
-
-  Gnome::N::deprecate(
-    '.native-gboxed()', '.set-native-object()', '0.15.10', '0.18.0'
-  );
-
-  #$!n-native-object = $g-boxed;
-  #$!n-native-object
-  self.set-native-object($g-boxed);
-  $g-boxed
-}
-
-#-------------------------------------------------------------------------------
-method get-native-gboxed ( --> Any ) {
-
-  Gnome::N::deprecate(
-    '.get-native-gboxed()', '.get-native-object()', '0.15.10', '0.18.0'
-  );
-
-  #$!n-native-object
-  self.get-native-object
-}
-
-
+}}
 
 
 
