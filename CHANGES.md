@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-03-02 0.19.5
+  * Changed `N-GClosure` in `N-GObject`
+
 * 2021-12-12 0.19.4
   * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
 

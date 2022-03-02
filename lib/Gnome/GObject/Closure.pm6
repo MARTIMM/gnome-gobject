@@ -153,115 +153,6 @@ also is Gnome::GObject::Boxed;
 =end pod
 
 #-------------------------------------------------------------------------------
-#`{{
-=begin pod
-=head2 class N-GClosure
-
-A B<Gnome::GObject::Closure> represents a callback supplied by the programmer.
-
-=item $.in-marshal: Indicates whether the closure is currently being invoked with C<invoke()>
-=item $.is-invalid: Indicates whether the closure has been invalidated by  C<g-closure-invalidate()>
-
-=end pod
-
-:1 means 1 bit in an guint. second bit is in the same int.
-
-typedef struct {
-  volatile       	guint	 in_marshal : 1;
-  volatile       	guint	 is_invalid : 1;
-} GClosure;
-}}
-
-#TT:1:N-GClosure:
-class N-GClosure is export is repr('CStruct') {
-
-  # holds both bits
-  has guint $.closure-info = 0;
-#`{{
-  method in-marshal ( --> Bool ) {
-    ($!closure-info +& 0b01).Bool;
-  }
-
-  method is-invalid ( --> Bool ) {
-    ($!closure-info +& 0b10).Bool;
-  }
-}}
-}
-
-#-------------------------------------------------------------------------------
-#void (*GClosureNotify) (gpointer data, GClosure *closure);
-#void (*GCallback) (void);
-
-#subset GClosureNotify of Callable where * == \( Pointer, N-GClosure);
-#subset GCallback of Callable ();
-
-#subset GClosureNotify of Callable
-#  where .signature ~~ :( gpointer $p, N-GClosure $c);
-
-#`{{
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 class N-GCClosure
-
-=begin comment
-A B<Gnome::GObject::CClosure> is a specialization of B<Gnome::GObject::Closure> for C function callbacks.
-
-=item N-GClosure $closure: the native Closure object
-=item gpointer $callback: the callback function
-=end comment
-
-=end pod
-
-#`{{
-typedef struct {
-  GClosure	closure;
-  gpointer	callback;
-} GCClosure;
-}}
-
-# TT:0:N-GCClosure:
-class N-GCClosure is export is repr('CStruct') {
-  has gpointer $.data;
-  has gpointer $.notify;      # GClosureNotify
-
-  submethod BUILD (
-    Callable $notify ( gpointer $data, N-GClosure $closure),
-    gpointer $!data
-  ) {
-    $!notify = nativecast( Pointer, $notify);
-  }
-}
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 class N-GVaClosureMarshal
-
-This is the signature of va-list marshaller functions, an optional
-marshaller that can be used in some situations to avoid
-marshalling the signal argument into GValues.
-
-
-=item N-GObject $.closure: the B<Gnome::GObject::Closure> to which the marshaller belongs
-=item ---return-value: (nullable): a B<Gnome::GObject::Value> to store the return value. May be C<undefined> if the callback of I<closure> doesn't return a value.
-=item ---instance: (type GObject.TypeInstance): the instance on which the closure is invoked.
-=item ---args: va-list of arguments to be passed to the closure.
-=item ---marshal-data: (nullable): additional data specified when registering the marshaller, see C<set-marshal()> and C<g-closure-set-meta-marshal()>
-=item ---n-params: the length of the I<param-types> array
-=item ---param-types: (array length=n-params): the B<Gnome::GObject::Type> of each argument from I<args>.
-
-
-=end pod
-
-# TT:0:N-GVaClosureMarshal:
-class N-GVaClosureMarshal is export is repr('CStruct') {
-  has N-GObject $.closure;
-  has gpointer $.callback;
-}
-}}
-
-#-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
 =head2 new
@@ -319,7 +210,7 @@ submethod BUILD ( *%options ) {
             }
           },
           gpointer,
-          -> gpointer $d, N-GClosure $c {
+          -> gpointer $d, N-GObject $c {
             note 'destroy: closure info is ', $c.closure-info.base(2)
               if $Gnome::N::x-debug;
           }
@@ -392,7 +283,7 @@ method add-finalize-notifier ( Pointer $notify_data, GClosureNotify $notify_func
 }
 
 sub g_closure_add_finalize_notifier (
-  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GClosure $closure)
+  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GObject $closure)
 ) is native(&gobject-lib)
   { * }
 }}
@@ -419,7 +310,7 @@ method add-invalidate-notifier ( Pointer $notify_data, GClosureNotify $notify_fu
 }
 
 sub g_closure_add_invalidate_notifier (
-  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GClosure $closure)
+  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GObject $closure)
 ) is native(&gobject-lib)
   { * }
 }}
@@ -564,7 +455,7 @@ Note that C<g-closure-invalidate()> will also be called when the reference count
 =end pod
 
 method invalidate ( ) {
-  my N-GClosure $no = self._get-native-object-no-reffing;
+  my N-GObject $no = self._get-native-object-no-reffing;
   g_closure_invalidate($no);
   _g_closure_sink($no);
   _g_closure_ref($no);
@@ -572,7 +463,7 @@ method invalidate ( ) {
 }
 
 sub g_closure_invalidate (
-  N-GClosure $closure
+  N-GObject $closure
 ) is native(&gobject-lib)
   { * }
 
@@ -630,7 +521,7 @@ method ref ( --> N-GObject ) {
 }}
 
 sub _g_closure_ref (
-  N-GClosure $closure --> N-GClosure
+  N-GObject $closure --> N-GObject
 ) is native(&gobject-lib)
   is symbol('g_closure_ref')
   { * }
@@ -659,7 +550,7 @@ method remove-finalize-notifier ( Pointer $notify_data, GClosureNotify $notify_f
 }
 
 sub g_closure_remove_finalize_notifier (
-  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GClosure $closure)
+  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GObject $closure)
 ) is native(&gobject-lib)
   { * }
 }}
@@ -687,7 +578,7 @@ method remove-invalidate-notifier ( Pointer $notify_data, GClosureNotify $notify
 }
 
 sub g_closure_remove_invalidate_notifier (
-  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GClosure $closure)
+  N-GObject $closure, gpointer $notify_data, Callable $notify_func ( gpointer $data, N-GObject $closure)
 ) is native(&gobject-lib)
   { * }
 }}
@@ -791,7 +682,7 @@ method sink ( ) {
 }}
 
 sub _g_closure_sink (
-  N-GClosure $closure
+  N-GObject $closure
 ) is native(&gobject-lib)
   is symbol('g_closure_sink')
   { * }
@@ -817,7 +708,7 @@ method unref ( ) {
 }}
 
 sub _g_closure_unref (
-  N-GClosure $closure
+  N-GObject $closure
 ) is native(&gobject-lib)
   is symbol('g_closure_unref')
   { * }
@@ -852,8 +743,8 @@ method g-cclosure-new ( GCallback $callback_func, Pointer $user_data, GClosureNo
 
 sub _g_cclosure_new (
   Callable $callback_func ( ), gpointer $user_data,
-  Callable $destroy_data ( gpointer $data, N-GClosure $closure)
-  --> N-GClosure
+  Callable $destroy_data ( gpointer $data, N-GObject $closure)
+  --> N-GObject
 ) is native(&gobject-lib)
   is symbol('g_cclosure_new')
   { * }
