@@ -971,11 +971,11 @@ method register-signal (
     # self can't be closed over
     my $current-object = self;
 
-    # overwrite any user specified widget argument
     my %named-args = %user-options;
-    %named-args<widget> := $current-object;
     %named-args<_widget> := $current-object;
     %named-args<_handler-id> := $handler-id;
+# overwrite any user specified widget argument
+#    %named-args<widget> := $current-object;
 #    Gnome::N::deprecate( 'callback(:widget)', 'callback(:_widget)', '0.16.8', '0.20.0');
 
     sub w0 ( N-GObject $w, gpointer $d ) is export {
