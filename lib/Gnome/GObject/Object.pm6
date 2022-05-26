@@ -972,8 +972,8 @@ method register-signal (
     my $current-object = self;
 
     my %named-args = %user-options;
-    %named-args<_widget> := $current-object;
-    %named-args<_handler-id> := $handler-id;
+    %named-args<_widget> = $current-object;
+    %named-args<_handler-id> = $handler-id;
 # overwrite any user specified widget argument
 #    %named-args<widget> := $current-object;
 #    Gnome::N::deprecate( 'callback(:widget)', 'callback(:_widget)', '0.16.8', '0.20.0');
@@ -1136,21 +1136,14 @@ method register-signal (
       $retval
     }
 
-    given $signal-type {
-      # handle a widget, maybe other arguments and an ignorable data pointer
-      when / w $<nbr-args> = (\d*) / {
+    # Set the handler for the specified signal
+    state %shkeys = %( :&w0, :&w1, :&w2, :&w3, :&w4, :&w5, :&w6);
+    my $no = self._get-native-object-no-reffing;
+    $handler-id = self._convert_g_signal_connect_object(
+      $no, $signal-name, $sh, %shkeys{$signal-type}
+    );
 
-        state %shkeys = %( :&w0, :&w1, :&w2, :&w3, :&w4, :&w5, :&w6);
-
-        my $no = self._get-native-object-no-reffing;
-        note "\nSignal type and name: $signal-type, $signal-name\nHandler: $sh.perl(),\n" if $Gnome::N::x-debug;
-
-#        $handler-id = $!g-signal._convert_g_signal_connect_object(
-        $handler-id = self._convert_g_signal_connect_object(
-          $no, $signal-name, $sh, %shkeys{$signal-type}
-        );
-      }
-    }
+    note "\nSignal type and name: $signal-type, $handler-id, $signal-name\nHandler: $sh.gist(),\n" if $Gnome::N::x-debug;
   }
 
   else {
@@ -1407,6 +1400,7 @@ method set-data ( Str $key, $data is copy ) {
 #      $d = CArray[N-GObject].new($data._get-native-object);
 #    }
 
+#TODO $data automatically coerced?
     when 'N-GObject' {
       $d = CArray[N-GObject].new($data);
     }
@@ -1436,7 +1430,7 @@ Sets properties on an object.
 Note that the "notify" signals are queued and only emitted (in reverse order) after all properties have been set.
 =comment See C<g_object_freeze_notify()>.
 
-  method set-properties ( Str $prop-name, $prop-value, … )
+  method set-properties ( Str :$prop-name($prop-value), … )
 
 =item Str $prop-name; name of a property to set.
 =item $prop-value; The value of the property to set. Its type can be any of Str, Int, Num, Bool, int8, int16, int32, int64, num32, num64, GEnum, GFlag, GQuark, GType, gboolean, gchar, guchar, gdouble, gfloat, gint, gint8, gint16, gint32, gint64, glong, gshort, guint, guint8, guint16, guint32, guint64, gulong, gushort, gsize, gssize, gpointer or time_t. Int is converted to int32 and Num to num32. You must use B<Gnome::N::GlibToRakuTypes> to have the g* types and time_t.

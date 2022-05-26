@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-05-26 0.19.7
+  * Improve/simplificatios registering a signal
+
 * 2022-03-02 0.19.6
   * Remove use of :widget in callbacks set by register-signal
 
