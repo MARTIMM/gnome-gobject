@@ -1,4 +1,28 @@
 ## Release notes
+* 2022-07-25 0.19.8
+  * Deprecate the use of `:$_widget` in event callback handlers, use `:$_native_object` instead. The latter is always defined while the first might be destroyed by the user to free memory.
+
+    An example to show the use of `:$_native_object` with the `add` signal callback handler from **Gnome::Gtk3::Container**. The handler is defined as;
+  ```
+  method handler (
+    N-GObject $n-widget,
+    Gnome::Gtk3::Container :_widget($container),
+    Int :$_handler-id,
+    N-GObject :$_native-object,
+    *%user-options
+  )
+  ```
+  This could be implemented as
+  ```
+  method add-event (
+    N-GObject $added-widget,
+    Gnome::Gtk3::Container() :_native-object($container)
+  ) { … }
+  ```
+  From this, it follows that the named argument `:$_widget` is not useful anymore. Therefore the use of this named argument is deprecated.
+
+  * Bug fixed in register-signal method
+
 * 2022-05-26 0.19.7
   * Improve/simplificatios registering a signal
 
