@@ -7,29 +7,30 @@ use NativeCall;
 use Gnome::N::N-GObject;
 use Gnome::N::GlibToRakuTypes;
 
-use Gnome::Gdk3::Events;
-use Gnome::Gdk3::Types;
-use Gnome::Gdk3::Keysyms;
-
 use Gnome::Gtk3::Main;
 use Gnome::Gtk3::Enums;
 use Gnome::Gtk3::Window;
 use Gnome::Gtk3::Grid;
 use Gnome::Gtk3::Button;
+use Gnome::Gtk3::Tooltip;
+
+use Gnome::Gdk3::Events;
+use Gnome::Gdk3::Types;
+use Gnome::Gdk3::Keysyms;
 
 
 my Gnome::Gtk3::Main $m .= new;
 
-use Gnome::N::X;
-Gnome::N::debug(:on);
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
 
 class AppSignalHandlers {
 
   # Focus handling
   method focus-handle (
-    GEnum $direction, :$_widget, Str :$my-arg0, Str :$my-arg1 --> gboolean
+    GEnum $direction, :$_native-object, Str :$my-arg0, Str :$my-arg1 --> gboolean
   ) {
-    note "Focus event, widget: ", $_widget;
+    note "Focus event, widget: ", $_native-object.().get-name;
     note "Dir type: ", GtkDirectionType($direction);
     note "User args: $my-arg0, $my-arg1";
 
@@ -37,25 +38,32 @@ class AppSignalHandlers {
   }
 
   # Click button
-  method click-button1 ( :$_widget, :$some-arg ) {
-    note "Click 1 event, widget: ", $_widget, ", $some-arg";
+  method click-button1 (
+    Gnome::Gtk3::Button() :_native-object($button), :$some-arg
+  ) {
+    note "Click 1 event, widget: ", $button.get-name, ", $some-arg";
   }
 
   # Click button
-  method click-button2 ( :$_widget, :$some-arg ) {
-    note "Click 2 event, widget: ", $_widget, ", $some-arg";
+  method click-button2 (
+    Gnome::Gtk3::Button() :_native-object($button), :$some-arg
+  ) {
+    note "Click 2 event, widget: ", $button.get-name, ", $some-arg";
   }
 
   # Handle window managers 'close app' button
-  method exit-program ( :$_widget ) {
-    note "Destroy event, widget: ", $_widget;
+  method exit-program ( Gnome::Gtk3::Window() :$_native-object ) {
+    note "Destroy event, widget: ", $_native-object.get-name;
     $m.gtk-main-quit;
   }
 
   # Handle keyboard event
-  method keyboard-event ( GdkEvent $event, :$_widget, :$time --> gboolean ) {
+  method keyboard-event (
+    N-GdkEvent $event, :$time, Gnome::Gtk3::Window() :_native-object($window),
+    --> gboolean
+  ) {
 
-    my GdkEventKey $event-key := $event.event-key;
+    my N-GdkEventKey $event-key := $event.event-key;
     note "\nevent type: ", GdkEventType($event-key.type);
     note "state: ", $event-key.state.base(2);
     for 0,1,2,4,8 ... 2**(32-1) -> $mask-bit {
@@ -76,11 +84,14 @@ class AppSignalHandlers {
   }
 
   #-----------------------------------------------------------------------------
-  method mouse-event ( GdkEvent $event, :_widget($window) --> gboolean ) {
+  method mouse-event (
+    N-GdkEvent $event, Gnome::Gtk3::Window() :_native-object($window)
+    --> gboolean
+  ) {
 
     my GdkEventType $t = GdkEventType($event.event-any.type);
     note "\nevent type: $t";
-    my GdkEventButton $event-button := $event.event-button;
+    my N-GdkEventButton $event-button := $event.event-button;
     note "x, y: ", $event-button.x, ', ', $event-button.y;
     note "Root x, y: ", $event-button.x_root, ', ', $event-button.y_root;
     for 0,1,2,4,8 ... 2**(32-1) -> $m {
@@ -96,11 +107,18 @@ class AppSignalHandlers {
 
   #-----------------------------------------------------------------------------
   method handle-query (
-    gint $x, gint $y, gboolean $kb-mode, N-GObject $tooltip --> gboolean
+    gint $x, gint $y, gboolean $kb-mode, N-GObject $no-tooltip,
+    Gnome::Gtk3::Button() :_native-object($button)
+    --> gboolean
   ) {
-    note "\n query-tooltip\nXY: $x, $y";
+    note "\nquery-tooltip\nXY: $x, $y";
     note "keyboard mode: $kb-mode";
-    note "tooltip object: ", $tooltip;
+
+    note "tooltip available: ", ?$no-tooltip;
+    if ? $no-tooltip {
+      my Gnome::Gtk3::Tooltip() $tooltip = $no-tooltip;
+      note "tooltip: ", $button.get-tooltip-text;
+    }
 
     0;
   }
@@ -115,7 +133,7 @@ $top-window.add($grid);
 
 my Gnome::Gtk3::Button $b1 .= new(:label('Long Button 1 Text Blurp'));
 $grid.gtk-grid-attach( $b1, 0, 0, 1, 1);
-$b1.set_tooltip_text('button 1 tooltip text');
+$b1.set-tooltip-text('button 1 tooltip text');
 my Gnome::Gtk3::Button $b2 .= new(:label('Long Button 2 Text Blurp'));
 $grid.gtk-grid-attach( $b2, 0, 1, 1, 1);
 
@@ -150,7 +168,7 @@ $top-window.register-signal(
 
 # the difficult way; a) provide handler, b) connect, c) define unused arguments
 my Callable $handler = sub (
-  N-GObject $ignore-w, GdkEvent $event, OpaquePointer $ignore-d
+  N-GObject $ignore-w, N-GdkEvent $event, OpaquePointer $ignore-d
   --> gboolean
 ) {
   $ash.mouse-event( $event, :widget($top-window))
