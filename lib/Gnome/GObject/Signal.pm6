@@ -8,7 +8,11 @@ use v6.d;
 
 A means for customization of object behaviour and a general purpose notification mechanism
 
+
 =head1 Description
+
+B<Gnome::GObject::Signal> is a role used by B<Gnome::GObject::Object> to provide a means to register signals or disconnect them.
+
 
 =head1 Synopsis
 =head2 Declaration
@@ -28,35 +32,41 @@ A means for customization of object behaviour and a general purpose notification
   use Gnome::Gdk3::Events;
   use Gnome::Gtk3::Window;
 
-  # Get a window object
-  my Gnome::Gtk3::Window $w .= new( ... );
+  # Create a window object
+  my Gnome::Gtk3::Window $w .= new( … );
 
   # Define proper handler. The handler API must describe all arguments
   # and their types.
   my Callable $handler = sub (
     N-GObject $native-widget, N-GdkEvent $event, OpaquePointer $ignored
   ) {
-    ...
+    …
   }
 
   # Connect signal to the handler.
   $w.connect-object( 'button-press-event', $handler);
 
-The other option to connect a signal is to use the C<register-signal()> method defined in B<Gnome::GObject::Object>. It all depends on how elaborate things are or taste.
+The other option to connect a signal is to use the C<register-signal()> method defined in B<Gnome::GObject::Object>. It all depends on how elaborate things are or your taste.
 
   use Gnome::Gdk3::Events;
   use Gnome::Gtk3::Window;
 
-  # Define handler method. The handler API must describe all positional
-  # arguments and their types.
-  method mouse-event ( N-GdkEvent $event, :$_widget , :$_handler-id) { ... }
+  class MyClass {
+    # Define handler method. The handler API must describe all positional
+    # arguments and their types.
+    method mouse-event (
+      N-GdkEvent $event,
+      Gnome::Gtk3::Window() :$_native-object,
+      Int :$_handler-id) { … }
 
-  # Get a window object
-  my Gnome::Gtk3::Window $w .= new( ... );
+    # Get a window object
+    my Gnome::Gtk3::Window $w .= new( … );
 
-  # Then register
-  $w.register-signal( self, 'mouse-event', 'button-press-event');
+    # Then register
+    $w.register-signal( self, 'mouse-event', 'button-press-event');
 
+    …
+  }
 
 When some of the primitive types are needed like C<gboolean> or C<guint>, you can just use the module B<Gnome::N::GlibToRakuTypes> and leave the types as they are found in the docs. It might be tricky to choose the proper type: e.g. is a C<guint> an C<unsigned int32> or C<unsigned int64>? By the way, enumerations can be typed C<GEnum>.
 
@@ -85,20 +95,6 @@ unit role Gnome::GObject::Signal:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 # submethod BUILD ( *%options ) { }
-
-#`{{
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-method _signal_interface ( Str $native-sub --> Callable ) {
-
-  my Callable $s;
-  try { $s = &::("g_signal_$native-sub"); } unless ?$s;
-  try { $s = &::("g_$native-sub"); } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
-
-  $s
-}
-}}
 
 #-------------------------------------------------------------------------------
 #TM:2:connect-object:
@@ -172,9 +168,17 @@ method _convert_g_signal_connect_object (
   # instance which is not needed in the argument list to the handler.
   for $user-handler.signature.params[1..*-1] -> $p {
 
-    next if $p.name ~~ Nil;       # seems to be between it in the list
+    # named argument. test for '$_widget` and deprecate the use of it. then skip
+    if $p.named {
+      Gnome::N::deprecate(
+        'named argument :$_widget', ':$_native-object', '0.19.8', '0.21.0'
+      ) if $p.name eq '$_widget';
+
+      next;
+    }
+
+    next if $p.name ~~ Nil;       # seems to be possible
     next if $p.name eq '%_';      # only at the end I think
-    next if $p.named;             # named argument
 
     @sub-parameter-list.push(self!convert-type($p.type));
   }
@@ -225,7 +229,7 @@ method _convert_g_signal_connect_object (
   state $ptr = cglobal( gobject-lib(), 'g_signal_connect_object', Pointer);
 
   my Callable $f = nativecast( $signature, $ptr);
-#note "F: $f.perl()";
+#note "F: $f.gist()";
 
   note [~] "Calling: .g_signal_connect_object\(\n",
     "  $instance.perl(),\n",
@@ -237,19 +241,23 @@ method _convert_g_signal_connect_object (
     ');'  if $Gnome::N::x-debug;
 
   # returns the signal id
-#note "F: $instance.perl(), $detailed-signal, $provided-handler.perl()";
+
+#note "F: $instance.gist(), $detailed-signal, $provided-handler.gist()";
   $f( $instance, $detailed-signal, $provided-handler, gpointer, 0)
 }
 
 #-------------------------------------------------------------------------------
 method !convert-type ( $type, Bool :$type-only = False --> Any ) {
   my $converted-type;
-  given $type {
+
+#note 'type: ', $type.^name;
+  given $type.^name {
     when Bool { $converted-type = gboolean; }
     when UInt { $converted-type = guint; }
     when Int { $converted-type = gint; }
     when Num { $converted-type = gfloat; }
     when Rat { $converted-type = gdouble; }
+    when /^ Gnome '::' / { $converted-type = N-GObject; }
     default { $converted-type = $type; }
   }
 
@@ -272,7 +280,7 @@ method !convert-type ( $type, Bool :$type-only = False --> Any ) {
 
 Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to the default if no handlers are connected.
 
-  g_signal_emit_by_name (
+  emit-by-name (
     Str $detailed-signal, *@handler-arguments,
     Array :$parameters, :$return-type
   )
@@ -291,7 +299,7 @@ Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to 
 
   # The extra argument here is $toggle
   method enable-debugging-handler (
-    gboolean $toggle, Gnome::Gtk3::Window :$_widget
+    gboolean $toggle, Gnome::Gtk3::Window() :$_native-object
     --> gboolean
   ) {
     ...
@@ -326,6 +334,7 @@ method emit-by-name (
   )
 }
 
+#TODO merge later as a methpd when deprecating _fallback
 sub g_signal_emit_by_name (
   N-GObject $instance, Str $detailed_signal, *@handler-arguments, *%options
   --> Any
@@ -372,32 +381,36 @@ sub g_signal_emit_by_name (
 }
 
 #-------------------------------------------------------------------------------
-#TM:4:g_signal_handler_disconnect:Gnome::Gtk3 ex-signal.pl6
+#TM:4:handler-disconnect:Gnome::Gtk3 ex-signal.pl6
 =begin pod
-=head2 [[g_] signal_] handler_disconnect
+=head2 handler-disconnect
 
 Disconnects a handler from an instance so it will not be called during any future or currently ongoing emissions of the signal it has been connected to. The handler_id becomes invalid and may be reused.
 
-The handler_id has to be a valid signal handler id, connected to a signal of instance.
+The C<$handler-id> has to be a valid signal handler id, connected to a signal of instance.
 
-  g_signal_handler_disconnect( Int $handler_id )
+  handler-disconnect ( Int $handler-id )
 
 =item $handler_id; Handler id of the handler to be disconnected.
 =end pod
 
-sub g_signal_handler_disconnect( N-GObject $widget, gulong $handler_id )
+method handler-disconnect ( Int $handler-id ) {
+  g_signal_handler_disconnect( self._f, $handler-id);
+}
+
+sub g_signal_handler_disconnect( N-GObject $widget, gulong $handler-id )
   is native(&gobject-lib)
   is export # temporary
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:2:g_signal_name:xt/Object.t
+#TM:2:signal-name:xt/Object.t
 =begin pod
-=head2 [g_] signal_name
+=head2 signal-name
 
 Given the signal's identifier, finds its name. Two different signals may have the same name, if they have differing types.
 
-  g_signal_name( UInt $signal-id --> Str )
+  signal-name( UInt $signal-id --> Str )
 
 =item $signal-id; the signal's identifying number.
 
@@ -405,175 +418,11 @@ Returns the signal name, or NULL if the signal number was invalid.
 
 =end pod
 
-sub g_signal_name( guint $signal_id --> Str )
-  is native(&gobject-lib)
-#  is symbol('g_signal_name')
-  is export # temporary
-  { * }
-
-
-
-
-
-
-=finish
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head1 Methods
-
-=head2 [g_] signal_connect
-
-In this project it uses C<g_signal_connect_object()> explained below.
-
-  method g_signal_connect( Str $signal, Callable $handler --> uint64 )
-
-=item $signal; a string of the form C<signal-name::detail>.
-=item $handler; the callback to connect.
-
-=end pod
-
-sub g_signal_connect (
-  N-GObject $widget, Str $signal, Callable $handler
-  --> uint64
-) is inlinable {
-  g_signal_connect_object( $widget, $signal, $handler)
+method signal-name ( Int $signal-id --> Str ) {
+  g_signal_name( self._f, $signal-id)
 }
 
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 [[g_] signal_] connect_data
-
-Connects a callback function to a signal for a particular object. Similar to C<g_signal_connect()>, but allows to provide a GClosureNotify for the data which will be called when the signal handler is disconnected and no longer used.
-
-  method g_signal_connect_data ( Str $signal, Callable $handler --> uint64 )
-
-=item $signal; a string of the form "signal-name::detail".
-=item $handler; callback function to connect.
-
-=end pod
-sub g_signal_connect_data(
-  N-GObject $widget, Str $signal, Callable $handler,
-  --> uint64
-) {
-
-  # OpaquePointer for userdata which will never be send around
-  # 0 for connect_flags which cannot be used for G_CONNECT_AFTER
-  #   nor G_CONNECT_SWAPPED
-  # Callable for closure notify to cleanup data after disconnection.
-  #   The user data is not passed around, so, no cleanup.
-  my Callable $destroy_data = -> OpaquePointer, OpaquePointer {};
-  my @args = $widget, $signal, $handler, OpaquePointer, $destroy_data, 0;
-
-  given $handler.signature {
-    when $signal-type { _g_signal_connect_data_signal(|@args) }
-    when $event-type { _g_signal_connect_data_event(|@args) }
-    when $nativewidget-type { _g_signal_connect_data_nativewidget(|@args) }
-
-    default {
-      die X::Gnome.new(:message('Handler doesn\'t have proper signature'));
-    }
-  }
-}
-
-#-------------------------------------------------------------------------------
-sub _g_signal_connect_data_signal (
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer ), OpaquePointer $data,
-  Callable $destroy_data ( OpaquePointer, OpaquePointer ),
-  int32 $connect_flags = 0
-) returns int64
+sub g_signal_name( guint $signal-id --> Str )
   is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-sub _g_signal_connect_data_event (
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, Pointer, OpaquePointer ),
-  OpaquePointer $data,
-  Callable $destroy_data ( OpaquePointer, OpaquePointer ),
-  int32 $connect_flags = 0
-) returns int64
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-sub _g_signal_connect_data_nativewidget (
-  N-GObject $widget, Str $signal,
-  Callable $handler ( N-GObject, OpaquePointer, OpaquePointer ),
-  OpaquePointer $data,
-  Callable $destroy_data ( OpaquePointer, OpaquePointer ),
-  int32 $connect_flags = 0
-) returns int64
-  is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-sub g_signal_connect_after (
-  N-GObject $widget, Str $signal, Callable $handler, OpaquePointer
-) {
-  g_signal_connect_data(
-    $widget, $signal, $handler, OpaquePointer, Any, G_CONNECT_AFTER
-  );
-}
-
-#-------------------------------------------------------------------------------
-sub g_signal_connect_swapped (
-  N-GObject $widget, Str $signal, Callable $handler, OpaquePointer
-) {
-  g_signal_connect_data(
-    $widget, $signal, $handler, OpaquePointer, Any, G_CONNECT_SWAPPED
-  );
-}
-
-#-------------------------------------------------------------------------------
-# a GQuark is a guint32, $detail is a quark
-# See https://developer.gnome.org/glib/stable/glib-Quarks.html
-#TM:0:g_signal_emit:
-=begin pod
-=head2 [[g_] signal_] emit
-
-Emits a signal.
-
-Note that C<g_signal_emit()> resets the return value to the default if no handlers are connected.
-
-  g_signal_emit ( Str $signal, N-GObject $widget )
-
-=item $signal; a string of the form "signal-name::detail".
-=item $widget; widget to pass to the handler.
-
-=end pod
-
-sub g_signal_emit (
-  N-GObject $instance, uint32 $signal_id, uint32 $detail,
-  N-GObject $widget, Str $data, Str $return-value is rw
-) is native(&gobject-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:2:g_signal_lookup:xt/Object.t
-=begin pod
-=head2 [g_] signal_lookup
-
-Given the name of the signal and the type of object it connects to, gets the signal's identifying integer.
-=comment Emitting the signal by number is somewhat faster than using the name each time.
-
-Also tries the ancestors of the given widget (the native one, held within).
-
-The widget must already have been instantiated for this function to work, as signals are always installed during class initialization.
-
-  g_signal_lookup( Str $signal-name --> Int )
-
-=item $signal-name; the signal's name.
-=end pod
-
-sub g_signal_lookup ( N-GObject $widget, Str $signal-name --> Int ) {
-
-  my Int $widget-type = tlcs_type_from_name;
-  _g_signal_lookup( $signal-name, $widget-type)
-}
-
-sub _g_signal_lookup ( Str $name, int32 $itype --> uint32 )
-  is native(&gobject-lib)
-  is symbol('g_signal_lookup')
+#  is export # temporary
   { * }

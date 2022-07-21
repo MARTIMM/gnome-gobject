@@ -856,16 +856,13 @@ $signal-name; The name of the event to be handled. Each gtk object has its own s
 %user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired. The names starting with '_' are reserved to provide other info to the user.
 
 The following reserved named arguments are available;
-  =item C<:$_widget>; The instance which registered the signal
   =item C<:$_handler-id>; The handler id which is returned from the registration
-  =item C<:$_native-object>; The native object provided by the caller. This object sometimes is usefull when the variable `$_widget` became invalid. An easy test and repair;
+  =item C<:$_native-object>; The native object provided by the caller.
   =begin code
     method some-handler (
       …,
-      Gnome::Gtk3::Button :_widget($button) is copy,
-      N-GObject :_native-object($no)
+      Gnome::Gtk3::Button() :_native-object($button)
     ) {
-      $button .= new(:native-object($no)) unless $button.is-valid;
       …
     }
   =end code
@@ -882,7 +879,7 @@ Simple handlers; e.g. a click event handler has only named arguments and are opt
 =begin item
 Complex handlers (only a bit) also have positional arguments and B<MUST> be typed because they are checked to create a signature for the call to a native subroutine. You can use the raku native types like C<int32> but several types are automatically converted to native types. The types such as gboolean, etc are defined in B<Gnome::N::GlibToRakuTypes>.
   =begin table
-  Raku type | Native type      | Native Raku type
+  Raku type | Native glib type | Native Raku type
   ===============================================
   Bool      | gboolean         | int32
   UInt      | guint            | uint32/uint64
@@ -906,7 +903,9 @@ An example of a registration and the handlers signature to handle a button click
 
   # Handler class with callback methods
   class ButtonHandlers {
-    method click-button ( :$_widget, :$_handler_id, :$my-option ) {
+    method click-button (
+      Gnome::Gtk3::Button() :_native-object($button),
+      Int :$_handler_id, :$my-option ) {
       …
     }
   }
@@ -923,10 +922,13 @@ An example where a keyboard press is handled.
   # Handler class with callback methods
   class KeyboardHandlers {
     method keyboard-handler (
-      N-GdkEvent $event, :$_widget, :$_handler_id, :$my-option
+      N-GdkEvent $event,
+      Int :$_handler_id, :$my-option
+      Gnome::Gtk3::Window() :_native-object($bwindow),
       --> gboolean
     ) {
       …
+
     }
   }
 
@@ -974,18 +976,16 @@ method register-signal (
     my %named-args = %user-options;
     %named-args<_widget> = $current-object;
     %named-args<_handler-id> = $handler-id;
-# overwrite any user specified widget argument
-#    %named-args<widget> := $current-object;
-#    Gnome::N::deprecate( 'callback(:widget)', 'callback(:_widget)', '0.16.8', '0.20.0');
 
     sub w0 ( N-GObject $w, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w0, $handler-name for $signal-name: %named-args.gist()"
+      note "\nw0, $handler-name for $signal-name: %named-args.gist()"
         if $Gnome::N::x-debug;
 
       # Mu is not an accepted value for the NativeCall interface
-      # _convert_g_signal_connect_object() in Signal makes it an gpointer
+      # _convert_g_signal_connect_object() in Signal makes it a gpointer
+      %named-args<_native-object> := $w;
       my $retval = $handler-object."$handler-name"(|%named-args);
 
       if $sh.signature.returns.gist ~~ '(Mu)' {
@@ -1002,7 +1002,7 @@ method register-signal (
     sub w1( N-GObject $w, $h0, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w1, $handler-name for $signal-name: $h0, %named-args.gist()"
+      note "\nw1, $handler-name for $signal-name: $h0, %named-args.gist()"
         if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args($h0);
@@ -1024,7 +1024,7 @@ method register-signal (
     sub w2( N-GObject $w, $h0, $h1, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w2, $handler-name for $signal-name: $h0, $h1, %named-args.gist()"
+      note "\nw2, $handler-name for $signal-name: $h0, $h1, %named-args.gist()"
         if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1);
@@ -1047,7 +1047,7 @@ method register-signal (
     sub w3( N-GObject $w, $h0, $h1, $h2, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w3, $handler-name for $signal-name: $h0, $h1, $h2, %named-args.gist()" if $Gnome::N::x-debug;
+      note "\nw3, $handler-name for $signal-name: $h0, $h1, $h2, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2);
       %named-args<_native-object> := $w;
@@ -1069,7 +1069,7 @@ method register-signal (
     sub w4( N-GObject $w, $h0, $h1, $h2, $h3, gpointer $d ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w4, $handler-name for $signal-name: $h0, $h1, $h2, $h3, %named-args.gist()" if $Gnome::N::x-debug;
+      note "\nw4, $handler-name for $signal-name: $h0, $h1, $h2, $h3, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3);
       %named-args<_native-object> := $w;
@@ -1093,7 +1093,7 @@ method register-signal (
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w5, $handler-name for $signal-name: $h0, $h1, $h2, $h3, $h4, %named-args.gist()" if $Gnome::N::x-debug;
+      note "\nw5, $handler-name for $signal-name: $h0, $h1, $h2, $h3, $h4, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4);
       %named-args<_native-object> := $w;
@@ -1117,7 +1117,7 @@ method register-signal (
     ) is export {
       CATCH { default { .message.note; .backtrace.concise.note } }
 
-      note "w6, $handler-name for $signal-name: $h0, $h1, $h2, $h3, $h4, $h5, %named-args.gist()" if $Gnome::N::x-debug;
+      note "\nw6, $handler-name for $signal-name: $h0, $h1, $h2, $h3, $h4, $h5, %named-args.gist()" if $Gnome::N::x-debug;
 
 #      my List @converted-args = self!check-args( $h0, $h1, $h2, $h3, $h4, $h5);
       %named-args<_native-object> := $w;
@@ -1444,7 +1444,7 @@ A button has e.g. the properties C<label> and C<use-underline>. To set those and
   …
 
   method my-button-click-event-handler (
-    Gnome::Gtk3::Button :_widget($button)
+    Gnome::Gtk3::Button :_native-object($button)
   ) {
     # Get the properties set elsewhere on the button
     my @rv = $button.get-properties( 'label', Str, 'use-underline', Bool);
@@ -1622,8 +1622,6 @@ Start a thread in such a way that the function can modify the user interface in 
 %user-options; Any other user data in whatever type provided as one or more named arguments except for :start-time and :new-context. These arguments are provided to the user handler when the callback is invoked.
 
 There will always be one named argument C<:$widget> which holds the class object on which the thread is started. The name 'widget' is therefore reserved.
-
-The named attribute C<:$widget> will be deprecated in the future. The name will be changed into C<:$_widget> to give the user a free hand in user provided named arguments. The names starting with '_' will then be reserved to provide special info to the user.
 
 The following named arguments can be used in the callback handler next to the other user definable options;
 
