@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-07-25 0.19.9
+  * More deprecations of the use of `:$_widget` in event callback handlers.
+
 * 2022-07-25 0.19.8
   * Deprecate the use of `:$_widget` in event callback handlers, use `:$_native_object` instead. The latter is always defined while the first might be destroyed by the user to free memory.
 
