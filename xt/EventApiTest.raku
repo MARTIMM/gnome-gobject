@@ -21,7 +21,6 @@ class Handlers {
   method tooltip-query (
     gint $x, gint $y, gboolean $kb-mode, Gnome::Gtk3::Tooltip() $tooltip,
     Gnome::Gtk3::Window() :_native-object($button),
-    Gnome::Gtk3::Window :$_widget
     --> gboolean
   ) {
     note "\n query-tooltip\nXY: $x, $y";

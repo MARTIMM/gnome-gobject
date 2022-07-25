@@ -134,7 +134,7 @@ subtest 'Signals ...', {
 
     method ... (
       'any-args',
-      Gnome::GObject::Closure :$_widget, gulong :$_handler-id
+      Gnome::GObject::Closure() :$_native-object, gulong :$_handler-id
       # --> ...
     ) {
 
