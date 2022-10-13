@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gnome GObject Interface, Please install Gnome::Gtk3",
   "name": "Gnome::GObject",
-  "version": "0.19.9",
+  "version": "0.19.10",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib", "gobject"],
 
@@ -9,13 +9,13 @@
   "license": "Artistic-2.0",
 
   "provides": {
-    "Gnome::GObject::Boxed": "lib/Gnome/GObject/Boxed.pm6",
-    "Gnome::GObject::Closure": "lib/Gnome/GObject/Closure.pm6",
-    "Gnome::GObject::InitiallyUnowned": "lib/Gnome/GObject/InitiallyUnowned.pm6",
-    "Gnome::GObject::Object": "lib/Gnome/GObject/Object.pm6",
-    "Gnome::GObject::Signal": "lib/Gnome/GObject/Signal.pm6",
-    "Gnome::GObject::Type": "lib/Gnome/GObject/Type.pm6",
-    "Gnome::GObject::Value": "lib/Gnome/GObject/Value.pm6"
+    "Gnome::GObject::Boxed": "lib/Gnome/GObject/Boxed.rakumod",
+    "Gnome::GObject::Closure": "lib/Gnome/GObject/Closure.rakumod",
+    "Gnome::GObject::InitiallyUnowned": "lib/Gnome/GObject/InitiallyUnowned.rakumod",
+    "Gnome::GObject::Object": "lib/Gnome/GObject/Object.rakumod",
+    "Gnome::GObject::Signal": "lib/Gnome/GObject/Signal.rakumod",
+    "Gnome::GObject::Type": "lib/Gnome/GObject/Type.rakumod",
+    "Gnome::GObject::Value": "lib/Gnome/GObject/Value.rakumod"
   },
 
   "source-url": "git://github.com/MARTIMM/gnome-gobject.git",
