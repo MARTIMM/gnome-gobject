@@ -434,16 +434,43 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   CATCH { .note; die; }
 
+#`{{
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
   die X::Gnome.new(:message(
     "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
     )
   ) unless $native-sub.index('_') >= 0;
+}}
+
+  my Str $new-patt = $native-sub.subst( '_', '-', :g);
 
   my Callable $s;
   try { $s = &::("g_type_$native-sub"); };
-  try { $s = &::("g_$native-sub") } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
+  if ?$s {
+    Gnome::N::deprecate(
+      "g_type_$native-sub", $new-patt, '0.19.11', '0.20.0'
+    );
+  }
+
+  else {
+    try { $s = &::("g_$native-sub") } unless ?$s;
+    if ?$s {
+      Gnome::N::deprecate(
+        "g_$native-sub", $new-patt.subst('type-'),
+        '0.19.11', '0.20.0'
+      );
+    }
+
+    else {
+      try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
+      if ?$s {
+        Gnome::N::deprecate(
+          "$native-sub", $new-patt.subst('g-type-'),
+          '0.19.11', '0.20.0'
+        );
+      }
+    }
+  }
 
   $s(|c)
 }
