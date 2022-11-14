@@ -13,11 +13,15 @@ I<B<Note: The methods described here are mostly used internally and is not of mu
 
 =head1 Description
 
-The GType API is the foundation of the GObject system. It provides the facilities for registering and managing all fundamental data types, user-defined object and interface types.
+The GType API is the foundation of the GObject system. It provides the facilities for registering and managing all fundamental data types. To have a type stored next to its value. The class B<Gnome::GObject::Value> serves as a vehicle to get values in and out of an object. This class controls a C<N-GValue> object which has a type and a value.
 
-For type creation and registration purposes, all types fall into one of two categories: static or dynamic. Static types are never loaded or unloaded at run-time as dynamic types may be.
+The Glib types such as C<gint> and C<gfloat> are used to type variables and functions directly and are compiled to the proper sizes when used in code. These types are mapped to the C types like C<int> and C<float>. In the module B<Gnome::N::GlibToRakuTypes>, a mapping is made to be able to map the Glib types to the Raku types.
+
+=comment , user-defined object and interface types.
 
 =begin comment
+For type creation and registration purposes, all types fall into one of two categories: static or dynamic. Static types are never loaded or unloaded at run-time as dynamic types may be.
+
 Static types are created with C<g_type_register_static()> that gets type specific information passed in via a I<GTypeInfo> structure.
 
 Dynamic types are created with C<g_type_register_dynamic()> which takes a I<GTypePlugin> structure instead. The remaining type information (the I<GTypeInfo> structure) is retrieved during runtime through I<GTypePlugin> and the g_type_plugin_*() API.
@@ -27,9 +31,9 @@ These registration functions are usually called only once from a function whose 
 There is also a third registration function for registering fundamental types called C<g_type_register_fundamental()> which requires both a I<GTypeInfo> structure and a I<GTypeFundamentalInfo> structure but it is seldom used since most fundamental types are predefined rather than user-defined.
 
 Type instance and class structs are limited to a total of 64 KiB, including all parent types. Similarly, type instances' private data (as created by C<G_ADD_PRIVATE()>) are limited to a total of 64 KiB. If a type instance needs a large static buffer, allocate it separately (typically by using I<GArray> or I<GPtrArray>) and put a pointer to the buffer in the structure.
-=end comment
 
 As mentioned in the [GType conventions](https://developer.gnome.org/gobject/stable/gtype-conventions.html), type names must be at least three characters long. There is no upper length limit. The first character must be a letter (a–z or A–Z) or an underscore (‘_’). Subsequent characters can be letters, numbers or any of ‘-_+’.
+=end comment
 
 
 =head1 Synopsis
@@ -52,13 +56,7 @@ use Gnome::N::GlibToRakuTypes;
 #use Gnome::GObject::Value;
 
 #-------------------------------------------------------------------------------
-# See /usr/include/glib-2.0/gtypes.h
-# https://developer.gnome.org/gobject/stable/gobject-Type-Information.html
-# https://developer.gnome.org/glib/stable/glib-Basic-Types.html
-unit class Gnome::GObject::Type:auth<github:MARTIMM>:ver<0.2.0>;
-
-#my native gint is repr('P6int') is Int is nativesize(32) { }
-#my native guint is repr('P6int') is Int is nativesize(32) { }
+unit class Gnome::GObject::Type:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 #`{{
@@ -257,6 +255,58 @@ class N-GTypeValueTable is export is repr('CStruct') {
 }}
 
 #-------------------------------------------------------------------------------
+=begin pod
+=head2 Type names
+
+=item G_TYPE_CHAR; An 8 bit integer.
+=item G_TYPE_UCHAR; An 8 bit unsigned integer.
+=item G_TYPE_BOOLEAN; A boolean. This is the size of an int32.
+=item G_TYPE_INT; An integer, also the size of an int32.
+=item G_TYPE_UINT; An unsigned integer.
+=item G_TYPE_LONG; A larger type integer.
+=item G_TYPE_ULONG; A larger type unsigned integer.
+=item G_TYPE_INT64; A larger type integer.
+=item G_TYPE_UINT64; A larger type unsigned integer.
+=item G_TYPE_ENUM; An integer used for C enumerations.
+=item G_TYPE_FLAGS; An integer used for bitmap flags.
+=item G_TYPE_FLOAT; A floating point value.
+=item G_TYPE_DOUBLE; A large floating point value.
+=item G_TYPE_STRING; A string.
+=comment item G_TYPE_POINTER. 
+=comment item G_TYPE_BOXED
+=comment item G_TYPE_PARAM
+=item G_TYPE_OBJECT; A gnome object.
+=item G_TYPE_VARIANT; A variant. See also B<Gnome::Glib::Variant>.
+
+To show the glib types together with the Raku types and the type names mentioned above a small table is shown below;
+
+=begin table
+
+  Type name       | Glib type | Raku type
+  =======================================
+  G_TYPE_CHAR     | gchar     | int8
+  G_TYPE_UCHAR    | guchar    | uint8
+  G_TYPE_BOOLEAN  | gboolean  | int32
+  G_TYPE_INT      | gint      | int32
+  G_TYPE_UINT     | guint     | uint32
+  G_TYPE_LONG     | glong     | int64
+  G_TYPE_ULONG    | gulong    | uint64
+  G_TYPE_INT64    | gint64    | int64
+  G_TYPE_UINT64   | guint64   | uint64
+  G_TYPE_ENUM     | GEnum     | int32
+  G_TYPE_FLAGS    | GFlag     | uint32
+  G_TYPE_FLOAT    | gfloat    | num32
+  G_TYPE_DOUBLE   | gdouble   | num64
+  G_TYPE_STRING   | gchar-ptr | Str
+  G_TYPE_OBJECT   | -         | B<Gnome::GObject::Object>
+  G_TYPE_VARIANT  | -         | B<Gnome::Glib::Variant>.
+
+Some types might have a longer or shorter size depending on the OS Raku is running on. It is a reflection of the C macro types of the C compiler include files. So to use the proper types, always use the glib type instead of the Raku type which are generated at Build time when B<Gnome::N> is installed.
+
+=end table
+
+=end pod
+
 #define	G_TYPE_FUNDAMENTAL_SHIFT (2)
 constant G_TYPE_FUNDAMENTAL_SHIFT = 2;
 

@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-11-14 0.19.11
+  * Added documentation to **Gnome::GObject::Type**.
+  
 * 2022-10-13 0.19.10
   * File extensions renamed
 
