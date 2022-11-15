@@ -276,12 +276,11 @@ class N-GTypeValueTable is export is repr('CStruct') {
 =comment item G_TYPE_BOXED
 =comment item G_TYPE_PARAM
 =item G_TYPE_OBJECT; A gnome object.
-=item G_TYPE_VARIANT; A variant. See also B<Gnome::Glib::Variant>.
+=item G_TYPE_VARIANT; A variant.
 
 To show the glib types together with the Raku types and the type names mentioned above a small table is shown below;
 
 =begin table
-
   Type name       | Glib type | Raku type
   =======================================
   G_TYPE_CHAR     | gchar     | int8
@@ -298,12 +297,11 @@ To show the glib types together with the Raku types and the type names mentioned
   G_TYPE_FLOAT    | gfloat    | num32
   G_TYPE_DOUBLE   | gdouble   | num64
   G_TYPE_STRING   | gchar-ptr | Str
-  G_TYPE_OBJECT   | -         | B<Gnome::GObject::Object>
-  G_TYPE_VARIANT  | -         | B<Gnome::Glib::Variant>.
-
-Some types might have a longer or shorter size depending on the OS Raku is running on. It is a reflection of the C macro types of the C compiler include files. So to use the proper types, always use the glib type instead of the Raku type which are generated at Build time when B<Gnome::N> is installed.
-
+  G_TYPE_OBJECT   | -         | Gnome::GObject::Object
+  G_TYPE_VARIANT  | -         | Gnome::Glib::Variant
 =end table
+
+Some types might have a longer or shorter size depending on the OS Raku is running on. It is a reflection of the C macro types of the C compiler include files. So to use the proper types, always use the glib type instead of the Raku type which are generated in the B<Gnome::N::GlibToRakuTypes> module at Build time when C<Gnome::N> is installed.
 
 =end pod
 
