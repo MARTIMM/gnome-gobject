@@ -184,6 +184,27 @@ class N-GFlagsValue is export is repr('CStruct') {
 }}
 
 #-------------------------------------------------------------------------------
+has Hash $.map-type-to-method = %(
+  G_TYPE_BOOLEAN.Str => 'get-boolean',
+  G_TYPE_DOUBLE.Str => 'get-double',
+  G_TYPE_ENUM.Str => 'get-enum',
+  G_TYPE_FLAGS.Str => 'get-flags',
+  G_TYPE_FLOAT.Str => 'get-float',
+#   => get-gtype,
+  G_TYPE_INT.Str => 'get-int',
+  G_TYPE_INT64.Str => 'get-int64',
+  G_TYPE_LONG.Str => 'get-long',
+#   => get-pointer,
+#   => get-schar,
+  G_TYPE_STRING.Str => 'get-string',
+  G_TYPE_UCHAR.Str => 'get-uchar',
+  G_TYPE_UINT.Str => 'get-uint',
+  G_TYPE_UINT64.Str => 'get-uint64',
+  G_TYPE_ULONG.Str => 'get-ulong',
+#   => get-variant,
+);
+
+#-------------------------------------------------------------------------------
 #TODO add $!value-is-valid flag
 #-------------------------------------------------------------------------------
 =begin pod
