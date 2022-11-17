@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-11-16 0.19.12
+  * Added a map to convert a type name to a method name. Used internally. Hash $.map-type-to-method
+  
 * 2022-11-14 0.19.11
   * Added documentation to **Gnome::GObject::Type**.
   
