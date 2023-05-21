@@ -114,7 +114,7 @@ use Gnome::GObject::Closure;
 #use Gnome::GObject::Param;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::GObject::Object:auth<github:MARTIMM>:ver<0.3.0>;
+unit class Gnome::GObject::Object:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
 also does Gnome::GObject::Signal;
 
@@ -359,11 +359,11 @@ method add-signal-types ( Str $module-name, *%signal-descriptions --> Bool ) {
       }
 
       # TODO cleanup deprecated and not supported
-      elsif $signal-type ~~ any(<deprecated>) {
+      elsif $signal-type eq 'deprecated' {
         note "  $signal-name is deprecated" if $Gnome::N::x-debug;
       }
 
-      elsif $signal-type ~~ any(<notsupported deprecated>) {
+      elsif $signal-type eq 'notsupported' {
         note "  $signal-name is not supported" if $Gnome::N::x-debug;
       }
 
@@ -856,10 +856,11 @@ $signal-name; The name of the event to be handled. Each gtk object has its own s
 %user-options; Any other user data in whatever type provided as one or more named arguments. These arguments are provided to the user handler when an event for the handler is fired. The names starting with '_' are reserved to provide other info to the user.
 
 The following reserved named arguments are available;
+  =item C<:$_widget>; The instance which registered the signal.
   =item C<:$_handler-id>; The handler id which is returned from the registration
   =item C<:$_native-object>; The native object provided by the caller.
   =begin code
-    method some-handler (
+    method some-button-click-handler (
       …,
       Gnome::Gtk3::Button() :_native-object($button)
     ) {
