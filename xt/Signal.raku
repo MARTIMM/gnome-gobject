@@ -4,24 +4,24 @@ use v6.d;
 #use lib '../../lib', 'lib';
 
 use NativeCall;
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::Gtk3::Main;
-use Gnome::Gtk3::Enums;
-use Gnome::Gtk3::Window;
-use Gnome::Gtk3::Grid;
-use Gnome::Gtk3::Button;
-use Gnome::Gtk3::Tooltip;
+use Gnome::Gtk3::Main:api<1>;
+use Gnome::Gtk3::Enums:api<1>;
+use Gnome::Gtk3::Window:api<1>;
+use Gnome::Gtk3::Grid:api<1>;
+use Gnome::Gtk3::Button:api<1>;
+use Gnome::Gtk3::Tooltip:api<1>;
 
-use Gnome::Gdk3::Events;
-use Gnome::Gdk3::Types;
-use Gnome::Gdk3::Keysyms;
+use Gnome::Gdk3::Events:api<1>;
+use Gnome::Gdk3::Types:api<1>;
+use Gnome::Gdk3::Keysyms:api<1>;
 
 
 my Gnome::Gtk3::Main $m .= new;
 
-#use Gnome::N::X;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 class AppSignalHandlers {

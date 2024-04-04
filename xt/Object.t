@@ -9,21 +9,21 @@ use NativeCall;
 use Test;
 #use trace;
 
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::GObject::Type;
-use Gnome::GObject::Value;
-use Gnome::GObject::Closure;
+use Gnome::GObject::Type:api<1>;
+use Gnome::GObject::Value:api<1>;
+use Gnome::GObject::Closure:api<1>;
 
-use Gnome::Gtk3::Window;
-use Gnome::Gtk3::Button;
-use Gnome::Gtk3::Image;
-use Gnome::Gtk3::Enums;
-use Gnome::Gtk3::Label;
-use Gnome::Gtk3::Adjustment;
+use Gnome::Gtk3::Window:api<1>;
+use Gnome::Gtk3::Button:api<1>;
+use Gnome::Gtk3::Image:api<1>;
+use Gnome::Gtk3::Enums:api<1>;
+use Gnome::Gtk3::Label:api<1>;
+use Gnome::Gtk3::Adjustment:api<1>;
 
-use Gnome::N::X;
+use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 use BSON;

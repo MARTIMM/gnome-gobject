@@ -4,11 +4,11 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::GObject::Value;
-use Gnome::GObject::Type;
-use Gnome::Gtk3::Label;
+use Gnome::GObject::Value:api<1>;
+use Gnome::GObject::Type:api<1>;
+use Gnome::Gtk3::Label:api<1>;
 
-#use Gnome::N::X;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------

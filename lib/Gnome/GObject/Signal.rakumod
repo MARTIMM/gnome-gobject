@@ -28,9 +28,9 @@ B<Gnome::GObject::Signal> is a role used by B<Gnome::GObject::Object> to provide
 =head2 Example
 
   use NativeCall;
-  use Gnome::N::N-GObject;
-  use Gnome::Gdk3::Events;
-  use Gnome::Gtk3::Window;
+  use Gnome::N::N-GObject:api<1>;
+  use Gnome::Gdk3::Events:api<1>;
+  use Gnome::Gtk3::Window:api<1>;
 
   # Create a window object
   my Gnome::Gtk3::Window $w .= new( … );
@@ -48,8 +48,8 @@ B<Gnome::GObject::Signal> is a role used by B<Gnome::GObject::Object> to provide
 
 The other option to connect a signal is to use the C<register-signal()> method defined in B<Gnome::GObject::Object>. It all depends on how elaborate things are or your taste.
 
-  use Gnome::Gdk3::Events;
-  use Gnome::Gtk3::Window;
+  use Gnome::Gdk3::Events:api<1>;
+  use Gnome::Gtk3::Window:api<1>;
 
   class MyClass {
     # Define handler method. The handler API must describe all positional
@@ -74,16 +74,16 @@ When some of the primitive types are needed like C<gboolean> or C<guint>, you ca
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gobject/gsignal.h
 # /usr/include/glib-2.0/gobject/gobject.h
 # https://developer.gnome.org/gobject/stable/gobject-Signals.html
-unit role Gnome::GObject::Signal:auth<github:MARTIMM>;
+unit role Gnome::GObject::Signal:auth<github:MARTIMM>:api<1>;
 
 #-------------------------------------------------------------------------------
 #has N-GObject $!g-object;
@@ -294,7 +294,7 @@ Emits a signal. Note that C<g_signal_emit_by_name()> resets the return value to 
 =head3 An example
 
 =begin code
-  use Gnome::N::GlibToRakuTypes;
+  use Gnome::N::GlibToRakuTypes:api<1>;
   ...
 
   # The extra argument here is $toggle

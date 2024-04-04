@@ -4,17 +4,17 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::N-GObject:api<1>;
 
-use Gnome::Glib::Quark;
+use Gnome::Glib::Quark:api<1>;
 
-use Gnome::GObject::Type;
-use Gnome::GObject::Object;
+use Gnome::GObject::Type:api<1>;
+use Gnome::GObject::Object:api<1>;
 
-use Gnome::Gtk3::Button;
+use Gnome::Gtk3::Button:api<1>;
 
-#use Gnome::N::X;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------

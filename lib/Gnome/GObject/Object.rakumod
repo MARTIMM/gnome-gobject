@@ -80,10 +80,10 @@ I<GParamSpecObject>, C<g_param_spec_object()>
 
 This object is almost never used directly. Many classes inherit from this class. The below example shows how label text is set on a button using properties. This can be made much simpler by setting this label directly in the init of B<Gnome::Gtk3::Button>. The purpose of this example, however, is that there might be other properties which can only be set this way.
 
-  use Gnome::GObject::Object;
-  use Gnome::GObject::Value;
-  use Gnome::GObject::Type;
-  use Gnome::Gtk3::Button;
+  use Gnome::GObject::Object:api<1>;
+  use Gnome::GObject::Value:api<1>;
+  use Gnome::GObject::Type:api<1>;
+  use Gnome::Gtk3::Button:api<1>;
 
   my Gnome::GObject::Value $gv .= new(:init(G_TYPE_STRING));
 
@@ -98,23 +98,23 @@ This object is almost never used directly. Many classes inherit from this class.
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::Glib::MainLoop;
-use Gnome::Glib::MainContext;
+use Gnome::Glib::MainLoop:api<1>;
+use Gnome::Glib::MainContext:api<1>;
 
-use Gnome::GObject::Signal;
-use Gnome::GObject::Type;
-use Gnome::GObject::Value;
-use Gnome::GObject::Closure;
-#use Gnome::GObject::Param;
+use Gnome::GObject::Signal:api<1>;
+use Gnome::GObject::Type:api<1>;
+use Gnome::GObject::Value:api<1>;
+use Gnome::GObject::Closure:api<1>;
+#use Gnome::GObject::Param:api<1>;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::GObject::Object:auth<github:MARTIMM>;
+unit class Gnome::GObject::Object:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 also does Gnome::GObject::Signal;
 
@@ -167,7 +167,9 @@ submethod BUILD ( *%options ) {
     # Application from Gtk3 inherits from Gio, so this test is always ok.
     ?(self.^mro[0..*-3].gist ~~ m/'(Application) (Object)'/);
 
+note "go $?LINE";
   unless $may-not-initialize-gui {
+note "go $?LINE";
     if not $gui-initialized #`{{and !%options<skip-init>}} {
       # must setup gtk otherwise Raku will crash
       my $argc = int-ptr.new;

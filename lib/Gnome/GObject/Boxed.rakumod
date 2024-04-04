@@ -22,7 +22,7 @@ GBoxed is designed so that reference counted types can be boxed. Use the type’
 =head1 Synopsis
 =head2 Declaration
 
-  unit class Gnome::GObject::Boxed:auth<github:MARTIMM>;
+  unit class Gnome::GObject::Boxed:auth<github:MARTIMM>:api<1>;
   also is Gnome::N::TopLevelClassSupport;
 
 
@@ -37,15 +37,15 @@ GBoxed is designed so that reference counted types can be boxed. Use the type’
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-#use Gnome::N::N-GObject;
-use Gnome::N::TopLevelClassSupport;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+#use Gnome::N::N-GObject:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gboxed.h
 # https://developer.gnome.org/gobject/stable/gobject-Boxed-Types.html
-unit class Gnome::GObject::Boxed:auth<github:MARTIMM>:ver<0.2.0>;
+unit class Gnome::GObject::Boxed:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #`{{

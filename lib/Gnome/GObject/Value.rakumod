@@ -95,13 +95,13 @@ main (int   argc,
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-#use Gnome::N::N-GValue;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+#use Gnome::N::N-GValue:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::GObject::Type;
-use Gnome::GObject::Boxed;
+use Gnome::GObject::Type:api<1>;
+use Gnome::GObject::Boxed:api<1>;
 
 #-------------------------------------------------------------------------------
 # gvalue.h / .c
@@ -111,7 +111,7 @@ use Gnome::GObject::Boxed;
 # https://developer.gnome.org/gobject/stable/gobject-Generic-values.html
 # https://developer.gnome.org/gobject/stable/gobject-Standard-Parameter-and-Value-Types.html
 # https://developer.gnome.org/gobject/stable/gobject-Enumeration-and-Flag-Types.html
-unit class Gnome::GObject::Value:auth<github:MARTIMM>:ver<0.2.0>;
+unit class Gnome::GObject::Value:auth<github:MARTIMM>:api<1>;
 also is Gnome::GObject::Boxed;
 
 #-------------------------------------------------------------------------------

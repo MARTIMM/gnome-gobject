@@ -4,15 +4,15 @@
 
 use v6;
 
-use Gnome::Gtk3::Window;
-use Gnome::Gtk3::Tooltip;
-use Gnome::Gtk3::Main;
+use Gnome::Gtk3::Window:api<1>;
+use Gnome::Gtk3::Tooltip:api<1>;
+use Gnome::Gtk3::Main:api<1>;
 
-use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-#use Gnome::N::X;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 my Gnome::Gtk3::Main $m .= new;

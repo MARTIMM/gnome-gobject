@@ -2,18 +2,18 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::GObject::Value;
-use Gnome::GObject::Type;
+use Gnome::GObject::Value:api<1>;
+use Gnome::GObject::Type:api<1>;
 
-use Gnome::N::NativeLib;
-use Gnome::N::GlibToRakuTypes;
-use Gnome::N::N-GObject;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
+use Gnome::N::N-GObject:api<1>;
 
-use Gnome::Gtk3::Label;
-use Gnome::Gtk3::Entry;
-use Gnome::Gtk3::Enums;
+use Gnome::Gtk3::Label:api<1>;
+use Gnome::Gtk3::Entry:api<1>;
+use Gnome::Gtk3::Enums:api<1>;
 
-#use Gnome::N::X;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------

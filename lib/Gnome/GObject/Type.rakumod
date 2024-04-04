@@ -48,15 +48,15 @@ As mentioned in the [GType conventions](https://developer.gnome.org/gobject/stab
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-#use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
+#use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-#use Gnome::GObject::Value;
+#use Gnome::GObject::Value:api<1>;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::GObject::Type:auth<github:MARTIMM>;
+unit class Gnome::GObject::Type:auth<github:MARTIMM>:api<1>;
 
 #-------------------------------------------------------------------------------
 #`{{

@@ -1,9 +1,9 @@
 use v6;
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::GObject::Object;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::GObject::Object:api<1>;
 
 #-------------------------------------------------------------------------------
 # No documentation, only from object hierarchy
