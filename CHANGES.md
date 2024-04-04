@@ -1,4 +1,7 @@
 ## Release notes
+* 2024-04-04 0.20.0
+  * Add `:api<1>` to all class names. Use statements loading the gnome libs have also the api<1> added. Api 1 is also added the 'META6.json' as well as to the dependencies of other gnome modules.
+
 * 2022-11-16 0.19.12
   * Added a map to convert a type name to a method name. Used internally. Hash $.map-type-to-method
   

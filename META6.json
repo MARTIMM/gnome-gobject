@@ -1,11 +1,15 @@
 {
-  "description": "Raku - Gnome GObject Interface, Please install Gnome::Gtk3",
+  "description": "Raku - Gnome GObject Interface",
   "name": "Gnome::GObject",
-  "version": "0.19.12",
+  "version": "0.20.0",
   "authors": [ "Marcel Timmerman"],
+  "auth": "cpan:MARTIMM",
   "tags": [ "gnome", "glib", "gobject"],
+  "api": "1",
 
-  "perl": "6",
+  "meta-version": "2",
+  "perl": "6.d",
+  "raku": "6.d",
   "license": "Artistic-2.0",
 
   "provides": {
@@ -20,7 +24,10 @@
 
   "source-url": "git://github.com/MARTIMM/gnome-gobject.git",
 
-  "depends": [ "Gnome::N", "Gnome::Glib"],
+  "depends": [
+    "Gnome::N:api<1>",
+    "Gnome::Glib:api<1>"
+  ],
   "test-depends": [ ],
   "build-depends": [ ],
   "resources": [ ]
