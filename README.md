@@ -20,7 +20,7 @@ Note that all modules are now in `:api<1>`. This is done to prevent clashes with
 # Installation
 Do not install this package on its own. Instead install `Gnome::Gtk3:api<1>`.
 
-`zef install Gnome::Gtk3:api<1>`
+`zef install 'Gnome::Gtk3:api<1>'`
 
 # Author
 
