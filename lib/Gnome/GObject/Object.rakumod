@@ -167,9 +167,9 @@ submethod BUILD ( *%options ) {
     # Application from Gtk3 inherits from Gio, so this test is always ok.
     ?(self.^mro[0..*-3].gist ~~ m/'(Application) (Object)'/);
 
-note "go $?LINE";
+#note "go $?LINE";
   unless $may-not-initialize-gui {
-note "go $?LINE";
+#note "go $?LINE";
     if not $gui-initialized #`{{and !%options<skip-init>}} {
       # must setup gtk otherwise Raku will crash
       my $argc = int-ptr.new;
